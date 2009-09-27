@@ -2,13 +2,13 @@ require 'helper'
 
 module Psych
   class TestParser < Test::Unit::TestCase
-    class EventCatcher < Parser::Handler
+    class EventCatcher < Handler
       attr_reader :calls
       def initialize
         @calls = []
       end
 
-      (Parser::Handler.instance_methods(true) -
+      (Handler.instance_methods(true) -
        Object.instance_methods).each do |m|
         class_eval %{
           def #{m} *args

@@ -1,5 +1,3 @@
-require 'psych/parser/handler'
-
 module Psych
   ###
   # YAML parser class.

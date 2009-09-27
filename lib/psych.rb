@@ -1,3 +1,4 @@
+require 'psych/handler'
 require 'psych/parser'
 require 'psych/psych'
 
