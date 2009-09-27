@@ -9,8 +9,8 @@ static VALUE parse_string(VALUE self, VALUE string)
 
   yaml_parser_set_input_string(
       &parser,
-      StringValuePtr(string),
-      RSTRING_LEN(string)
+      (const unsigned char *)StringValuePtr(string),
+      (size_t)RSTRING_LEN(string)
   );
 
   int done = 0;
@@ -48,8 +48,8 @@ static VALUE parse_string(VALUE self, VALUE string)
               event.data.document_start.tag_directives.end;
             for(; start != end; start++) {
               VALUE pair = rb_ary_new3((long)2,
-                  start->handle ? rb_str_new2(start->handle) : Qnil,
-                  start->prefix ? rb_str_new2(start->prefix) : Qnil
+                  start->handle ? rb_str_new2((const char *)start->handle) : Qnil,
+                  start->prefix ? rb_str_new2((const char *)start->prefix) : Qnil
               );
               rb_ary_push(tag_directives, pair);
             }
@@ -68,15 +68,15 @@ static VALUE parse_string(VALUE self, VALUE string)
       case YAML_ALIAS_EVENT:
         rb_funcall(handler, rb_intern("alias"), 1,
           event.data.alias.anchor ?
-          rb_str_new2(event.data.alias.anchor) :
+          rb_str_new2((const char *)event.data.alias.anchor) :
           Qnil
         );
         break;
       case YAML_SCALAR_EVENT:
         {
           VALUE val = rb_str_new(
-              event.data.scalar.value,
-              event.data.scalar.length
+              (const char *)event.data.scalar.value,
+              (long)event.data.scalar.length
           );
           rb_funcall(handler, rb_intern("scalar"), 1, val);
         }
