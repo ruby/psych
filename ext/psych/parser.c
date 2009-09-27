@@ -78,7 +78,12 @@ static VALUE parse_string(VALUE self, VALUE string)
               (const char *)event.data.scalar.value,
               (long)event.data.scalar.length
           );
-          rb_funcall(handler, rb_intern("scalar"), 1, val);
+
+          VALUE tag = event.data.scalar.tag ?
+            rb_str_new2((const char *)event.data.scalar.tag) :
+            Qnil;
+
+          rb_funcall(handler, rb_intern("scalar"), 2, tag, val);
         }
         break;
       case YAML_STREAM_END_EVENT:

@@ -28,6 +28,11 @@ module Psych
       assert_called :scalar, ['foo']
     end
 
+    def test_scalar_with_tag
+      @parser.parse("---\n!!str foo\n")
+      assert_called :scalar, ['tag:yaml.org,2002:str', 'foo']
+    end
+
     def test_alias
       @parser.parse(<<-eoyml)
 %YAML 1.1
@@ -75,8 +80,10 @@ module Psych
 
     def assert_called call, with = nil, parser = @parser
       if with
-        assert(
-          parser.handler.calls.any? { |x| x.compact == [call, with] },
+        call = parser.handler.calls.find { |x|
+          x.first == call && x.last.compact == with
+        }
+        assert(call,
           "#{[call,with].inspect} not in #{parser.handler.calls.inspect}"
         )
       else
