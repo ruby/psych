@@ -143,6 +143,9 @@ static VALUE parse_string(VALUE self, VALUE string)
       case YAML_MAPPING_END_EVENT:
         rb_funcall(handler, rb_intern("end_mapping"), 0);
         break;
+      case YAML_NO_EVENT:
+        rb_funcall(handler, rb_intern("empty"), 0);
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;

@@ -51,6 +51,12 @@ module Psych
       end
 
       ###
+      # Called when an empty event happens. (Which, as far as I can tell, is
+      # never).
+      def empty
+      end
+
+      ###
       # Called when the YAML stream ends
       def end_stream
       end
