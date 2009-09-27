@@ -40,7 +40,14 @@ module Psych
       def end_sequence
       end
 
+      ###
+      # Called when a map starts
       def start_mapping anchor = nil, tag = nil, implicit = true, style = BLOCK_MAPPING_STYLE
+      end
+
+      ###
+      # Called when a map ends
+      def end_mapping
       end
 
       ###

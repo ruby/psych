@@ -24,6 +24,11 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_mapping_end
+      @parser.parse("---\n!!map { key: value }")
+      assert_called :end_mapping
+    end
+
     def test_mapping_tag
       @parser.parse("---\n!!map { key: value }")
       assert_called :start_mapping, ["tag:yaml.org,2002:map", false, FLOW_MAPPING_STYLE]
