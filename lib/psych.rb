@@ -19,6 +19,11 @@ module Psych
   LITERAL_SCALAR_STYLE        = 4
   FOLDED_SCALAR_STYLE         = 5
 
+  # Sequence Styles
+  ANY_SEQUENCE_STYLE    = 0
+  BLOCK_SEQUENCE_STYLE  = 1
+  FLOW_SEQUENCE_STYLE   = 2
+
   def self.parse thing
     Psych::Parser.new.parse thing
   end

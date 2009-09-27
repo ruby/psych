@@ -24,6 +24,26 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_sequence_start_anchor
+      @parser.parse("---\n&A [1, 2]")
+      assert_called :start_sequence, ["A", true, FLOW_SEQUENCE_STYLE]
+    end
+
+    def test_sequence_start_tag
+      @parser.parse("---\n!!seq [1, 2]")
+      assert_called :start_sequence, ["tag:yaml.org,2002:seq", false, FLOW_SEQUENCE_STYLE]
+    end
+
+    def test_sequence_start_flow
+      @parser.parse("---\n[1, 2]")
+      assert_called :start_sequence, [true, FLOW_SEQUENCE_STYLE]
+    end
+
+    def test_sequence_start_block
+      @parser.parse("---\n  - 1\n  - 2")
+      assert_called :start_sequence, [true, BLOCK_SEQUENCE_STYLE]
+    end
+
     def test_literal_scalar
       @parser.parse(<<-eoyml)
 %YAML 1.1

@@ -99,6 +99,25 @@ static VALUE parse_string(VALUE self, VALUE string)
               val, anchor, tag, plain_implicit, quoted_implicit, style);
         }
         break;
+      case YAML_SEQUENCE_START_EVENT:
+        {
+          VALUE anchor = event.data.sequence_start.anchor ?
+            rb_str_new2((const char *)event.data.sequence_start.anchor) :
+            Qnil;
+
+          VALUE tag = event.data.sequence_start.tag ?
+            rb_str_new2((const char *)event.data.sequence_start.tag) :
+            Qnil;
+
+          VALUE implicit =
+            event.data.sequence_start.implicit == 0 ? Qfalse : Qtrue;
+
+          VALUE style = INT2NUM((long)event.data.sequence_start.style);
+
+          rb_funcall(handler, rb_intern("start_sequence"), 4,
+              anchor, tag, implicit, style);
+        }
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;
