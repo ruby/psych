@@ -33,9 +33,19 @@ module Psych
       assert_called :start_stream
     end
 
-    def test_start_document_implicit
+    def test_end_document_implicit
       @parser.parse("\"foo\"\n")
-      assert_called :start_document, [[], [], true]
+      assert_called :end_document, [true]
+    end
+
+    def test_end_document_explicit
+      @parser.parse("\"foo\"\n")
+      assert_called :end_document, [true]
+    end
+
+    def test_start_document_implicit
+      @parser.parse("\"foo\"\n...")
+      assert_called :end_document, [false]
     end
 
     def test_start_document_version

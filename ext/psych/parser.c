@@ -60,6 +60,11 @@ static VALUE parse_string(VALUE self, VALUE string)
           );
         }
         break;
+      case YAML_DOCUMENT_END_EVENT:
+        rb_funcall(handler, rb_intern("end_document"), 1,
+            event.data.document_end.implicit == 1 ? Qtrue : Qfalse
+        );
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;

@@ -15,6 +15,11 @@ module Psych
       end
 
       ###
+      # Called with the document ends.
+      def end_document implicit = true
+      end
+
+      ###
       # Called when the YAML stream ends
       def end_stream
       end
