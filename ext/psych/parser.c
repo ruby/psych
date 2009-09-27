@@ -72,6 +72,15 @@ static VALUE parse_string(VALUE self, VALUE string)
           Qnil
         );
         break;
+      case YAML_SCALAR_EVENT:
+        {
+          VALUE val = rb_str_new(
+              event.data.scalar.value,
+              event.data.scalar.length
+          );
+          rb_funcall(handler, rb_intern("scalar"), 1, val);
+        }
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;

@@ -23,6 +23,11 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_scalar
+      @parser.parse("--- foo\n")
+      assert_called :scalar, ['foo']
+    end
+
     def test_alias
       @parser.parse(<<-eoyml)
 %YAML 1.1
@@ -71,7 +76,7 @@ module Psych
     def assert_called call, with = nil, parser = @parser
       if with
         assert(
-          parser.handler.calls.any? { |x| x == [call, with] },
+          parser.handler.calls.any? { |x| x.compact == [call, with] },
           "#{[call,with].inspect} not in #{parser.handler.calls.inspect}"
         )
       else

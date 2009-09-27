@@ -25,6 +25,11 @@ module Psych
       end
 
       ###
+      # Called when a scalar +value+ is found
+      def scalar value
+      end
+
+      ###
       # Called when the YAML stream ends
       def end_stream
       end
