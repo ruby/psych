@@ -24,6 +24,12 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_mapping_start
+      @parser.parse("---\n{ key: value }")
+      assert_called :start_mapping
+      assert_called :start_mapping, [true, FLOW_MAPPING_STYLE]
+    end
+
     def test_sequence_end
       @parser.parse("---\n&A [1, 2]")
       assert_called :end_sequence

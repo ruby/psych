@@ -24,6 +24,11 @@ module Psych
   BLOCK_SEQUENCE_STYLE  = 1
   FLOW_SEQUENCE_STYLE   = 2
 
+  # Mapping Styles
+  ANY_MAPPING_STYLE   = 0
+  BLOCK_MAPPING_STYLE = 1
+  FLOW_MAPPING_STYLE  = 2
+
   def self.parse thing
     Psych::Parser.new.parse thing
   end

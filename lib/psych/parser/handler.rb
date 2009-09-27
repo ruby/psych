@@ -40,6 +40,9 @@ module Psych
       def end_sequence
       end
 
+      def start_mapping anchor = nil, tag = nil, implicit = true, style = BLOCK_MAPPING_STYLE
+      end
+
       ###
       # Called when the YAML stream ends
       def end_stream

@@ -119,8 +119,27 @@ static VALUE parse_string(VALUE self, VALUE string)
         }
         break;
       case YAML_SEQUENCE_END_EVENT:
-          rb_funcall(handler, rb_intern("end_sequence"), 0);
-          break;
+        rb_funcall(handler, rb_intern("end_sequence"), 0);
+        break;
+      case YAML_MAPPING_START_EVENT:
+        {
+          VALUE anchor = event.data.mapping_start.anchor ?
+            rb_str_new2((const char *)event.data.mapping_start.anchor) :
+            Qnil;
+
+          VALUE tag = event.data.mapping_start.tag ?
+            rb_str_new2((const char *)event.data.mapping_start.tag) :
+            Qnil;
+
+          VALUE implicit =
+            event.data.mapping_start.implicit == 0 ? Qfalse : Qtrue;
+
+          VALUE style = INT2NUM((long)event.data.mapping_start.style);
+
+          rb_funcall(handler, rb_intern("start_mapping"), 4,
+              anchor, tag, implicit, style);
+        }
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;
