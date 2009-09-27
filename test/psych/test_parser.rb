@@ -33,14 +33,19 @@ module Psych
       assert_called :start_stream
     end
 
+    def test_start_document_implicit
+      @parser.parse("\"foo\"\n")
+      assert_called :start_document, [[], [], true]
+    end
+
     def test_start_document_version
       @parser.parse("%YAML 1.1\n---\n\"foo\"\n")
-      assert_called :start_document, [[1,1], []]
+      assert_called :start_document, [[1,1], [], false]
     end
 
     def test_start_document_tag
       @parser.parse("%TAG !yaml! tag:yaml.org,2002\n---\n!yaml!str \"foo\"\n")
-      assert_called :start_document, [[], [['!yaml!', 'tag:yaml.org,2002']]]
+      assert_called :start_document, [[], [['!yaml!', 'tag:yaml.org,2002']], false]
     end
 
     def assert_called call, with = nil, parser = @parser

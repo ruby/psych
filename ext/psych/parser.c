@@ -54,8 +54,10 @@ static VALUE parse_string(VALUE self, VALUE string)
               rb_ary_push(tag_directives, pair);
             }
           }
-          rb_funcall(handler, rb_intern("start_document"), 2,
-              version, tag_directives);
+          rb_funcall(handler, rb_intern("start_document"), 3,
+              version, tag_directives,
+              event.data.document_start.implicit == 1 ? Qtrue : Qfalse
+          );
         }
         break;
       case YAML_STREAM_END_EVENT:
