@@ -1,5 +1,8 @@
 #include <psych.h>
 
+VALUE cPsychParser;
+VALUE ePsychSyntaxError;
+
 static VALUE parse_string(VALUE self, VALUE string)
 {
   yaml_parser_t parser;
@@ -19,8 +22,12 @@ static VALUE parse_string(VALUE self, VALUE string)
 
   while(!done) {
     if(!yaml_parser_parse(&parser, &event)) {
+      size_t line   = parser.mark.line;
+      size_t column = parser.mark.column;
+
       yaml_parser_delete(&parser);
-      rb_raise(rb_eRuntimeError, "couldn't parse YAML");
+      rb_raise(ePsychSyntaxError, "couldn't parse YAML at line %d column %d",
+          line, column);
     }
 
     switch(event.type) {
@@ -156,11 +163,10 @@ static VALUE parse_string(VALUE self, VALUE string)
   return self;
 }
 
-VALUE cPsychParser;
-
 void Init_psych_parser()
 {
   cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
+  ePsychSyntaxError = rb_define_class_under(mPsych, "SyntaxError", rb_eSyntaxError);
 
   rb_define_private_method(cPsychParser, "parse_string", parse_string, 1);
 }
