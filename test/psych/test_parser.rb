@@ -33,14 +33,22 @@ module Psych
       assert_called :start_stream
     end
 
-    def test_start_document
+    def test_start_document_version
       @parser.parse("%YAML 1.1\n---\n\"foo\"\n")
-      assert_called :start_document, [[1,1]]
+      assert_called :start_document, [[1,1], []]
+    end
+
+    def test_start_document_tag
+      @parser.parse("%TAG !yaml! tag:yaml.org,2002\n---\n!yaml!str \"foo\"\n")
+      assert_called :start_document, [[], [['!yaml!', 'tag:yaml.org,2002']]]
     end
 
     def assert_called call, with = nil, parser = @parser
       if with
-        assert parser.handler.calls.any? { |x| x == [call, with] }
+        assert(
+          parser.handler.calls.any? { |x| x == [call, with] },
+          "#{[call,with].inspect} not in #{parser.handler.calls.inspect}"
+        )
       else
         assert parser.handler.calls.any? { |x| x.first == call }
       end

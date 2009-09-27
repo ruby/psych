@@ -9,8 +9,9 @@ module Psych
       end
 
       ###
-      # Called when the document starts with the declared +version+
-      def start_document version = []
+      # Called when the document starts with the declared +version+ and
+      # +tag_directives+
+      def start_document version = [], tag_directives = []
       end
 
       ###

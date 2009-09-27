@@ -31,13 +31,31 @@ static VALUE parse_string(VALUE self, VALUE string)
         break;
       case YAML_DOCUMENT_START_EVENT:
         {
+          // Grab the document version
           VALUE version = event.data.document_start.version_directive ?
             rb_ary_new3(
               (long)2,
               INT2NUM((long)event.data.document_start.version_directive->major),
               INT2NUM((long)event.data.document_start.version_directive->minor)
             ) : rb_ary_new();
-          rb_funcall(handler, rb_intern("start_document"), 1, version);
+
+          // Get a list of tag directives (if any)
+          VALUE tag_directives = rb_ary_new();
+          if(event.data.document_start.tag_directives.start) {
+            yaml_tag_directive_t *start =
+              event.data.document_start.tag_directives.start;
+            yaml_tag_directive_t *end =
+              event.data.document_start.tag_directives.end;
+            for(; start != end; start++) {
+              VALUE pair = rb_ary_new3((long)2,
+                  start->handle ? rb_str_new2(start->handle) : Qnil,
+                  start->prefix ? rb_str_new2(start->prefix) : Qnil
+              );
+              rb_ary_push(tag_directives, pair);
+            }
+          }
+          rb_funcall(handler, rb_intern("start_document"), 2,
+              version, tag_directives);
         }
         break;
       case YAML_STREAM_END_EVENT:
