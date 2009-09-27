@@ -20,22 +20,38 @@ module Psych
     end
 
     def setup
+      warn "#{name}" if ENV['TESTOPTS'] == '-v'
       @parser = Psych::Parser.new EventCatcher.new
+    end
+
+    def test_literal_scalar
+      @parser.parse(<<-eoyml)
+%YAML 1.1
+---
+"literal\n\
+        \ttext\n"
+      eoyml
+      assert_called :scalar, ['literal text ', false, true, 3]
     end
 
     def test_scalar
       @parser.parse("--- foo\n")
-      assert_called :scalar, ['foo']
+      assert_called :scalar, ['foo', true, false, 1]
     end
 
     def test_scalar_with_tag
       @parser.parse("---\n!!str foo\n")
-      assert_called :scalar, ['foo', 'tag:yaml.org,2002:str']
+      assert_called :scalar, ['foo', 'tag:yaml.org,2002:str', false, false, 1]
     end
 
     def test_scalar_with_anchor
       @parser.parse("---\n&A foo\n")
-      assert_called :scalar, ['foo', 'A']
+      assert_called :scalar, ['foo', 'A', true, false, 1]
+    end
+
+    def test_scalar_plain_implicit
+      @parser.parse("---\n&A foo\n")
+      assert_called :scalar, ['foo', 'A', true, false, 1]
     end
 
     def test_alias

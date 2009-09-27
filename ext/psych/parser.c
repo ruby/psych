@@ -87,7 +87,16 @@ static VALUE parse_string(VALUE self, VALUE string)
             rb_str_new2((const char *)event.data.scalar.tag) :
             Qnil;
 
-          rb_funcall(handler, rb_intern("scalar"), 3, val, anchor, tag);
+          VALUE plain_implicit =
+            event.data.scalar.plain_implicit == 0 ? Qfalse : Qtrue;
+
+          VALUE quoted_implicit =
+            event.data.scalar.quoted_implicit == 0 ? Qfalse : Qtrue;
+
+          VALUE style = INT2NUM((long)event.data.scalar.style);
+
+          rb_funcall(handler, rb_intern("scalar"), 6,
+              val, anchor, tag, plain_implicit, quoted_implicit, style);
         }
         break;
       case YAML_STREAM_END_EVENT:

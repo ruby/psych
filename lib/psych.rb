@@ -11,6 +11,14 @@ module Psych
   UTF16LE_ENCODING  = 3
   UTF16BE_ENCODING  = 4
 
+  # Scalar Styles
+  ANY_SCALAR_STYLE            = 0
+  PLAIN_SCALAR_STYLE          = 1
+  SINGLE_QUOTED_SCALAR_STYLE  = 2
+  DOUBLE_QUOTED_SCALAR_STYLE  = 3
+  LITERAL_SCALAR_STYLE        = 4
+  FOLDED_SCALAR_STYLE         = 5
+
   def self.parse thing
     Psych::Parser.new.parse thing
   end
