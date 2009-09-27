@@ -23,6 +23,21 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_alias
+      @parser.parse(<<-eoyml)
+%YAML 1.1
+---
+!!seq [
+  !!str "Without properties",
+  &A !!str "Anchored",
+  !!str "Tagged",
+  *A,
+  !!str "",
+]
+      eoyml
+      assert_called :alias, ['A']
+    end
+
     def test_end_stream
       @parser.parse("--- foo\n")
       assert_called :end_stream
@@ -31,11 +46,6 @@ module Psych
     def test_start_stream
       @parser.parse("--- foo\n")
       assert_called :start_stream
-    end
-
-    def test_end_document_implicit
-      @parser.parse("\"foo\"\n")
-      assert_called :end_document, [true]
     end
 
     def test_end_document_implicit

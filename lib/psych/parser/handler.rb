@@ -20,6 +20,11 @@ module Psych
       end
 
       ###
+      # Called when an alias is found to +anchor+
+      def alias anchor
+      end
+
+      ###
       # Called when the YAML stream ends
       def end_stream
       end

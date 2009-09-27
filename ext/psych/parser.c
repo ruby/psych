@@ -65,6 +65,13 @@ static VALUE parse_string(VALUE self, VALUE string)
             event.data.document_end.implicit == 1 ? Qtrue : Qfalse
         );
         break;
+      case YAML_ALIAS_EVENT:
+        rb_funcall(handler, rb_intern("alias"), 1,
+          event.data.alias.anchor ?
+          rb_str_new2(event.data.alias.anchor) :
+          Qnil
+        );
+        break;
       case YAML_STREAM_END_EVENT:
         rb_funcall(handler, rb_intern("end_stream"), 0);
         done = 1;
