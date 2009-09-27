@@ -1,0 +1,7 @@
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/psych
+lib/psych.rb
+test/test_psych.rb
