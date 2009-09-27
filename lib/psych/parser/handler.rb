@@ -36,6 +36,11 @@ module Psych
       end
 
       ###
+      # Called when a sequence ends.
+      def end_sequence
+      end
+
+      ###
       # Called when the YAML stream ends
       def end_stream
       end
