@@ -26,7 +26,7 @@ module Psych
 
       ###
       # Called when a scalar +value+ is found
-      def scalar tag, value
+      def scalar value, anchor = nil, tag = nil
       end
 
       ###

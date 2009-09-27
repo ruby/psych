@@ -30,7 +30,12 @@ module Psych
 
     def test_scalar_with_tag
       @parser.parse("---\n!!str foo\n")
-      assert_called :scalar, ['tag:yaml.org,2002:str', 'foo']
+      assert_called :scalar, ['foo', 'tag:yaml.org,2002:str']
+    end
+
+    def test_scalar_with_anchor
+      @parser.parse("---\n&A foo\n")
+      assert_called :scalar, ['foo', 'A']
     end
 
     def test_alias

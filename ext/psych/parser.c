@@ -79,11 +79,15 @@ static VALUE parse_string(VALUE self, VALUE string)
               (long)event.data.scalar.length
           );
 
+          VALUE anchor = event.data.scalar.anchor ?
+            rb_str_new2((const char *)event.data.scalar.anchor) :
+            Qnil;
+
           VALUE tag = event.data.scalar.tag ?
             rb_str_new2((const char *)event.data.scalar.tag) :
             Qnil;
 
-          rb_funcall(handler, rb_intern("scalar"), 2, tag, val);
+          rb_funcall(handler, rb_intern("scalar"), 3, val, anchor, tag);
         }
         break;
       case YAML_STREAM_END_EVENT:
