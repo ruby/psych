@@ -11,6 +11,10 @@ module Psych
       def initialize
         @children = []
       end
+
+      def to_ruby
+        Visitors::ToRuby.new.accept self
+      end
     end
   end
 end
