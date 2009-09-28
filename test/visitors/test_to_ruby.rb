@@ -28,6 +28,12 @@ module Psych
         mapping.children << Nodes::Scalar.new('bar')
         assert_equal({'foo' => 'bar'}, mapping.to_ruby)
       end
+
+      def test_document
+        doc = Nodes::Document.new
+        doc.children << Nodes::Scalar.new('foo')
+        assert_equal 'foo', doc.to_ruby
+      end
     end
   end
 end

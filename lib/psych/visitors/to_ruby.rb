@@ -14,6 +14,10 @@ module Psych
       visitor_for(Nodes::Mapping) do |o|
         Hash[*o.children.map { |c| c.accept self }]
       end
+
+      visitor_for(Nodes::Document) do |o|
+        o.root.accept self
+      end
     end
   end
 end
