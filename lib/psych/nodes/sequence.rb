@@ -26,7 +26,7 @@ module Psych
     #   ---
     #   !!seq [
     #     "This sequence",
-    #     "has an anchor"
+    #     "has a tag"
     #   ]
     #
     class Sequence < Psych::Nodes::Node
