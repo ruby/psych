@@ -18,6 +18,10 @@ module Psych
       visitor_for(Nodes::Document) do |o|
         o.root.accept self
       end
+
+      visitor_for(Nodes::Stream) do |o|
+        o.children.map { |c| c.accept self }
+      end
     end
   end
 end

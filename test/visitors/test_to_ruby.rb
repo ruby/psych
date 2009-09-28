@@ -34,6 +34,20 @@ module Psych
         doc.children << Nodes::Scalar.new('foo')
         assert_equal 'foo', doc.to_ruby
       end
+
+      def test_stream
+        a = Nodes::Document.new
+        a.children << Nodes::Scalar.new('foo')
+
+        b = Nodes::Document.new
+        b.children << Nodes::Scalar.new('bar')
+
+        stream = Nodes::Stream.new
+        stream.children << a
+        stream.children << b
+
+        assert_equal %w{ foo bar }, stream.to_ruby
+      end
     end
   end
 end
