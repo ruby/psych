@@ -6,6 +6,10 @@ module Psych
       visitor_for(Nodes::Scalar) do |o|
         o.value
       end
+
+      visitor_for(Nodes::Sequence) do |o|
+        o.children.map { |o| o.accept self }
+      end
     end
   end
 end
