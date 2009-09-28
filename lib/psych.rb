@@ -1,6 +1,7 @@
 require 'psych/nodes/node'
 require 'psych/nodes/stream'
 require 'psych/nodes/document'
+require 'psych/nodes/sequence'
 
 require 'psych/handler'
 require 'psych/tree_builder'
