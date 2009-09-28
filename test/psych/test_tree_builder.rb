@@ -12,7 +12,7 @@ module Psych
   bar : &A !!str baz,
   boo : *A
 }
-- baz
+- *A
       eoyml
       @tree = @parser.handler.root
     end
@@ -64,6 +64,14 @@ module Psych
       map = seq.children[1]
 
       assert_instance_of Nodes::Mapping, map
+    end
+
+    def test_alias
+      doc = @tree.children.first
+      seq = doc.children.first
+      al  = seq.children[2]
+      assert_instance_of Nodes::Alias, al
+      assert_equal 'A', al.anchor
     end
   end
 end

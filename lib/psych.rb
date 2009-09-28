@@ -4,6 +4,7 @@ require 'psych/nodes/document'
 require 'psych/nodes/sequence'
 require 'psych/nodes/scalar'
 require 'psych/nodes/mapping'
+require 'psych/nodes/alias'
 
 require 'psych/handler'
 require 'psych/tree_builder'

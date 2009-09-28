@@ -30,6 +30,7 @@ module Psych
         end
 
         def end_#{node.downcase}(*args)
+          super
           @stack.pop
         end
       }
@@ -43,6 +44,11 @@ module Psych
     def scalar(*args)
       super
       @stack.last.children << Nodes::Scalar.new(*args)
+    end
+
+    def alias(*args)
+      super
+      @stack.last.children << Nodes::Alias.new(*args)
     end
   end
 end
