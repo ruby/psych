@@ -3,6 +3,11 @@ module Psych
     ###
     # This class represents a {YAML Mapping}[http://yaml.org/spec/1.1/#mapping].
     class Mapping < Psych::Nodes::Node
+      # Mapping Styles
+      ANY   = 0
+      BLOCK = 1
+      FLOW  = 2
+
       # The optional anchor for this mapping
       attr_accessor :anchor
 
@@ -15,7 +20,7 @@ module Psych
       # The style of this mapping
       attr_accessor :style
 
-      def initialize anchor, tag, implicit, style
+      def initialize anchor = nil, tag = nil, implicit = true, style = BLOCK
         super()
         @anchor   = anchor
         @tag      = tag

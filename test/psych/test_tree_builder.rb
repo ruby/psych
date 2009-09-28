@@ -40,7 +40,7 @@ module Psych
       assert_nil seq.anchor
       assert_nil seq.tag
       assert_equal true, seq.implicit
-      assert_equal BLOCK_SEQUENCE_STYLE, seq.style
+      assert_equal Nodes::Sequence::BLOCK, seq.style
     end
 
     def test_scalar
@@ -55,7 +55,7 @@ module Psych
       assert_nil scalar.tag
       assert_equal true, scalar.plain
       assert_equal false, scalar.quoted
-      assert_equal PLAIN_SCALAR_STYLE, scalar.style
+      assert_equal Nodes::Scalar::PLAIN, scalar.style
     end
 
     def test_mapping

@@ -37,23 +37,23 @@ module Psych
 
     def test_mapping_tag
       @parser.parse("---\n!!map { key: value }")
-      assert_called :start_mapping, ["tag:yaml.org,2002:map", false, FLOW_MAPPING_STYLE]
+      assert_called :start_mapping, ["tag:yaml.org,2002:map", false, Nodes::Mapping::FLOW]
     end
 
     def test_mapping_anchor
       @parser.parse("---\n&A { key: value }")
-      assert_called :start_mapping, ['A', true, FLOW_MAPPING_STYLE]
+      assert_called :start_mapping, ['A', true, Nodes::Mapping::FLOW]
     end
 
     def test_mapping_block
       @parser.parse("---\n  key: value")
-      assert_called :start_mapping, [true, BLOCK_MAPPING_STYLE]
+      assert_called :start_mapping, [true, Nodes::Mapping::BLOCK]
     end
 
     def test_mapping_start
       @parser.parse("---\n{ key: value }")
       assert_called :start_mapping
-      assert_called :start_mapping, [true, FLOW_MAPPING_STYLE]
+      assert_called :start_mapping, [true, Nodes::Mapping::FLOW]
     end
 
     def test_sequence_end
@@ -63,22 +63,22 @@ module Psych
 
     def test_sequence_start_anchor
       @parser.parse("---\n&A [1, 2]")
-      assert_called :start_sequence, ["A", true, FLOW_SEQUENCE_STYLE]
+      assert_called :start_sequence, ["A", true, Nodes::Sequence::FLOW]
     end
 
     def test_sequence_start_tag
       @parser.parse("---\n!!seq [1, 2]")
-      assert_called :start_sequence, ["tag:yaml.org,2002:seq", false, FLOW_SEQUENCE_STYLE]
+      assert_called :start_sequence, ["tag:yaml.org,2002:seq", false, Nodes::Sequence::FLOW]
     end
 
     def test_sequence_start_flow
       @parser.parse("---\n[1, 2]")
-      assert_called :start_sequence, [true, FLOW_SEQUENCE_STYLE]
+      assert_called :start_sequence, [true, Nodes::Sequence::FLOW]
     end
 
     def test_sequence_start_block
       @parser.parse("---\n  - 1\n  - 2")
-      assert_called :start_sequence, [true, BLOCK_SEQUENCE_STYLE]
+      assert_called :start_sequence, [true, Nodes::Sequence::BLOCK]
     end
 
     def test_literal_scalar
@@ -88,27 +88,27 @@ module Psych
 "literal\n\
         \ttext\n"
       eoyml
-      assert_called :scalar, ['literal text ', false, true, 3]
+      assert_called :scalar, ['literal text ', false, true, Nodes::Scalar::DOUBLE_QUOTED]
     end
 
     def test_scalar
       @parser.parse("--- foo\n")
-      assert_called :scalar, ['foo', true, false, 1]
+      assert_called :scalar, ['foo', true, false, Nodes::Scalar::PLAIN]
     end
 
     def test_scalar_with_tag
       @parser.parse("---\n!!str foo\n")
-      assert_called :scalar, ['foo', 'tag:yaml.org,2002:str', false, false, 1]
+      assert_called :scalar, ['foo', 'tag:yaml.org,2002:str', false, false, Nodes::Scalar::PLAIN]
     end
 
     def test_scalar_with_anchor
       @parser.parse("---\n&A foo\n")
-      assert_called :scalar, ['foo', 'A', true, false, 1]
+      assert_called :scalar, ['foo', 'A', true, false, Nodes::Scalar::PLAIN]
     end
 
     def test_scalar_plain_implicit
       @parser.parse("---\n&A foo\n")
-      assert_called :scalar, ['foo', 'A', true, false, 1]
+      assert_called :scalar, ['foo', 'A', true, false, Nodes::Scalar::PLAIN]
     end
 
     def test_alias

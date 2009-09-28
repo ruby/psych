@@ -26,12 +26,12 @@ module Psych
     ###
     # Called when a scalar +value+ is found.  The scalar may have an
     # +anchor+, a +tag+, be implicitly +plain+ or implicitly +quoted+
-    def scalar value, anchor = nil, tag = nil, plain = true, quoted = true, style = ANY_SCALAR_STYLE
+    def scalar value, anchor, tag, plain, quoted, style
     end
 
     ###
     # Called when a sequence is started.
-    def start_sequence anchor = nil, tag = nil, implicit = true, style = BLOCK_SEQUENCE_STYLE
+    def start_sequence anchor, tag, implicit, style
     end
 
     ###
@@ -41,7 +41,7 @@ module Psych
 
     ###
     # Called when a map starts
-    def start_mapping anchor = nil, tag = nil, implicit = true, style = BLOCK_MAPPING_STYLE
+    def start_mapping anchor, tag, implicit, style
     end
 
     ###

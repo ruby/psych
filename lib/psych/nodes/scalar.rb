@@ -3,6 +3,14 @@ module Psych
     ###
     # This class represents a {YAML Scalar}[http://yaml.org/spec/1.1/#id858081].
     class Scalar < Psych::Nodes::Node
+      # Scalar Styles
+      ANY           = 0
+      PLAIN         = 1
+      SINGLE_QUOTED = 2
+      DOUBLE_QUOTED = 3
+      LITERAL       = 4
+      FOLDED        = 5
+
       # The scalar value
       attr_accessor :value
 
@@ -21,7 +29,7 @@ module Psych
       # The style of this scalar
       attr_accessor :style
 
-      def initialize value, anchor, tag, plain, quoted, style
+      def initialize value, anchor = nil, tag = nil, plain = true, quoted = true, style = ANY
         super()
         @value  = value
         @anchor = anchor

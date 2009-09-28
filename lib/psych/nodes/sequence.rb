@@ -30,6 +30,11 @@ module Psych
     #   ]
     #
     class Sequence < Psych::Nodes::Node
+      # Sequence Styles
+      ANY   = 0
+      BLOCK = 1
+      FLOW  = 2
+
       # The anchor for this sequence (if any)
       attr_accessor :anchor
 
@@ -42,7 +47,7 @@ module Psych
       # The sequece style used
       attr_accessor :style
 
-      def initialize anchor, tag, implicit, style
+      def initialize anchor = nil, tag = nil, implicit = true, style = BLOCK
         super()
         @anchor   = anchor
         @tag      = tag
