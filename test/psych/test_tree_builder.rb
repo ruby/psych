@@ -36,6 +36,10 @@ module Psych
 
       seq = doc.children.first
       assert_instance_of Nodes::Sequence, seq
+      assert_nil seq.anchor
+      assert_nil seq.tag
+      assert_equal true, seq.implicit
+      assert_equal BLOCK_SEQUENCE_STYLE, seq.style
     end
   end
 end
