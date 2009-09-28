@@ -16,23 +16,33 @@ module Psych
       @stack.first
     end
 
+    %w{
+      Document
+      Sequence
+      Mapping
+    }.each do |node|
+      class_eval %{
+        def start_#{node.downcase}(*args)
+          super
+          n = Nodes::#{node}.new(*args)
+          @stack.last.children << n
+          @stack.push n
+        end
+
+        def end_#{node.downcase}(*args)
+          @stack.pop
+        end
+      }
+    end
+
     def start_stream encoding
       super
       @stack.push Nodes::Stream.new encoding
     end
 
-    def start_document version = [], tag_directives = [], implicit = true
+    def scalar(*args)
       super
-      doc = Nodes::Document.new version, tag_directives, implicit
-      @stack.last.children << doc
-      @stack.push doc
-    end
-
-    def start_sequence anchor = nil, tag = nil, implicit = true, style = BLOCK_SEQUENCE_STYLE
-      super
-      seq = Nodes::Sequence.new anchor, tag, implicit, style
-      @stack.last.children << seq
-      @stack.push seq
+      @stack.last.children << Nodes::Scalar.new(*args)
     end
   end
 end

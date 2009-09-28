@@ -12,6 +12,7 @@ module Psych
   bar : &A !!str baz,
   boo : *A
 }
+- baz
       eoyml
       @tree = @parser.handler.root
     end
@@ -40,6 +41,29 @@ module Psych
       assert_nil seq.tag
       assert_equal true, seq.implicit
       assert_equal BLOCK_SEQUENCE_STYLE, seq.style
+    end
+
+    def test_scalar
+      doc = @tree.children.first
+      seq = doc.children.first
+
+      assert_equal 3, seq.children.length
+      scalar = seq.children.first
+      assert_instance_of Nodes::Scalar, scalar
+      assert_equal 'foo', scalar.value
+      assert_nil scalar.anchor
+      assert_nil scalar.tag
+      assert_equal true, scalar.plain
+      assert_equal false, scalar.quoted
+      assert_equal PLAIN_SCALAR_STYLE, scalar.style
+    end
+
+    def test_mapping
+      doc = @tree.children.first
+      seq = doc.children.first
+      map = seq.children[1]
+
+      assert_instance_of Nodes::Mapping, map
     end
   end
 end
