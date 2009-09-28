@@ -15,6 +15,7 @@ Hoe.spec 'psych' do
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'CHANGELOG.rdoc'
   self.readme_file       = 'README.rdoc'
+  self.testlib           = :minitest
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
 

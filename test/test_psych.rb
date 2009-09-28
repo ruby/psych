@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-class TestPsych < Test::Unit::TestCase
+class TestPsych < MiniTest::Unit::TestCase
   #def test_simple
   #  assert_equal 'foo', Psych.parse("--- foo\n")
   #end

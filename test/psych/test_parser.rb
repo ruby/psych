@@ -1,7 +1,8 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
 module Psych
-  class TestParser < Test::Unit::TestCase
+  class TestParser < MiniTest::Unit::TestCase
     class EventCatcher < Handler
       attr_reader :calls
       def initialize

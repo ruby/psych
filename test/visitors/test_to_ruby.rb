@@ -1,8 +1,9 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
 module Psych
   module Visitors
-    class TestToRuby < Test::Unit::TestCase
+    class TestToRuby < MiniTest::Unit::TestCase
       def setup
         @visitor = ToRuby.new
       end
