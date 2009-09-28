@@ -38,7 +38,7 @@ module Psych
 
     def start_stream encoding
       super
-      @stack.push Nodes::Stream.new encoding
+      @stack.push Nodes::Stream.new(encoding)
     end
 
     def scalar(*args)
