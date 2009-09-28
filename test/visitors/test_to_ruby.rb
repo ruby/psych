@@ -10,6 +10,7 @@ module Psych
       def test_scalar
         scalar = Nodes::Scalar.new('foo')
         assert_equal 'foo', @visitor.accept(scalar)
+        assert_equal 'foo', scalar.to_ruby
       end
     end
   end
