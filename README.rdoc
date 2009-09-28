@@ -1,32 +1,26 @@
-= psych
+= Psych
 
-* FIX (url)
+* http://github.com/tenderlove/psych
 
-== DESCRIPTION:
+== Description
 
 FIX (describe your package)
 
-== FEATURES/PROBLEMS:
-
-* FIX (list of features or problems)
-
-== SYNOPSIS:
+== Examples
 
   FIX (code sample of usage)
 
-== REQUIREMENTS:
+== Dependencies
 
 * FIX (list of requirements)
 
-== INSTALL:
+== Installation
 
 * FIX (sudo gem install, anything else)
 
-== LICENSE:
+== License
 
-(The MIT License)
-
-Copyright (c) 2009 FIX
+Copyright 2009 Aaron Patterson, et al.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
