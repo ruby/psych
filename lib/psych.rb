@@ -1,4 +1,9 @@
+require 'psych/nodes/node'
+require 'psych/nodes/stream'
+require 'psych/nodes/document'
+
 require 'psych/handler'
+require 'psych/tree_builder'
 require 'psych/parser'
 require 'psych/psych'
 
