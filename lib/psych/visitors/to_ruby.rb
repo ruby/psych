@@ -8,7 +8,11 @@ module Psych
       end
 
       visitor_for(Nodes::Sequence) do |o|
-        o.children.map { |o| o.accept self }
+        o.children.map { |c| c.accept self }
+      end
+
+      visitor_for(Nodes::Mapping) do |o|
+        Hash[*o.children.map { |c| c.accept self }]
       end
     end
   end

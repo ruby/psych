@@ -21,6 +21,13 @@ module Psych
 
         assert_equal %w{ foo bar }, seq.to_ruby
       end
+
+      def test_mapping
+        mapping = Nodes::Mapping.new
+        mapping.children << Nodes::Scalar.new('foo')
+        mapping.children << Nodes::Scalar.new('bar')
+        assert_equal({'foo' => 'bar'}, mapping.to_ruby)
+      end
     end
   end
 end
