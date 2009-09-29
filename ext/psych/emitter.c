@@ -40,6 +40,62 @@ static VALUE start_stream(VALUE self, VALUE encoding)
 
   yaml_event_t event;
   yaml_stream_start_event_initialize(&event, NUM2INT(encoding));
+  yaml_emitter_emit(emitter, &event);
+  return self;
+}
+
+static VALUE end_stream(VALUE self)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_event_t event;
+  yaml_stream_end_event_initialize(&event);
+  yaml_emitter_emit(emitter, &event);
+  return self;
+}
+
+static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_version_directive_t version_directive;
+
+  if(RARRAY_LEN(version) > 0) {
+    VALUE major = rb_ary_entry(version, 0);
+    VALUE minor = rb_ary_entry(version, 1);
+
+    version_directive.major = NUM2INT(major);
+    version_directive.minor = NUM2INT(minor);
+  }
+
+  yaml_event_t event;
+  yaml_document_start_event_initialize(
+      &event,
+      &version_directive,
+      NULL,
+      NULL,
+      imp == Qtrue ? 1 : 0
+  );
+
+  yaml_emitter_emit(emitter, &event);
+
+  return self;
+}
+
+static VALUE end_document(VALUE self, VALUE imp)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_version_directive_t version_directive;
+
+  yaml_event_t event;
+  yaml_document_end_event_initialize(&event, imp == Qtrue ? 1 : 0);
+
+  yaml_emitter_emit(emitter, &event);
+
   return self;
 }
 
@@ -53,4 +109,7 @@ void Init_psych_emitter()
 
   rb_define_method(cPsychEmitter, "initialize", initialize, 1);
   rb_define_method(cPsychEmitter, "start_stream", start_stream, 1);
+  rb_define_method(cPsychEmitter, "end_stream", end_stream, 0);
+  rb_define_method(cPsychEmitter, "start_document", start_document, 3);
+  rb_define_method(cPsychEmitter, "end_document", end_document, 1);
 }
