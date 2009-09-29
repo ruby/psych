@@ -26,6 +26,12 @@ module Psych
         o.children.each { |c| c.accept self }
         @handler.end_sequence
       end
+
+      visitor_for(Nodes::Mapping) do |o|
+        @handler.start_mapping o.anchor, o.tag, o.implicit, o.style
+        o.children.each { |c| c.accept self }
+        @handler.end_mapping
+      end
     end
   end
 end

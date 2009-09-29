@@ -173,6 +173,43 @@ static VALUE end_sequence(VALUE self)
   return self;
 }
 
+static VALUE start_mapping(
+    VALUE self,
+    VALUE anchor,
+    VALUE tag,
+    VALUE implicit,
+    VALUE style
+) {
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_event_t event;
+  yaml_mapping_start_event_initialize(
+      &event,
+      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
+      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(tag)),
+      Qtrue == implicit ? 1 : 0,
+      (yaml_sequence_style_t)NUM2INT(style)
+  );
+
+  emit(emitter, &event);
+
+  return self;
+}
+
+static VALUE end_mapping(VALUE self)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_event_t event;
+  yaml_mapping_end_event_initialize(&event);
+
+  emit(emitter, &event);
+
+  return self;
+}
+
 void Init_psych_emitter()
 {
   VALUE psych     = rb_define_module("Psych");
@@ -189,4 +226,6 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "scalar", scalar, 6);
   rb_define_method(cPsychEmitter, "start_sequence", start_sequence, 4);
   rb_define_method(cPsychEmitter, "end_sequence", end_sequence, 0);
+  rb_define_method(cPsychEmitter, "start_mapping", start_mapping, 4);
+  rb_define_method(cPsychEmitter, "end_mapping", end_mapping, 0);
 }

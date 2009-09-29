@@ -58,6 +58,21 @@ module Psych
         assert_match(/- hello/, @io.string)
         assert_equal @io.string, s.to_yaml
       end
+
+      def test_mapping
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new
+        mapping = Nodes::Mapping.new
+        mapping.children << Nodes::Scalar.new('key')
+        mapping.children << Nodes::Scalar.new('value')
+        doc.children << mapping
+        s.children << doc
+
+        @visitor.accept s
+
+        assert_match(/key: value/, @io.string)
+        assert_equal @io.string, s.to_yaml
+      end
     end
   end
 end
