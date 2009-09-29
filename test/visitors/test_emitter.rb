@@ -26,6 +26,7 @@ module Psych
         @visitor.accept s
 
         assert_match(/1.1/, @io.string)
+        assert_equal @io.string, s.to_yaml
       end
 
       def test_scalar
@@ -39,9 +40,23 @@ module Psych
         @visitor.accept s
 
         assert_match(/hello/, @io.string)
+        assert_equal @io.string, s.to_yaml
       end
 
       def test_sequence
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new
+        scalar  = Nodes::Scalar.new 'hello world'
+        seq     = Nodes::Sequence.new
+
+        seq.children << scalar
+        doc.children << seq
+        s.children << doc
+
+        @visitor.accept s
+
+        assert_match(/- hello/, @io.string)
+        assert_equal @io.string, s.to_yaml
       end
     end
   end

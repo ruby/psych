@@ -20,6 +20,12 @@ module Psych
       visitor_for(Nodes::Scalar) do |o|
         @handler.scalar o.value, o.anchor, o.tag, o.plain, o.quoted, o.style
       end
+
+      visitor_for(Nodes::Sequence) do |o|
+        @handler.start_sequence o.anchor, o.tag, o.implicit, o.style
+        o.children.each { |c| c.accept self }
+        @handler.end_sequence
+      end
     end
   end
 end
