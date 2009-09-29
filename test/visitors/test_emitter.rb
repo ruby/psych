@@ -25,7 +25,7 @@ module Psych
       def test_scalar
         s       = Nodes::Stream.new
         doc     = Nodes::Document.new
-        scalar  = Nodes::Scalar.new 'hello'
+        scalar  = Nodes::Scalar.new 'hello world'
 
         doc.children << scalar
         s.children << doc
