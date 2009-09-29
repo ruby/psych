@@ -1,3 +1,5 @@
+require 'stringio'
+
 module Psych
   module Nodes
     ###
@@ -14,6 +16,12 @@ module Psych
 
       def to_ruby
         Visitors::ToRuby.new.accept self
+      end
+
+      def to_yaml
+        io = StringIO.new
+        Visitors::Emitter.new(io).accept self
+        io.string
       end
     end
   end

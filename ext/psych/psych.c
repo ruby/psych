@@ -24,4 +24,5 @@ void Init_psych()
   rb_define_singleton_method(mPsych, "libyaml_version", libyaml_version, 0);
 
   Init_psych_parser();
+  Init_psych_emitter();
 }

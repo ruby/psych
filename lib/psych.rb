@@ -19,7 +19,11 @@ module Psych
   VERSION         = '1.0.0'
   LIBYAML_VERSION = Psych.libyaml_version.join '.'
 
-  def self.parse thing
-    Psych::Parser.new.parse thing
+  ###
+  # Load +yaml+ in to a Ruby data structure
+  def self.load yaml
+    parser = Psych::Parser.new(TreeBuilder.new)
+    parser.parse yaml
+    parser.handler.root.children.first.to_ruby
   end
 end

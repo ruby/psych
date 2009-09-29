@@ -5,6 +5,7 @@
 #include <yaml.h>
 
 #include <parser.h>
+#include <emitter.h>
 
 extern VALUE mPsych;
 
