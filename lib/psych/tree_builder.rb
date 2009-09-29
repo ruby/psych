@@ -17,7 +17,6 @@ module Psych
     end
 
     %w{
-      Document
       Sequence
       Mapping
     }.each do |node|
@@ -28,10 +27,20 @@ module Psych
           @stack.push n
         end
 
-        def end_#{node.downcase}(*args)
+        def end_#{node.downcase}
           @stack.pop
         end
       }
+    end
+
+    def start_document(*args)
+      n = Nodes::Document.new(*args)
+      @stack.last.children << n
+      @stack.push n
+    end
+
+    def end_document implicit_end
+      @stack.pop.implicit_end = implicit_end
     end
 
     def start_stream encoding

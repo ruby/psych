@@ -14,7 +14,7 @@ module Psych
       visitor_for(Nodes::Document) do |o|
         @handler.start_document o.version, o.tag_directives, o.implicit
         o.children.each { |c| c.accept self }
-        @handler.end_document o.implicit
+        @handler.end_document o.implicit_end
       end
 
       visitor_for(Nodes::Scalar) do |o|

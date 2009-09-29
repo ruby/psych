@@ -10,11 +10,15 @@ module Psych
       # Was this document implicitly created?
       attr_accessor :implicit
 
+      # Is the end of the document implicit?
+      attr_accessor :implicit_end
+
       def initialize version = [], tag_directives = [], implicit = false
         super()
         @version        = version
         @tag_directives = tag_directives
         @implicit       = implicit
+        @implicit_end   = true
       end
 
       ###
