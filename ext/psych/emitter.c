@@ -2,6 +2,12 @@
 
 VALUE cPsychEmitter;
 
+static void emit(yaml_emitter_t * emitter, yaml_event_t * event)
+{
+  if(!yaml_emitter_emit(emitter, event))
+    rb_raise(rb_eRuntimeError, emitter->problem);
+}
+
 static int writer(void *ctx, unsigned char *buffer, size_t size)
 {
   VALUE io = (VALUE)ctx;
@@ -40,7 +46,9 @@ static VALUE start_stream(VALUE self, VALUE encoding)
 
   yaml_event_t event;
   yaml_stream_start_event_initialize(&event, (yaml_encoding_t)NUM2INT(encoding));
-  yaml_emitter_emit(emitter, &event);
+
+  emit(emitter, &event);
+
   return self;
 }
 
@@ -52,7 +60,8 @@ static VALUE end_stream(VALUE self)
   yaml_event_t event;
   yaml_stream_end_event_initialize(&event);
 
-  yaml_emitter_emit(emitter, &event);
+  emit(emitter, &event);
+
   return self;
 }
 
@@ -80,7 +89,7 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
       imp == Qtrue ? 1 : 0
   );
 
-  yaml_emitter_emit(emitter, &event);
+  emit(emitter, &event);
 
   return self;
 }
@@ -93,7 +102,7 @@ static VALUE end_document(VALUE self, VALUE imp)
   yaml_event_t event;
   yaml_document_end_event_initialize(&event, imp == Qtrue ? 1 : 0);
 
-  yaml_emitter_emit(emitter, &event);
+  emit(emitter, &event);
 
   return self;
 }
@@ -122,7 +131,7 @@ static VALUE scalar(
       (yaml_scalar_style_t)NUM2INT(style)
   );
 
-  yaml_emitter_emit(emitter, &event);
+  emit(emitter, &event);
 
   return self;
 }

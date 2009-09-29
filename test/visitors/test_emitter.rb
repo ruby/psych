@@ -16,10 +16,16 @@ module Psych
       end
 
       def test_document
-        s = Nodes::Stream.new
-        s.children << Nodes::Document.new([1,1])
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new [1,1]
+        scalar  = Nodes::Scalar.new 'hello world'
+
+        doc.children << scalar
+        s.children << doc
+
         @visitor.accept s
-        assert_equal '', @io.string
+
+        assert_match(/1.1/, @io.string)
       end
 
       def test_scalar
@@ -33,6 +39,9 @@ module Psych
         @visitor.accept s
 
         assert_match(/hello/, @io.string)
+      end
+
+      def test_sequence
       end
     end
   end
