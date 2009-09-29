@@ -5,7 +5,7 @@ VALUE cPsychEmitter;
 static int writer(void *ctx, unsigned char *buffer, size_t size)
 {
   VALUE io = (VALUE)ctx;
-  VALUE str = rb_str_new(buffer, size);
+  VALUE str = rb_str_new((const char *)buffer, (long)size);
   VALUE wrote = rb_funcall(io, rb_intern("write"), 1, str);
   return (int)NUM2INT(wrote);
 }
@@ -20,7 +20,7 @@ static VALUE allocate(VALUE klass)
 {
   yaml_emitter_t * emitter = malloc(sizeof(yaml_emitter_t));
   yaml_emitter_initialize(emitter);
-  Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
+  return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
 }
 
 static VALUE initialize(VALUE self, VALUE io)
@@ -39,7 +39,7 @@ static VALUE start_stream(VALUE self, VALUE encoding)
   Data_Get_Struct(self, yaml_emitter_t, emitter);
 
   yaml_event_t event;
-  yaml_stream_start_event_initialize(&event, NUM2INT(encoding));
+  yaml_stream_start_event_initialize(&event, (yaml_encoding_t)NUM2INT(encoding));
   yaml_emitter_emit(emitter, &event);
   return self;
 }
@@ -51,6 +51,7 @@ static VALUE end_stream(VALUE self)
 
   yaml_event_t event;
   yaml_stream_end_event_initialize(&event);
+
   yaml_emitter_emit(emitter, &event);
   return self;
 }
@@ -63,8 +64,8 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
   yaml_version_directive_t version_directive;
 
   if(RARRAY_LEN(version) > 0) {
-    VALUE major = rb_ary_entry(version, 0);
-    VALUE minor = rb_ary_entry(version, 1);
+    VALUE major = rb_ary_entry(version, (long)0);
+    VALUE minor = rb_ary_entry(version, (long)1);
 
     version_directive.major = NUM2INT(major);
     version_directive.minor = NUM2INT(minor);
@@ -73,7 +74,7 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
   yaml_event_t event;
   yaml_document_start_event_initialize(
       &event,
-      &version_directive,
+      (RARRAY_LEN(version) > 0) ? &version_directive : NULL,
       NULL,
       NULL,
       imp == Qtrue ? 1 : 0
@@ -89,10 +90,37 @@ static VALUE end_document(VALUE self, VALUE imp)
   yaml_emitter_t * emitter;
   Data_Get_Struct(self, yaml_emitter_t, emitter);
 
-  yaml_version_directive_t version_directive;
-
   yaml_event_t event;
   yaml_document_end_event_initialize(&event, imp == Qtrue ? 1 : 0);
+
+  yaml_emitter_emit(emitter, &event);
+
+  return self;
+}
+
+static VALUE scalar(
+    VALUE self,
+    VALUE value,
+    VALUE anchor,
+    VALUE tag,
+    VALUE plain,
+    VALUE quoted,
+    VALUE style
+) {
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_event_t event;
+  yaml_scalar_event_initialize(
+      &event,
+      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
+      (yaml_char_t *)(Qnil == tag ? NULL : StringValuePtr(tag)),
+      (yaml_char_t*)StringValuePtr(value),
+      (int)RSTRING_LEN(value),
+      Qtrue == plain ? 1 : 0,
+      Qtrue == quoted ? 1 : 0,
+      (yaml_scalar_style_t)NUM2INT(style)
+  );
 
   yaml_emitter_emit(emitter, &event);
 
@@ -112,4 +140,5 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "end_stream", end_stream, 0);
   rb_define_method(cPsychEmitter, "start_document", start_document, 3);
   rb_define_method(cPsychEmitter, "end_document", end_document, 1);
+  rb_define_method(cPsychEmitter, "scalar", scalar, 6);
 }

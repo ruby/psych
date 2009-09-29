@@ -21,6 +21,19 @@ module Psych
         @visitor.accept s
         assert_equal '', @io.string
       end
+
+      def test_scalar
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new
+        scalar  = Nodes::Scalar.new 'hello'
+
+        doc.children << scalar
+        s.children << doc
+
+        @visitor.accept s
+
+        assert_match(/hello/, @io.string)
+      end
     end
   end
 end

@@ -16,6 +16,10 @@ module Psych
         o.children.each { |c| c.accept self }
         @handler.end_document o.implicit
       end
+
+      visitor_for(Nodes::Scalar) do |o|
+        @handler.scalar o.value, o.anchor, o.tag, o.plain, o.quoted, o.style
+      end
     end
   end
 end

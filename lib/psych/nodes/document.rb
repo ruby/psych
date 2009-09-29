@@ -10,7 +10,7 @@ module Psych
       # Was this document implicitly created?
       attr_accessor :implicit
 
-      def initialize version = [], tag_directives = [], implicit = true
+      def initialize version = [], tag_directives = [], implicit = false
         super()
         @version        = version
         @tag_directives = tag_directives
