@@ -16,7 +16,7 @@ module Psych
         return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
         return o.value if o.quoted
 
-        return ScalarScanner.new(o.value).tokenize.last unless o.quoted
+        return ScalarScanner.new(o.value).tokenize.last
       end
 
       def visit_Psych_Nodes_Sequence o
