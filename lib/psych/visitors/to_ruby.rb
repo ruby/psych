@@ -14,7 +14,7 @@ module Psych
         return nil if o.tag == 'tag:yaml.org,2002:null'
 
         unless o.quoted
-          return nil if o.value =~ /^(null|~)$/i
+          return nil if o.value =~ /^(null|~)$/i or o.value.empty?
         end
 
         o.value

@@ -45,6 +45,7 @@ module Psych
         assert_equal nil, Psych.load('Null')
         assert_equal nil, Psych.load('NULL')
         assert_equal nil, Psych.load('~')
+        assert_equal({'foo' => nil}, Psych.load('foo: '))
 
         assert_round_trip 'null'
         assert_round_trip 'nUll'
