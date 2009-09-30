@@ -8,6 +8,7 @@ module Psych
         @tree = Nodes::Stream.new
         @tree.children << Nodes::Document.new
         @stack = @tree.children.dup
+        @st = {}
       end
 
       def accept target
@@ -57,7 +58,15 @@ module Psych
       end
 
       def visit_Array o
-        @stack.push append Nodes::Sequence.new
+        if node = @st[o.object_id]
+          node.anchor = o.object_id.to_s
+          return append Nodes::Alias.new o.object_id.to_s
+        end
+
+        seq = Nodes::Sequence.new
+        @st[o.object_id] = seq
+
+        @stack.push append seq
         o.each { |c| c.accept self }
         @stack.pop
       end

@@ -8,6 +8,12 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_circular_list
+        a = []
+        2.times { a << a }
+        assert_equal a.inspect, Psych.load(a.to_yaml).inspect
+      end
+
       def test_scalar
         assert_round_trip 'foo'
         assert_round_trip ':foo'

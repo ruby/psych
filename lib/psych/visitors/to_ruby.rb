@@ -19,7 +19,10 @@ module Psych
       end
 
       def visit_Psych_Nodes_Sequence o
-        o.children.map { |c| c.accept self }
+        list = []
+        @st[o.anchor] = list if o.anchor
+        o.children.each { |c| list.push c.accept self }
+        list
       end
 
       def visit_Psych_Nodes_Mapping o
