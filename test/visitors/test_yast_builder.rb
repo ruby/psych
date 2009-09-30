@@ -9,10 +9,8 @@ module Psych
       end
 
       def test_scalar
-        @v.accept 'foo'
-
-        assert_equal 'foo', Psych.load(@v.tree.to_yaml)
-        assert_equal 'foo', Psych.load('foo'.to_yaml)
+        assert_round_trip 'foo'
+        assert_round_trip ''
       end
 
       def test_binary

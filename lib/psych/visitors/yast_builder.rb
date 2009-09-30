@@ -21,7 +21,7 @@ module Psych
       end
 
       def visit_String o
-        quote = !!(o =~ /^(null|~)$/i)
+        quote = !!(o =~ /^(null|~)$/i or o.empty?)
 
         scalar = Nodes::Scalar.new(o, nil, nil, !quote, quote)
         @stack.last.children << scalar
