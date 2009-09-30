@@ -22,13 +22,6 @@ module Psych
         [:NULL, nil]
       when /^:/i
         [:SYMBOL, @string.sub(/^:/, '').to_sym]
-      when /^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+\.[0-9_]*$/
-        i = 0
-        @string.split(':').each_with_index do |n,e|
-          i += (n.to_f * 60 ** (e - 2).abs)
-        end
-
-        [:FLOAT, i]
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0
         @string.split(':').each_with_index do |n,e|
@@ -36,6 +29,13 @@ module Psych
         end
 
         [:INTEGER, i]
+      when /^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+\.[0-9_]*$/
+        i = 0
+        @string.split(':').each_with_index do |n,e|
+          i += (n.to_f * 60 ** (e - 2).abs)
+        end
+
+        [:FLOAT, i]
       else
         return [:FLOAT, Float(@string.gsub(/[,_]/, ''))] rescue ArgumentError
         return [:INTEGER, Integer(@string.gsub(/[,_]/, ''))] rescue ArgumentError

@@ -13,9 +13,10 @@ module Psych
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
-        return ScalarScanner.new(o.value).tokenize.last unless o.quoted
+        return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
+        return o.value if o.quoted
 
-        o.value
+        return ScalarScanner.new(o.value).tokenize.last unless o.quoted
       end
 
       def visit_Psych_Nodes_Sequence o
