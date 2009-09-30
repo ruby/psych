@@ -21,7 +21,7 @@ module Psych
       end
 
       def visit_String o
-        quote = !!(o =~ /^(null|~)$/i or o.empty?)
+        quote = !!(o =~ /^(null|~)$/i or o =~ /^:/ or o.empty?)
 
         scalar = Nodes::Scalar.new(o, nil, nil, !quote, quote)
         @stack.last.children << scalar
@@ -50,6 +50,10 @@ module Psych
 
       def visit_NilClass o
         append Nodes::Scalar.new('', nil, 'tag:yaml.org,2002:null', false)
+      end
+
+      def visit_Symbol o
+        append Nodes::Scalar.new ":#{o}"
       end
 
       private

@@ -15,6 +15,7 @@ module Psych
 
         unless o.quoted
           return nil if o.value =~ /^(null|~)$/i or o.value.empty?
+          return o.value.sub(/^:/,'').to_sym if o.value =~ /^:/
         end
 
         o.value

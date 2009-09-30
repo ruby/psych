@@ -10,6 +10,7 @@ module Psych
 
       def test_scalar
         assert_round_trip 'foo'
+        assert_round_trip ':foo'
         assert_round_trip ''
       end
 
@@ -34,6 +35,10 @@ module Psych
 
       def test_list
         assert_round_trip(%w{ a b })
+      end
+
+      def test_symbol
+        assert_round_trip :foo
       end
 
       # http://yaml.org/type/null.html
