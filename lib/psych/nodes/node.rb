@@ -17,6 +17,7 @@ module Psych
       def to_ruby
         Visitors::ToRuby.new.accept self
       end
+      alias :transform :to_ruby
 
       def to_yaml
         io = StringIO.new

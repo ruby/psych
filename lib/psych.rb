@@ -22,8 +22,12 @@ module Psych
   ###
   # Load +yaml+ in to a Ruby data structure
   def self.load yaml
+    parse(yaml).to_ruby
+  end
+
+  def self.parse yaml
     parser = Psych::Parser.new(TreeBuilder.new)
     parser.parse yaml
-    parser.handler.root.children.first.to_ruby
+    parser.handler.root.children.first.children.first
   end
 end
