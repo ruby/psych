@@ -29,9 +29,7 @@ module Psych
       end
 
       visitor_for(::Hash) do |o|
-        map = Nodes::Mapping.new
-        @stack.last.children << map
-        @stack.push map
+        @stack.push append Nodes::Mapping.new
 
         o.each do |k,v|
           k.accept self
@@ -39,6 +37,18 @@ module Psych
         end
 
         @stack.pop
+      end
+
+      visitor_for(::Array) do |o|
+        @stack.push append Nodes::Sequence.new
+        o.each { |c| c.accept self }
+        @stack.pop
+      end
+
+      private
+      def append o
+        @stack.last.children << o
+        o
       end
     end
   end

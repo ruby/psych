@@ -33,6 +33,10 @@ module Psych
         assert_round_trip('a' => 'b')
       end
 
+      def test_list
+        assert_round_trip(%w{ a b })
+      end
+
       def assert_round_trip obj
         @v.accept(obj)
         assert_equal(obj, Psych.load(@v.tree.to_yaml))
