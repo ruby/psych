@@ -45,6 +45,10 @@ module Psych
         @stack.pop
       end
 
+      def visit_NilClass o
+        append Nodes::Scalar.new('', nil, 'tag:yaml.org,2002:null', false)
+      end
+
       private
       def append o
         @stack.last.children << o

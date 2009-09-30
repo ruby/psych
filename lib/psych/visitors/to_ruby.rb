@@ -10,7 +10,12 @@ module Psych
 
       visitor_for(Nodes::Scalar) do |o|
         @st[o.anchor] = o.value if o.anchor
-        o.value
+        case o.tag
+        when 'tag:yaml.org,2002:null'
+          nil
+        else
+          o.value
+        end
       end
 
       visitor_for(Nodes::Sequence) do |o|

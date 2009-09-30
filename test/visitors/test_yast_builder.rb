@@ -37,10 +37,15 @@ module Psych
         assert_round_trip(%w{ a b })
       end
 
+      def test_nil
+        assert_round_trip nil
+      end
+
       def assert_round_trip obj
         @v.accept(obj)
         assert_equal(obj, Psych.load(@v.tree.to_yaml))
         assert_equal(obj, Psych.load(obj.to_yaml))
+        assert_equal(obj, Psych.load(Psych.dump(obj)))
       end
     end
   end

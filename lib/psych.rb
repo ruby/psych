@@ -26,9 +26,23 @@ module Psych
     parse(yaml).to_ruby
   end
 
+  ###
+  # Parse a YAML string.  Returns the first object of a YAML parse tree
   def self.parse yaml
+    yaml_ast(yaml).children.first.children.first
+  end
+
+  ###
+  # Parse a YAML string in +yaml+.  Returns the AST for the YAML parse tree.
+  def self.yaml_ast yaml
     parser = Psych::Parser.new(TreeBuilder.new)
     parser.parse yaml
-    parser.handler.root.children.first.children.first
+    parser.handler.root
+  end
+
+  ###
+  # Dump object +o+ to a YAML string
+  def self.dump o
+    o.to_yaml
   end
 end
