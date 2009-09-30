@@ -32,6 +32,10 @@ module Psych
         o.children.each { |c| c.accept self }
         @handler.end_mapping
       end
+
+      visitor_for(Nodes::Alias) do |o|
+        @handler.alias o.anchor
+      end
     end
   end
 end

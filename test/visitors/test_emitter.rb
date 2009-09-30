@@ -89,6 +89,21 @@ module Psych
         assert_match(/key: value/, @io.string)
         assert_equal @io.string, s.to_yaml
       end
+
+      def test_alias
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new
+        mapping = Nodes::Mapping.new
+        mapping.children << Nodes::Scalar.new('key', 'A')
+        mapping.children << Nodes::Alias.new('A')
+        doc.children << mapping
+        s.children << doc
+
+        @visitor.accept s
+
+        assert_match(/&A key: \*A/, @io.string)
+        assert_equal @io.string, s.to_yaml
+      end
     end
   end
 end

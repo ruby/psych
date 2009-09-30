@@ -210,6 +210,22 @@ static VALUE end_mapping(VALUE self)
   return self;
 }
 
+static VALUE alias(VALUE self, VALUE anchor)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_event_t event;
+  yaml_alias_event_initialize(
+      &event,
+      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor))
+  );
+
+  emit(emitter, &event);
+
+  return self;
+}
+
 void Init_psych_emitter()
 {
   VALUE psych     = rb_define_module("Psych");
@@ -228,4 +244,5 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "end_sequence", end_sequence, 0);
   rb_define_method(cPsychEmitter, "start_mapping", start_mapping, 4);
   rb_define_method(cPsychEmitter, "end_mapping", end_mapping, 0);
+  rb_define_method(cPsychEmitter, "alias", alias, 1);
 }
