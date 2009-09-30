@@ -8,6 +8,45 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_integer
+        i = Nodes::Scalar.new('1', nil, 'tag:yaml.org,2002:int')
+        assert_equal 1, i.to_ruby
+
+        assert_equal 1, Nodes::Scalar.new('1').to_ruby
+
+        i = Nodes::Scalar.new('-1', nil, 'tag:yaml.org,2002:int')
+        assert_equal(-1, i.to_ruby)
+
+        assert_equal(-1, Nodes::Scalar.new('-1').to_ruby)
+        assert_equal 1, Nodes::Scalar.new('+1').to_ruby
+      end
+
+      def test_float
+        i = Nodes::Scalar.new('1.2', nil, 'tag:yaml.org,2002:float')
+        assert_equal 1.2, i.to_ruby
+
+        i = Nodes::Scalar.new('1.2')
+        assert_equal 1.2, i.to_ruby
+
+        assert_equal 1, Nodes::Scalar.new('.Inf').to_ruby.infinite?
+        assert_equal 1, Nodes::Scalar.new('.Inf', nil, 'tag:yaml.org,2002:float').to_ruby.infinite?
+
+        assert_equal(-1, Nodes::Scalar.new('-.Inf').to_ruby.infinite?)
+        assert_equal(-1, Nodes::Scalar.new('-.Inf', nil, 'tag:yaml.org,2002:float').to_ruby.infinite?)
+
+        assert Nodes::Scalar.new('.NaN').to_ruby.nan?
+        assert Nodes::Scalar.new('.NaN', nil, 'tag:yaml.org,2002:float').to_ruby.nan?
+      end
+
+      def test_exp_float
+        exp = 1.2e+30
+
+        i = Nodes::Scalar.new(exp.to_s, nil, 'tag:yaml.org,2002:float')
+        assert_equal exp, i.to_ruby
+
+        assert_equal exp, Nodes::Scalar.new(exp.to_s).to_ruby
+      end
+
       def test_scalar
         scalar = Nodes::Scalar.new('foo')
         assert_equal 'foo', @visitor.accept(scalar)

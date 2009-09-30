@@ -41,6 +41,22 @@ module Psych
         assert_round_trip :foo
       end
 
+      def test_int
+        assert_round_trip 1
+        assert_round_trip(-1)
+        assert_round_trip '1'
+        assert_round_trip '-1'
+      end
+
+      def test_float
+        assert_round_trip 1.2
+        assert_round_trip '1.2'
+
+        assert Psych.load(Psych.dump(0.0 / 0.0)).nan?
+        assert_equal 1, Psych.load(Psych.dump(1 / 0.0)).infinite?
+        assert_equal(-1, Psych.load(Psych.dump(-1 / 0.0)).infinite?)
+      end
+
       # http://yaml.org/type/null.html
       def test_nil
         assert_round_trip nil

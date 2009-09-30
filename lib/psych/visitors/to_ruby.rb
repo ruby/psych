@@ -11,9 +11,19 @@ module Psych
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
-        return nil if o.tag == 'tag:yaml.org,2002:null'
+        return nil              if o.tag == 'tag:yaml.org,2002:null'
+        return Integer(o.value) if o.tag == 'tag:yaml.org,2002:int'
 
         unless o.quoted
+
+          return 0.0 / 0.0  if o.value == '.NaN'
+          return 1 / 0.0    if o.value == '.Inf'
+          return -1 / 0.0   if o.value == '-.Inf'
+          return Float(o.value) if o.tag == 'tag:yaml.org,2002:float'
+
+          return Integer(o.value) rescue ArgumentError
+          return Float(o.value) rescue ArgumentError
+
           return nil if o.value =~ /^(null|~)$/i or o.value.empty?
           return o.value.sub(/^:/,'').to_sym if o.value =~ /^:/
         end

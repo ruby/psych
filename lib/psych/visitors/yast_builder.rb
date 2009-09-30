@@ -12,7 +12,7 @@ module Psych
 
       def accept target
         target.class.ancestors.each do |klass|
-          method_name = :"visit_#{target.class.name.split('::').join('_')}"
+          method_name = :"visit_#{klass.name.split('::').join('_')}"
           if respond_to?(method_name)
             return send(method_name, target)
           end
@@ -20,8 +20,20 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Integer o
+        append Nodes::Scalar.new o.to_s
+      end
+
+      def visit_Float o
+        append Nodes::Scalar.new o.to_s
+      end
+
       def visit_String o
-        quote = !!(o =~ /^(null|~)$/i or o =~ /^:/ or o.empty?)
+        quote = false
+
+        quote = true if Integer(o) rescue ArgumentError
+        quote = true if Float(o) rescue ArgumentError
+        quote = true if(o =~ /^(null|~|[\d.]+)$/i or o =~ /^:/ or o.empty?)
 
         scalar = Nodes::Scalar.new(o, nil, nil, !quote, quote)
         @stack.last.children << scalar
