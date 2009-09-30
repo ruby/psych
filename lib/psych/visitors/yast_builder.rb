@@ -20,15 +20,15 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
-      visitor_for(::String) do |o|
+      def visit_String o
         @stack.last.children << Nodes::Scalar.new(o)
       end
 
-      visitor_for(::Class) do |o|
+      def visit_Class o
         raise TypeError, "can't dump anonymous class #{o.class}"
       end
 
-      visitor_for(::Hash) do |o|
+      def visit_Hash o
         @stack.push append Nodes::Mapping.new
 
         o.each do |k,v|
@@ -39,7 +39,7 @@ module Psych
         @stack.pop
       end
 
-      visitor_for(::Array) do |o|
+      def visit_Array o
         @stack.push append Nodes::Sequence.new
         o.each { |c| c.accept self }
         @stack.pop
