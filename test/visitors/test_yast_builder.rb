@@ -47,6 +47,7 @@ module Psych
         assert_equal nil, Psych.load('~')
 
         assert_round_trip 'null'
+        assert_round_trip 'nUll'
         assert_round_trip '~'
       end
 
