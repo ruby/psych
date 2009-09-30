@@ -7,6 +7,7 @@ module Psych
       def setup
         @v = Visitors::YASTBuilder.new
       end
+
       def test_scalar
         @v.accept 'foo'
 
@@ -37,13 +38,22 @@ module Psych
         assert_round_trip(%w{ a b })
       end
 
+      # http://yaml.org/type/null.html
       def test_nil
         assert_round_trip nil
+        assert_equal nil, Psych.load('null')
+        assert_equal nil, Psych.load('Null')
+        assert_equal nil, Psych.load('NULL')
+        assert_equal nil, Psych.load('~')
+
+        assert_round_trip 'null'
+        assert_round_trip '~'
       end
 
       def assert_round_trip obj
-        @v.accept(obj)
-        assert_equal(obj, Psych.load(@v.tree.to_yaml))
+        v = Visitors::YASTBuilder.new
+        v.accept(obj)
+        assert_equal(obj, Psych.load(v.tree.to_yaml))
         assert_equal(obj, Psych.load(obj.to_yaml))
         assert_equal(obj, Psych.load(Psych.dump(obj)))
       end

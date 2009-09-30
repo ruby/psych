@@ -10,12 +10,15 @@ module Psych
 
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
-        case o.tag
-        when 'tag:yaml.org,2002:null'
-          nil
-        else
-          o.value
+
+        return nil if o.tag == 'tag:yaml.org,2002:null'
+
+        unless o.quoted
+          return nil if o.value =~ /^null$/i
+          return nil if o.value == '~'
         end
+
+        o.value
       end
 
       def visit_Psych_Nodes_Sequence o
