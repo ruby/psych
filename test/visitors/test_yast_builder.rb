@@ -41,6 +41,7 @@ module Psych
 
       def test_list
         assert_round_trip(%w{ a b })
+        assert_round_trip([1, 2.2])
       end
 
       def test_symbol

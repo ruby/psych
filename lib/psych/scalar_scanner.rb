@@ -37,8 +37,8 @@ module Psych
 
         [:FLOAT, i]
       else
-        return [:FLOAT, Float(@string.gsub(/[,_]/, ''))] rescue ArgumentError
         return [:INTEGER, Integer(@string.gsub(/[,_]/, ''))] rescue ArgumentError
+        return [:FLOAT, Float(@string.gsub(/[,_]/, ''))] rescue ArgumentError
 
         [:SCALAR, @string]
       end
