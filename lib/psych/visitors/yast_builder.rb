@@ -23,6 +23,10 @@ module Psych
       visitor_for(::String) do |o|
         @stack.last.children << Nodes::Scalar.new(o)
       end
+
+      visitor_for(::Class) do |o|
+        raise TypeError, "can't dump anonymous class #{o.class}"
+      end
     end
   end
 end
