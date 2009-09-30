@@ -39,6 +39,24 @@ module Psych
         end
       end
 
+      # http://yaml.org/type/bool.html
+      def test_boolean_true
+        %w{ y Y yes Yes YES true True TRUE on On ON }.each do |t|
+          i = Nodes::Scalar.new(t, nil, 'tag:yaml.org,2002:bool')
+          assert_equal true, i.to_ruby
+          assert_equal true, Nodes::Scalar.new(t).to_ruby
+        end
+      end
+
+      # http://yaml.org/type/bool.html
+      def test_boolean_false
+        %w{ n N no No NO false False FALSE off Off OFF }.each do |t|
+          i = Nodes::Scalar.new(t, nil, 'tag:yaml.org,2002:bool')
+          assert_equal false, i.to_ruby
+          assert_equal false, Nodes::Scalar.new(t).to_ruby
+        end
+      end
+
       def test_float
         i = Nodes::Scalar.new('1.2', nil, 'tag:yaml.org,2002:float')
         assert_equal 1.2, i.to_ruby

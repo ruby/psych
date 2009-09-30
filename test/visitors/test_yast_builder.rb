@@ -14,10 +14,23 @@ module Psych
         assert_equal a.inspect, Psych.load(a.to_yaml).inspect
       end
 
+      def test_circular_map
+        a = {}
+        a[a] = a
+        assert_equal a.inspect, Psych.load(a.to_yaml).inspect
+      end
+
       def test_scalar
         assert_round_trip 'foo'
         assert_round_trip ':foo'
         assert_round_trip ''
+      end
+
+      def test_boolean
+        assert_round_trip true
+        assert_round_trip 'true'
+        assert_round_trip false
+        assert_round_trip 'false'
       end
 
       def test_binary

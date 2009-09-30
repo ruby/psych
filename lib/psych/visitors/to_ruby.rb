@@ -27,7 +27,12 @@ module Psych
       end
 
       def visit_Psych_Nodes_Mapping o
-        Hash[*o.children.map { |c| c.accept self }]
+        hash = {}
+        @st[o.anchor] = hash if o.anchor
+        o.children.map { |c| c.accept self }.each_slice(2) { |k,v|
+          hash[k] = v
+        }
+        hash
       end
 
       def visit_Psych_Nodes_Document o

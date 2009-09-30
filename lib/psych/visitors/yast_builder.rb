@@ -25,6 +25,14 @@ module Psych
         append Nodes::Scalar.new o.to_s
       end
 
+      def visit_TrueClass o
+        append Nodes::Scalar.new o.to_s
+      end
+
+      def visit_FalseClass o
+        append Nodes::Scalar.new o.to_s
+      end
+
       def visit_Float o
         if o.nan?
           append Nodes::Scalar.new '.nan'
@@ -47,7 +55,15 @@ module Psych
       end
 
       def visit_Hash o
-        @stack.push append Nodes::Mapping.new
+        if node = @st[o.object_id]
+          node.anchor = o.object_id.to_s
+          return append Nodes::Alias.new o.object_id.to_s
+        end
+
+        map = Nodes::Mapping.new
+        @st[o.object_id] = map
+
+        @stack.push append map
 
         o.each do |k,v|
           k.accept self

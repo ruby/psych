@@ -20,6 +20,10 @@ module Psych
         [:NAN, 0.0 / 0.0]
       when /^(null|~)$/i
         [:NULL, nil]
+      when /^(y|yes|true|on)$/i
+        [:BOOLEAN, true]
+      when /^(n|no|false|off)$/i
+        [:BOOLEAN, false]
       when /^:/i
         [:SYMBOL, @string.sub(/^:/, '').to_sym]
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/

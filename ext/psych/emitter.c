@@ -187,7 +187,7 @@ static VALUE start_mapping(
   yaml_mapping_start_event_initialize(
       &event,
       (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
-      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(tag)),
+      (yaml_char_t *)(Qnil == tag ? NULL : StringValuePtr(tag)),
       Qtrue == implicit ? 1 : 0,
       (yaml_sequence_style_t)NUM2INT(style)
   );

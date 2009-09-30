@@ -1,4 +1,7 @@
-[Object, String, Class, Hash, Array, NilClass, Float].each do |klass|
+[
+  Object, String, Class, Hash, Array, NilClass, Float,
+  FalseClass, TrueClass
+].each do |klass|
   klass.send(:remove_method, :to_yaml) rescue NameError
 end
 
