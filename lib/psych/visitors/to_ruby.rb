@@ -16,9 +16,9 @@ module Psych
 
         unless o.quoted
 
-          return 0.0 / 0.0  if o.value == '.NaN'
-          return 1 / 0.0    if o.value == '.Inf'
-          return -1 / 0.0   if o.value == '-.Inf'
+          return 0.0 / 0.0  if o.value =~ /^\.nan$/i
+          return 1 / 0.0    if o.value =~ /^\.inf$/i
+          return -1 / 0.0   if o.value =~ /^\-\.inf$/i
           return Float(o.value) if o.tag == 'tag:yaml.org,2002:float'
 
           return Integer(o.value) rescue ArgumentError

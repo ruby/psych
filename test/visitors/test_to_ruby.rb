@@ -29,8 +29,10 @@ module Psych
         assert_equal 1.2, i.to_ruby
 
         assert_equal 1, Nodes::Scalar.new('.Inf').to_ruby.infinite?
+        assert_equal 1, Nodes::Scalar.new('.inf').to_ruby.infinite?
         assert_equal 1, Nodes::Scalar.new('.Inf', nil, 'tag:yaml.org,2002:float').to_ruby.infinite?
 
+        assert_equal(-1, Nodes::Scalar.new('-.inf').to_ruby.infinite?)
         assert_equal(-1, Nodes::Scalar.new('-.Inf').to_ruby.infinite?)
         assert_equal(-1, Nodes::Scalar.new('-.Inf', nil, 'tag:yaml.org,2002:float').to_ruby.infinite?)
 

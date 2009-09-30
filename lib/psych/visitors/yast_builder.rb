@@ -25,7 +25,13 @@ module Psych
       end
 
       def visit_Float o
-        append Nodes::Scalar.new o.to_s
+        if o.nan?
+          append Nodes::Scalar.new '.nan'
+        elsif o.infinite?
+          append Nodes::Scalar.new(o.infinite? > 0 ? '.inf' : '-.inf')
+        else
+          append Nodes::Scalar.new o.to_s
+        end
       end
 
       def visit_String o
