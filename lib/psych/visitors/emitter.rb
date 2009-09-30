@@ -5,35 +5,35 @@ module Psych
         @handler = Psych::Emitter.new io
       end
 
-      visitor_for(Nodes::Stream) do |o|
+      def visit_Psych_Nodes_Stream o
         @handler.start_stream o.encoding
         o.children.each { |c| c.accept self }
         @handler.end_stream
       end
 
-      visitor_for(Nodes::Document) do |o|
+      def visit_Psych_Nodes_Document o
         @handler.start_document o.version, o.tag_directives, o.implicit
         o.children.each { |c| c.accept self }
         @handler.end_document o.implicit_end
       end
 
-      visitor_for(Nodes::Scalar) do |o|
+      def visit_Psych_Nodes_Scalar o
         @handler.scalar o.value, o.anchor, o.tag, o.plain, o.quoted, o.style
       end
 
-      visitor_for(Nodes::Sequence) do |o|
+      def visit_Psych_Nodes_Sequence o
         @handler.start_sequence o.anchor, o.tag, o.implicit, o.style
         o.children.each { |c| c.accept self }
         @handler.end_sequence
       end
 
-      visitor_for(Nodes::Mapping) do |o|
+      def visit_Psych_Nodes_Mapping o
         @handler.start_mapping o.anchor, o.tag, o.implicit, o.style
         o.children.each { |c| c.accept self }
         @handler.end_mapping
       end
 
-      visitor_for(Nodes::Alias) do |o|
+      def visit_Psych_Nodes_Alias o
         @handler.alias o.anchor
       end
     end

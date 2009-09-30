@@ -8,7 +8,7 @@ module Psych
         @st = {}
       end
 
-      visitor_for(Nodes::Scalar) do |o|
+      def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
         case o.tag
         when 'tag:yaml.org,2002:null'
@@ -18,23 +18,23 @@ module Psych
         end
       end
 
-      visitor_for(Nodes::Sequence) do |o|
+      def visit_Psych_Nodes_Sequence o
         o.children.map { |c| c.accept self }
       end
 
-      visitor_for(Nodes::Mapping) do |o|
+      def visit_Psych_Nodes_Mapping o
         Hash[*o.children.map { |c| c.accept self }]
       end
 
-      visitor_for(Nodes::Document) do |o|
+      def visit_Psych_Nodes_Document o
         o.root.accept self
       end
 
-      visitor_for(Nodes::Stream) do |o|
+      def visit_Psych_Nodes_Stream o
         o.children.map { |c| c.accept self }
       end
 
-      visitor_for(Nodes::Alias) do |o|
+      def visit_Psych_Nodes_Alias o
         @st[o.anchor]
       end
     end
