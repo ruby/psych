@@ -35,11 +35,7 @@ module Psych
       end
 
       def visit_String o
-        quote = false
-
-        quote = true if Integer(o) rescue ArgumentError
-        quote = true if Float(o) rescue ArgumentError
-        quote = true if(o =~ /^(null|~|[\d.]+)$/i or o =~ /^:/ or o.empty?)
+        quote = ScalarScanner.new(o).tokenize.first != :SCALAR
 
         scalar = Nodes::Scalar.new(o, nil, nil, !quote, quote)
         @stack.last.children << scalar

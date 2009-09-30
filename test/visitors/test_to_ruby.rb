@@ -21,6 +21,24 @@ module Psych
         assert_equal 1, Nodes::Scalar.new('+1').to_ruby
       end
 
+      def test_int_ignore
+        ['1,000', '1_000'].each do |num|
+          i = Nodes::Scalar.new(num, nil, 'tag:yaml.org,2002:int')
+          assert_equal 1000, i.to_ruby
+
+          assert_equal 1000, Nodes::Scalar.new(num).to_ruby
+        end
+      end
+
+      def test_float_ignore
+        ['1,000.3', '1_000.3'].each do |num|
+          i = Nodes::Scalar.new(num, nil, 'tag:yaml.org,2002:float')
+          assert_equal 1000.3, i.to_ruby
+
+          assert_equal 1000.3, Nodes::Scalar.new(num).to_ruby
+        end
+      end
+
       def test_float
         i = Nodes::Scalar.new('1.2', nil, 'tag:yaml.org,2002:float')
         assert_equal 1.2, i.to_ruby

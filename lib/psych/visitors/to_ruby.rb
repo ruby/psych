@@ -1,3 +1,5 @@
+require 'psych/scalar_scanner'
+
 module Psych
   module Visitors
     ###
@@ -11,22 +13,7 @@ module Psych
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
-        return nil              if o.tag == 'tag:yaml.org,2002:null'
-        return Integer(o.value) if o.tag == 'tag:yaml.org,2002:int'
-
-        unless o.quoted
-
-          return 0.0 / 0.0  if o.value =~ /^\.nan$/i
-          return 1 / 0.0    if o.value =~ /^\.inf$/i
-          return -1 / 0.0   if o.value =~ /^\-\.inf$/i
-          return Float(o.value) if o.tag == 'tag:yaml.org,2002:float'
-
-          return Integer(o.value) rescue ArgumentError
-          return Float(o.value) rescue ArgumentError
-
-          return nil if o.value =~ /^(null|~)$/i or o.value.empty?
-          return o.value.sub(/^:/,'').to_sym if o.value =~ /^:/
-        end
+        return ScalarScanner.new(o.value).tokenize.last unless o.quoted
 
         o.value
       end
