@@ -13,6 +13,7 @@ require 'psych/visitors'
 require 'psych/handler'
 require 'psych/tree_builder'
 require 'psych/parser'
+require 'psych/ruby'
 require 'psych/psych'
 
 module Psych
