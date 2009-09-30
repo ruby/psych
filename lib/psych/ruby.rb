@@ -1,4 +1,4 @@
-[Object, String, Class].each do |klass|
+[Object, String, Class, Hash].each do |klass|
   klass.send(:remove_method, :to_yaml)
 end
 

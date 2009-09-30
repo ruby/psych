@@ -28,6 +28,16 @@ module Psych
           Class.new.to_yaml
         end
       end
+
+      def test_hash
+        assert_round_trip('a' => 'b')
+      end
+
+      def assert_round_trip obj
+        @v.accept(obj)
+        assert_equal(obj, Psych.load(@v.tree.to_yaml))
+        assert_equal(obj, Psych.load(obj.to_yaml))
+      end
     end
   end
 end

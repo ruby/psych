@@ -17,7 +17,7 @@ module Psych
             return send(method_name, target)
           end
         end
-        raise "Can't handle #{target.class}"
+        raise TypeError, "Can't dump #{target.class}"
       end
 
       visitor_for(::String) do |o|
@@ -26,6 +26,19 @@ module Psych
 
       visitor_for(::Class) do |o|
         raise TypeError, "can't dump anonymous class #{o.class}"
+      end
+
+      visitor_for(::Hash) do |o|
+        map = Nodes::Mapping.new
+        @stack.last.children << map
+        @stack.push map
+
+        o.each do |k,v|
+          k.accept self
+          v.accept self
+        end
+
+        @stack.pop
       end
     end
   end
