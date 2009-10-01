@@ -24,7 +24,7 @@ module Psych
         [:BOOLEAN, true]
       when /^(n|no|false|off)$/i
         [:BOOLEAN, false]
-      when /^:/i
+      when /^:.+/i
         [:SYMBOL, @string.sub(/^:/, '').to_sym]
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0

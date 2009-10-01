@@ -24,6 +24,7 @@ module Psych
         assert_round_trip 'foo'
         assert_round_trip ':foo'
         assert_round_trip ''
+        assert_round_trip ':'
       end
 
       def test_boolean
