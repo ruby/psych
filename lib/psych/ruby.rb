@@ -1,6 +1,13 @@
 [
   Object, String, Class, Hash, Array, NilClass, Float,
-  FalseClass, TrueClass
+  FalseClass, TrueClass, Range
+  # Struct
+  # Exception
+  # Regexp
+  # Time
+  # Date
+  # Rational
+  # Complex
 ].each do |klass|
   klass.send(:remove_method, :to_yaml) rescue NameError
 end

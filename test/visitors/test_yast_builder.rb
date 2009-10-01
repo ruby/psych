@@ -33,6 +33,14 @@ module Psych
         assert_round_trip 'false'
       end
 
+      def test_range_inclusive
+        assert_round_trip 1..2
+      end
+
+      def test_range_exclusive
+        assert_round_trip 1...2
+      end
+
       def test_binary
         string = [0, 123,22, 44, 9, 32, 34, 39].pack('C*')
         assert_equal string, Psych.load(string.to_yaml)

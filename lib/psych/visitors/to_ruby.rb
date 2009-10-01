@@ -27,12 +27,18 @@ module Psych
       end
 
       def visit_Psych_Nodes_Mapping o
-        hash = {}
-        @st[o.anchor] = hash if o.anchor
-        o.children.map { |c| c.accept self }.each_slice(2) { |k,v|
-          hash[k] = v
-        }
-        hash
+        case o.tag
+        when 'ruby/range'
+          h = Hash[*o.children.map { |c| c.accept self }]
+          Range.new(h['begin'], h['end'], h['excl'])
+        else
+          hash = {}
+          @st[o.anchor] = hash if o.anchor
+          o.children.map { |c| c.accept self }.each_slice(2) { |k,v|
+            hash[k] = v
+          }
+          hash
+        end
       end
 
       def visit_Psych_Nodes_Document o

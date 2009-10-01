@@ -54,6 +54,14 @@ module Psych
         raise TypeError, "can't dump anonymous class #{o.class}"
       end
 
+      def visit_Range o
+        @stack.push append Nodes::Mapping.new(nil, 'ruby/range', false)
+        ['begin', o.begin, 'end', o.end, 'excl', o.exclude_end?].each do |m|
+          m.accept self
+        end
+        @stack.pop
+      end
+
       def visit_Hash o
         if node = @st[o.object_id]
           node.anchor = o.object_id.to_s
