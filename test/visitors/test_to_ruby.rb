@@ -45,6 +45,11 @@ module Psych
           node = Nodes::Scalar.new '3+4i', nil, "!ruby/object:Complex"
           assert_equal Complex(3, 4), node.to_ruby
         end
+
+        def test_rational_string
+          node = Nodes::Scalar.new '1/2', nil, "!ruby/object:Rational"
+          assert_equal Rational(1, 2), node.to_ruby
+        end
       end
 
       def test_integer

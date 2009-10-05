@@ -15,6 +15,7 @@ module Psych
 
         return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
         return Complex(o.value) if o.tag == "!ruby/object:Complex"
+        return Rational(o.value) if o.tag == "!ruby/object:Rational"
         return o.value if o.quoted
 
         token = ScalarScanner.new(o.value).tokenize
