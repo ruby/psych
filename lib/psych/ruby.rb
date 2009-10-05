@@ -2,13 +2,12 @@ require 'complex'
 
 [
   Object, String, Class, Hash, Array, NilClass, Float,
-  FalseClass, TrueClass, Range, Complex
+  FalseClass, TrueClass, Range, Complex, Rational
   # Struct
   # Exception
   # Regexp
   # Time
   # Date
-  # Rational
 ].each do |klass|
   klass.send(:remove_method, :to_yaml) rescue NameError
 end

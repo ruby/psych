@@ -9,6 +9,16 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_rational
+        mapping = Nodes::Mapping.new nil, 'ruby/object:Rational'
+        mapping.children << Nodes::Scalar.new('denominator')
+        mapping.children << Nodes::Scalar.new('2')
+        mapping.children << Nodes::Scalar.new('numerator')
+        mapping.children << Nodes::Scalar.new('1')
+
+        assert_equal Rational(1,2), mapping.to_ruby
+      end
+
       def test_complex
         mapping = Nodes::Mapping.new nil, 'ruby/object:Complex'
         mapping.children << Nodes::Scalar.new('image')

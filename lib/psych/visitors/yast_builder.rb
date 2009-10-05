@@ -21,6 +21,14 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Rational o
+        @stack.push append Nodes::Mapping.new(nil,'ruby/object:Rational',false)
+        ['denominator', o.denominator, 'numerator', o.numerator].each do |m|
+          accept m
+        end
+        @stack.pop
+      end
+
       def visit_Complex o
         @stack.push append Nodes::Mapping.new(nil, 'ruby/object:Complex', false)
         ['real', o.real, 'image', o.image].each do |m|

@@ -8,6 +8,10 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_rational
+        assert_round_trip Rational(1,2)
+      end
+
       def test_complex
         assert_round_trip Complex(1,2)
       end

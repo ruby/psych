@@ -31,9 +31,15 @@ module Psych
         when 'ruby/range'
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
+
         when 'ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]
           Complex(h['real'], h['image'])
+
+        when 'ruby/object:Rational'
+          h = Hash[*o.children.map { |c| accept c }]
+          Rational(h['numerator'], h['denominator'])
+
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
