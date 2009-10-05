@@ -22,19 +22,22 @@ module Psych
       def visit_Psych_Nodes_Sequence o
         list = []
         @st[o.anchor] = list if o.anchor
-        o.children.each { |c| list.push c.accept self }
+        o.children.each { |c| list.push accept c }
         list
       end
 
       def visit_Psych_Nodes_Mapping o
         case o.tag
         when 'ruby/range'
-          h = Hash[*o.children.map { |c| c.accept self }]
+          h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
+        when 'ruby/object:Complex'
+          h = Hash[*o.children.map { |c| accept c }]
+          Complex(h['real'], h['image'])
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
-          o.children.map { |c| c.accept self }.each_slice(2) { |k,v|
+          o.children.map { |c| accept c }.each_slice(2) { |k,v|
             hash[k] = v
           }
           hash
@@ -42,11 +45,11 @@ module Psych
       end
 
       def visit_Psych_Nodes_Document o
-        o.root.accept self
+        accept o.root
       end
 
       def visit_Psych_Nodes_Stream o
-        o.children.map { |c| c.accept self }
+        o.children.map { |c| accept c }
       end
 
       def visit_Psych_Nodes_Alias o

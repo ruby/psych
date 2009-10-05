@@ -21,6 +21,14 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Complex o
+        @stack.push append Nodes::Mapping.new(nil, 'ruby/object:Complex', false)
+        ['real', o.real, 'image', o.image].each do |m|
+          accept m
+        end
+        @stack.pop
+      end
+
       def visit_Integer o
         append Nodes::Scalar.new o.to_s
       end
@@ -57,7 +65,7 @@ module Psych
       def visit_Range o
         @stack.push append Nodes::Mapping.new(nil, 'ruby/range', false)
         ['begin', o.begin, 'end', o.end, 'excl', o.exclude_end?].each do |m|
-          m.accept self
+          accept m
         end
         @stack.pop
       end
@@ -74,8 +82,8 @@ module Psych
         @stack.push append map
 
         o.each do |k,v|
-          k.accept self
-          v.accept self
+          accept k
+          accept v
         end
 
         @stack.pop
@@ -91,7 +99,7 @@ module Psych
         @st[o.object_id] = seq
 
         @stack.push append seq
-        o.each { |c| c.accept self }
+        o.each { |c| accept c }
         @stack.pop
       end
 

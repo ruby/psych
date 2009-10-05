@@ -1,13 +1,14 @@
+require 'complex'
+
 [
   Object, String, Class, Hash, Array, NilClass, Float,
-  FalseClass, TrueClass, Range
+  FalseClass, TrueClass, Range, Complex
   # Struct
   # Exception
   # Regexp
   # Time
   # Date
   # Rational
-  # Complex
 ].each do |klass|
   klass.send(:remove_method, :to_yaml) rescue NameError
 end

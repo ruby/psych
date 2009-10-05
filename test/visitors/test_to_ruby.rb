@@ -1,11 +1,22 @@
 require 'minitest/autorun'
 require 'psych'
+require 'complex'
 
 module Psych
   module Visitors
     class TestToRuby < MiniTest::Unit::TestCase
       def setup
         @visitor = ToRuby.new
+      end
+
+      def test_complex
+        mapping = Nodes::Mapping.new nil, 'ruby/object:Complex'
+        mapping.children << Nodes::Scalar.new('image')
+        mapping.children << Nodes::Scalar.new('2')
+        mapping.children << Nodes::Scalar.new('real')
+        mapping.children << Nodes::Scalar.new('1')
+
+        assert_equal Complex(1,2), mapping.to_ruby
       end
 
       def test_integer

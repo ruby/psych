@@ -7,13 +7,13 @@ module Psych
 
       def visit_Psych_Nodes_Stream o
         @handler.start_stream o.encoding
-        o.children.each { |c| c.accept self }
+        o.children.each { |c| accept c }
         @handler.end_stream
       end
 
       def visit_Psych_Nodes_Document o
         @handler.start_document o.version, o.tag_directives, o.implicit
-        o.children.each { |c| c.accept self }
+        o.children.each { |c| accept c }
         @handler.end_document o.implicit_end
       end
 
@@ -23,13 +23,13 @@ module Psych
 
       def visit_Psych_Nodes_Sequence o
         @handler.start_sequence o.anchor, o.tag, o.implicit, o.style
-        o.children.each { |c| c.accept self }
+        o.children.each { |c| accept c }
         @handler.end_sequence
       end
 
       def visit_Psych_Nodes_Mapping o
         @handler.start_mapping o.anchor, o.tag, o.implicit, o.style
-        o.children.each { |c| c.accept self }
+        o.children.each { |c| accept c }
         @handler.end_mapping
       end
 
