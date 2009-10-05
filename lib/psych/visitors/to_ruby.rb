@@ -16,7 +16,15 @@ module Psych
         return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
         return o.value if o.quoted
 
-        return ScalarScanner.new(o.value).tokenize.last
+        token = ScalarScanner.new(o.value).tokenize
+
+        case token.first
+        when :DATE
+          require 'date'
+          Date.strptime token.last, '%Y-%m-%d'
+        else
+          token.last
+        end
       end
 
       def visit_Psych_Nodes_Sequence o

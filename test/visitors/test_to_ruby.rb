@@ -9,6 +9,15 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_date
+        d = '1980-12-16'
+        actual = Date.strptime(d, '%Y-%m-%d')
+
+        date = Nodes::Scalar.new(d, nil, 'tag:yaml.org,2002:timestamp', false)
+
+        assert_equal actual, date.to_ruby
+      end
+
       def test_rational
         mapping = Nodes::Mapping.new nil, 'ruby/object:Rational'
         mapping.children << Nodes::Scalar.new('denominator')

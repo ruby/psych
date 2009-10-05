@@ -12,6 +12,8 @@ module Psych
       return [:NULL, nil] if @string.empty?
 
       case @string
+      when /^\d{4}-\d{2}-\d{2}$/
+        [:DATE, @string]
       when /^\.inf$/i
         [:POSITIVE_INFINITY, 1 / 0.0]
       when /^-\.inf$/i

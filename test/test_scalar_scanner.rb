@@ -2,6 +2,12 @@ require 'minitest/autorun'
 require 'psych'
 
 class TestScalarScanner < MiniTest::Unit::TestCase
+  def test_scan_date
+    date = '1980-12-16'
+    ss = Psych::ScalarScanner.new date
+    assert_equal [:DATE, date], ss.tokenize
+  end
+
   def test_scan_inf
     ss = Psych::ScalarScanner.new('.inf')
     assert_equal [:POSITIVE_INFINITY, 1 / 0.0], ss.tokenize
