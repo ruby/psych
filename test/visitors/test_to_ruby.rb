@@ -1,6 +1,8 @@
 require 'minitest/autorun'
 require 'psych'
 require 'complex'
+require 'date'
+require 'rational'
 
 module Psych
   module Visitors
@@ -19,7 +21,7 @@ module Psych
       end
 
       def test_rational
-        mapping = Nodes::Mapping.new nil, 'ruby/object:Rational'
+        mapping = Nodes::Mapping.new nil, '!ruby/object:Rational'
         mapping.children << Nodes::Scalar.new('denominator')
         mapping.children << Nodes::Scalar.new('2')
         mapping.children << Nodes::Scalar.new('numerator')
@@ -29,13 +31,20 @@ module Psych
       end
 
       def test_complex
-        mapping = Nodes::Mapping.new nil, 'ruby/object:Complex'
+        mapping = Nodes::Mapping.new nil, '!ruby/object:Complex'
         mapping.children << Nodes::Scalar.new('image')
         mapping.children << Nodes::Scalar.new('2')
         mapping.children << Nodes::Scalar.new('real')
         mapping.children << Nodes::Scalar.new('1')
 
         assert_equal Complex(1,2), mapping.to_ruby
+      end
+
+      if RUBY_VERSION >= '1.9'
+        def test_complex_string
+          node = Nodes::Scalar.new '3+4i', nil, "!ruby/object:Complex"
+          assert_equal Complex(3, 4), node.to_ruby
+        end
       end
 
       def test_integer

@@ -1,4 +1,5 @@
 require 'complex'
+require 'rational'
 
 [
   Object, String, Class, Hash, Array, NilClass, Float,

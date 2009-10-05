@@ -14,6 +14,7 @@ module Psych
         @st[o.anchor] = o.value if o.anchor
 
         return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
+        return Complex(o.value) if o.tag == "!ruby/object:Complex"
         return o.value if o.quoted
 
         token = ScalarScanner.new(o.value).tokenize
@@ -36,15 +37,15 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         case o.tag
-        when 'ruby/range'
+        when '!ruby/range'
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
 
-        when 'ruby/object:Complex'
+        when '!ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]
           Complex(h['real'], h['image'])
 
-        when 'ruby/object:Rational'
+        when '!ruby/object:Rational'
           h = Hash[*o.children.map { |c| accept c }]
           Rational(h['numerator'], h['denominator'])
 

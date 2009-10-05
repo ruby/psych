@@ -22,7 +22,7 @@ module Psych
       end
 
       def visit_Rational o
-        @stack.push append Nodes::Mapping.new(nil,'ruby/object:Rational',false)
+        @stack.push append Nodes::Mapping.new(nil,'!ruby/object:Rational',false)
         ['denominator', o.denominator, 'numerator', o.numerator].each do |m|
           accept m
         end
@@ -30,7 +30,7 @@ module Psych
       end
 
       def visit_Complex o
-        @stack.push append Nodes::Mapping.new(nil, 'ruby/object:Complex', false)
+        @stack.push append Nodes::Mapping.new(nil, '!ruby/object:Complex', false)
         ['real', o.real, 'image', o.image].each do |m|
           accept m
         end
@@ -71,7 +71,7 @@ module Psych
       end
 
       def visit_Range o
-        @stack.push append Nodes::Mapping.new(nil, 'ruby/range', false)
+        @stack.push append Nodes::Mapping.new(nil, '!ruby/range', false)
         ['begin', o.begin, 'end', o.end, 'excl', o.exclude_end?].each do |m|
           accept m
         end
