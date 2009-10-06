@@ -8,6 +8,11 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_date
+        date = Date.strptime('2002-12-14', '%Y-%m-%d')
+        assert_round_trip date
+      end
+
       def test_rational
         assert_round_trip Rational(1,2)
       end
