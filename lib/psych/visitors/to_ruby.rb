@@ -13,19 +13,31 @@ module Psych
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
-        return o.value if ['!str', 'tag:yaml.org,2002:str'].include?(o.tag)
-        return Complex(o.value) if o.tag == "!ruby/object:Complex"
-        return Rational(o.value) if o.tag == "!ruby/object:Rational"
         return o.value if o.quoted
 
-        token = ScalarScanner.new(o.value).tokenize
-
-        case token.first
-        when :DATE
-          require 'date'
-          Date.strptime token.last, '%Y-%m-%d'
+        case o.tag
+        when '!str', 'tag:yaml.org,2002:str'
+          o.value
+        when "!ruby/object:Complex"
+          Complex(o.value)
+        when "!ruby/object:Rational"
+          Rational(o.value)
+        when "!ruby/range"
+          args = o.value.split(/([.]{2,3})/, 2).map { |s|
+            accept Nodes::Scalar.new(s)
+          }
+          args.push(args.delete_at(1) == '...')
+          Range.new(*args)
         else
-          token.last
+          token = ScalarScanner.new(o.value).tokenize
+
+          case token.first
+          when :DATE
+            require 'date'
+            Date.strptime token.last, '%Y-%m-%d'
+          else
+            token.last
+          end
         end
       end
 

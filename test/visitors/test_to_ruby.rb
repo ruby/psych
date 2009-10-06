@@ -52,6 +52,16 @@ module Psych
         end
       end
 
+      def test_range_string
+        node = Nodes::Scalar.new '1..2', nil, "!ruby/range"
+        assert_equal 1..2, node.to_ruby
+      end
+
+      def test_range_string_triple
+        node = Nodes::Scalar.new '1...3', nil, "!ruby/range"
+        assert_equal 1...3, node.to_ruby
+      end
+
       def test_integer
         i = Nodes::Scalar.new('1', nil, 'tag:yaml.org,2002:int')
         assert_equal 1, i.to_ruby
