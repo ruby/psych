@@ -77,6 +77,20 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         case o.tag
+        when /!ruby\/struct(:.*)?$/
+          klassname = $1
+          h = Hash[*o.children.map { |c| accept c }].to_a
+
+          if klassname && klassname.length > 1
+            s = klassname.sub(/^:/,'').split('::').inject(Object) { |k,o|
+              k.const_get(o)
+            }.allocate
+            h.each { |k,v| s.send("#{k}=", v) }
+            s
+          else
+            Struct.new(*h.map { |k,v| k.to_sym }).new(*h.map { |k,v| v })
+          end
+
         when '!ruby/range'
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])

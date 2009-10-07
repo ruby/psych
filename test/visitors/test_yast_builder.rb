@@ -8,6 +8,18 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      A = Struct.new(:foo)
+
+      def test_struct
+        assert_round_trip A.new('bar')
+      end
+
+      def test_struct_anon
+        s = Struct.new(:foo).new('bar')
+        obj =  Psych.load(Psych.dump(s))
+        assert_equal s.foo, obj.foo
+      end
+
       def test_exception
         ex = Exception.new 'foo'
         loaded = Psych.load(Psych.dump(ex))

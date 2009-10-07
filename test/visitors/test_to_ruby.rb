@@ -11,6 +11,42 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      A = Struct.new(:foo)
+
+      def test_struct
+        s = A.new('bar')
+
+        mapping = Nodes::Mapping.new nil, "!ruby/struct:#{s.class}"
+        mapping.children << Nodes::Scalar.new('foo')
+        mapping.children << Nodes::Scalar.new('bar')
+
+        ruby = mapping.to_ruby
+
+        assert_equal s.class, ruby.class
+        assert_equal s.foo, ruby.foo
+        assert_equal s, ruby
+      end
+
+      def test_anon_struct_legacy
+        s = Struct.new(:foo).new('bar')
+
+        mapping = Nodes::Mapping.new nil, '!ruby/struct:'
+        mapping.children << Nodes::Scalar.new('foo')
+        mapping.children << Nodes::Scalar.new('bar')
+
+        assert_equal s.foo, mapping.to_ruby.foo
+      end
+
+      def test_anon_struct
+        s = Struct.new(:foo).new('bar')
+
+        mapping = Nodes::Mapping.new nil, '!ruby/struct'
+        mapping.children << Nodes::Scalar.new('foo')
+        mapping.children << Nodes::Scalar.new('bar')
+
+        assert_equal s.foo, mapping.to_ruby.foo
+      end
+
       def test_exception
         exc = Exception.new 'hello'
 
