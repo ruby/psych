@@ -81,6 +81,10 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
 
+        when "!ruby/exception"
+          h = Hash[*o.children.map { |c| accept c }]
+          Exception.new h['message']
+
         when '!ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]
           Complex(h['real'], h['image'])

@@ -4,9 +4,8 @@ require 'date'
 
 [
   Object, String, Class, Hash, Array, NilClass, Float, FalseClass, TrueClass,
-  Range, Complex, Rational, Date, Time, Regexp
+  Range, Complex, Rational, Date, Time, Regexp, Exception
   # Struct
-  # Exception
 ].each do |klass|
   klass.send(:remove_method, :to_yaml) rescue NameError
 end

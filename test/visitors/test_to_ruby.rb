@@ -11,6 +11,19 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_exception
+        exc = Exception.new 'hello'
+
+        mapping = Nodes::Mapping.new nil, '!ruby/exception'
+        mapping.children << Nodes::Scalar.new('message')
+        mapping.children << Nodes::Scalar.new('hello')
+
+        ruby = mapping.to_ruby
+
+        assert_equal exc.class, ruby.class
+        assert_equal exc.message, ruby.message
+      end
+
       def test_regexp
         node = Nodes::Scalar.new('/foo/', nil, '!ruby/regexp')
         assert_equal(/foo/, node.to_ruby)

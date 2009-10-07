@@ -8,6 +8,14 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_exception
+        ex = Exception.new 'foo'
+        loaded = Psych.load(Psych.dump(ex))
+
+        assert_equal ex.message, loaded.message
+        assert_equal ex.class, loaded.class
+      end
+
       def test_regexp
         assert_round_trip(/foo/)
         assert_round_trip(/foo/i)

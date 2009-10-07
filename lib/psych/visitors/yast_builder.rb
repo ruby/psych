@@ -21,6 +21,14 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Exception o
+        @stack.push append Nodes::Mapping.new(nil, '!ruby/exception', false)
+        ['message', o.message].each do |m|
+          accept m
+        end
+        @stack.pop
+      end
+
       def visit_Regexp o
         append Nodes::Scalar.new(o.inspect, nil, '!ruby/regexp', false)
       end
