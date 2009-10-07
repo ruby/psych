@@ -173,6 +173,9 @@ module Psych
           i = Nodes::Scalar.new(num, nil, 'tag:yaml.org,2002:float')
           assert_equal 1000.3, i.to_ruby
 
+          i = Nodes::Scalar.new(num, nil, '!float')
+          assert_equal 1000.3, i.to_ruby
+
           assert_equal 1000.3, Nodes::Scalar.new(num).to_ruby
         end
       end
@@ -196,6 +199,9 @@ module Psych
       end
 
       def test_float
+        i = Nodes::Scalar.new('12', nil, 'tag:yaml.org,2002:float')
+        assert_equal 12.0, i.to_ruby
+
         i = Nodes::Scalar.new('1.2', nil, 'tag:yaml.org,2002:float')
         assert_equal 1.2, i.to_ruby
 

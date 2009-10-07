@@ -22,6 +22,8 @@ module Psych
           Complex(o.value)
         when "!ruby/object:Rational"
           Rational(o.value)
+        when "tag:yaml.org,2002:float", "!float"
+          Float(ScalarScanner.new(o.value).tokenize.last)
         when "!ruby/regexp"
           o.value =~ /^\/(.*)\/([mix]*)$/
           source  = $1

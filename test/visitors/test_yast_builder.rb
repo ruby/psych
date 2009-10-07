@@ -8,6 +8,11 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_struct_const
+        foo = Struct.new("Foo", :bar)
+        assert_round_trip foo.new('bar')
+      end
+
       A = Struct.new(:foo)
 
       def test_struct
