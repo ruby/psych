@@ -11,6 +11,17 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_regexp
+        node = Nodes::Scalar.new('/foo/', nil, '!ruby/regexp')
+        assert_equal(/foo/, node.to_ruby)
+
+        node = Nodes::Scalar.new('/foo/m', nil, '!ruby/regexp')
+        assert_equal(/foo/m, node.to_ruby)
+
+        node = Nodes::Scalar.new('/foo/ix', nil, '!ruby/regexp')
+        assert_equal(/foo/ix, node.to_ruby)
+      end
+
       def test_time
         now = Time.now
         formatted = now.strftime("%Y-%m-%d %H:%M:%S") +

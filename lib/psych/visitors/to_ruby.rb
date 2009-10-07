@@ -22,6 +22,20 @@ module Psych
           Complex(o.value)
         when "!ruby/object:Rational"
           Rational(o.value)
+        when "!ruby/regexp"
+          o.value =~ /^\/(.*)\/([mix]*)$/
+          source  = $1
+          options = 0
+          lang    = nil
+          ($2 || '').split('').each do |option|
+            case option
+            when 'x' then options |= Regexp::EXTENDED
+            when 'i' then options |= Regexp::IGNORECASE
+            when 'm' then options |= Regexp::MULTILINE
+            else lang = option
+            end
+          end
+          Regexp.new(*[source, options, lang].compact)
         when "!ruby/range"
           args = o.value.split(/([.]{2,3})/, 2).map { |s|
             accept Nodes::Scalar.new(s)
