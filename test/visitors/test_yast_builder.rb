@@ -8,6 +8,12 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_regexp
+        assert_round_trip(/foo/)
+        assert_round_trip(/foo/i)
+        assert_round_trip(/foo/mx)
+      end
+
       def test_time
         assert_round_trip Time.now
       end

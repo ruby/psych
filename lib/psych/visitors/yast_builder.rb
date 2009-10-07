@@ -21,6 +21,10 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Regexp o
+        append Nodes::Scalar.new(o.inspect, nil, '!ruby/regexp', false)
+      end
+
       def visit_Time o
         formatted = o.strftime("%Y-%m-%d %H:%M:%S")
         if o.utc?
