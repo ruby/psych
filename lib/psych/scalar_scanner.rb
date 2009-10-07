@@ -4,6 +4,9 @@ module Psych
   ###
   # Scan scalars for built in types
   class ScalarScanner
+    # Taken from http://yaml.org/type/timestamp.html
+    TIME = /\d{4}-\d{1,2}-\d{1,2}([Tt]|\s+)\d{1,2}:\d\d:\d\d(\.\d*)?(\s*Z|[-+]\d{1,2}(:\d\d)?)?/
+
     def initialize string
       @string = string
     end
@@ -12,7 +15,9 @@ module Psych
       return [:NULL, nil] if @string.empty?
 
       case @string
-      when /^\d{4}-\d{2}-\d{2}$/
+      when TIME
+        [:TIME, @string]
+      when /^\d{4}-\d{1,2}-\d{1,2}$/
         [:DATE, @string]
       when /^\.inf$/i
         [:POSITIVE_INFINITY, 1 / 0.0]

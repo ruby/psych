@@ -2,6 +2,17 @@ require 'minitest/autorun'
 require 'psych'
 
 class TestScalarScanner < MiniTest::Unit::TestCase
+  def test_scan_time
+    [ '2001-12-15T02:59:43.1Z',
+      '2001-12-14t21:59:43.10-05:00',
+      '2001-12-14 21:59:43.10 -5',
+      '2001-12-15 2:59:43.10',
+    ].each do |time|
+      ss = Psych::ScalarScanner.new time
+      assert_equal :TIME, ss.tokenize.first
+    end
+  end
+
   def test_scan_date
     date = '1980-12-16'
     ss = Psych::ScalarScanner.new date

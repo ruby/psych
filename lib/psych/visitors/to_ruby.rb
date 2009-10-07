@@ -35,6 +35,19 @@ module Psych
           when :DATE
             require 'date'
             Date.strptime token.last, '%Y-%m-%d'
+          when :TIME
+            lexeme = token.last
+
+            date, time = *(lexeme.split(/[ tT]/, 2))
+            (yy, m, dd) = date.split('-').map { |x| x.to_i }
+            md = time.match /(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/
+
+            (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
+
+            time = Time.utc(yy, m, dd, hh, mm, ss)
+
+            tz = (!md[3] || md[3] == 'Z') ? 0 : Integer(md[3].split(':').first)
+            Time.at((time - (tz * 3600)).to_i, md[2].sub(/^\./, '').to_i)
           else
             token.last
           end
