@@ -13,6 +13,7 @@ module Psych
 
       def accept target
         target.class.ancestors.each do |klass|
+          next unless klass.name
           method_name = :"visit_#{klass.name.split('::').join('_')}"
           if respond_to?(method_name)
             return send(method_name, target)

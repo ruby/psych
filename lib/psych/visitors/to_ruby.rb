@@ -82,8 +82,8 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }].to_a
 
           if klassname && klassname.length > 1
-            s = klassname.sub(/^:/,'').split('::').inject(Object) { |k,o|
-              k.const_get(o)
+            s = klassname.sub(/^:/,'').split('::').inject(Object) { |k,sub|
+              k.const_get sub
             }.allocate
             h.each { |k,v| s.send("#{k}=", v) }
             s
