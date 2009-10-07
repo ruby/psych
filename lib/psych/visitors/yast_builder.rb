@@ -21,6 +21,17 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Time o
+        formatted = o.strftime("%Y-%m-%d %H:%M:%S")
+        if o.utc?
+          formatted += ".%06dZ" % [o.usec]
+        else
+          formatted += ".%06d %d:00" % [o.usec, o.gmt_offset / 3600]
+        end
+
+        append Nodes::Scalar.new formatted
+      end
+
       def visit_Date o
         append Nodes::Scalar.new o.to_s
       end

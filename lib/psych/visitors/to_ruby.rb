@@ -40,7 +40,7 @@ module Psych
 
             date, time = *(lexeme.split(/[ tT]/, 2))
             (yy, m, dd) = date.split('-').map { |x| x.to_i }
-            md = time.match /(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/
+            md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
 
             (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
 
