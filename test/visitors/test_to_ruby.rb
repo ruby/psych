@@ -11,6 +11,27 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_binary
+        gif = "GIF89a\f\x00\f\x00\x84\x00\x00\xFF\xFF\xF7\xF5\xF5\xEE\xE9\xE9\xE5fff\x00\x00\x00\xE7\xE7\xE7^^^\xF3\xF3\xED\x8E\x8E\x8E\xE0\xE0\xE0\x9F\x9F\x9F\x93\x93\x93\xA7\xA7\xA7\x9E\x9E\x9Eiiiccc\xA3\xA3\xA3\x84\x84\x84\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9\xFF\xFE\xF9!\xFE\x0EMade with GIMP\x00,\x00\x00\x00\x00\f\x00\f\x00\x00\x05,  \x8E\x810\x9E\xE3@\x14\xE8i\x10\xC4\xD1\x8A\b\x1C\xCF\x80M$z\xEF\xFF0\x85p\xB8\xB01f\r\e\xCE\x01\xC3\x01\x1E\x10' \x82\n\x01\x00;"
+
+        hash = Psych.load(<<-'eoyaml')
+canonical: !!binary "\
+ R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\
+ OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\
+ +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\
+ AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs="
+generic: !binary |
+ R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5
+ OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+
+ +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC
+ AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=
+description:
+ The binary value above is a tiny arrow encoded as a gif image.
+        eoyaml
+        assert_equal gif, hash['canonical']
+        assert_equal gif, hash['generic']
+      end
+
       A = Struct.new(:foo)
 
       def test_struct

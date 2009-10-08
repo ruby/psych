@@ -16,6 +16,8 @@ module Psych
         return o.value if o.quoted
 
         case o.tag
+        when '!binary', 'tag:yaml.org,2002:binary'
+          o.value.unpack('m').first
         when '!str', 'tag:yaml.org,2002:str'
           o.value
         when "!ruby/object:Complex"
