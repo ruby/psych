@@ -45,4 +45,13 @@ module Psych
   def self.dump o
     o.to_yaml
   end
+
+  ###
+  # Load multiple documents given in +yaml+, yielding each document to
+  # the block provided.
+  def self.load_documents yaml, &block
+    yaml_ast(yaml).children.each do |child|
+      block.call child.to_ruby
+    end
+  end
 end

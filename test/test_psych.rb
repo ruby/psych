@@ -10,4 +10,12 @@ class TestPsych < MiniTest::Unit::TestCase
     assert Psych.libyaml_version
     assert_equal Psych.libyaml_version.join('.'), Psych::LIBYAML_VERSION
   end
+
+  def test_load_documents
+    docs = []
+    Psych.load_documents("--- foo\n...\n--- bar\n...") { |doc|
+      docs << doc
+    }
+    assert_equal %w{ foo bar }, docs
+  end
 end
