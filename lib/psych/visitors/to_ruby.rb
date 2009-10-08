@@ -64,8 +64,10 @@ module Psych
 
             time = Time.utc(yy, m, dd, hh, mm, ss)
 
+            us = md[2] ? md[2].sub(/^\./, '').to_i : 0
+
             tz = (!md[3] || md[3] == 'Z') ? 0 : Integer(md[3].split(':').first)
-            Time.at((time - (tz * 3600)).to_i, md[2].sub(/^\./, '').to_i)
+            Time.at((time - (tz * 3600)).to_i, us)
           else
             token.last
           end

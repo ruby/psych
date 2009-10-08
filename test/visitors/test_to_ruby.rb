@@ -11,10 +11,14 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_awesome
+        Psych.load('1900-01-01T00:00:00+00:00')
+      end
+
       def test_legacy_struct
-        foo = Struct.new('Foo', :bar)
+        foo = Struct.new('AWESOME', :bar)
         assert_equal foo.new('baz'), Psych.load(<<-eoyml)
-!ruby/struct:Foo
+!ruby/struct:AWESOME
   bar: baz
         eoyml
       end
