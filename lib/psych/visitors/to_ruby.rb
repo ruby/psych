@@ -86,9 +86,22 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }].to_a
 
           if klassname && klassname.length > 1
-            s = klassname.sub(/^:/,'').split('::').inject(Object) { |k,sub|
-              k.const_get sub
-            }.allocate
+            name    = klassname.sub(/^:/, '')
+            s       = nil
+            retried = false
+
+            begin
+              s = name.split('::').inject(Object) { |k,sub|
+                k.const_get sub
+              }.allocate
+            rescue NameError => ex
+              name    = "Struct::#{name}"
+              unless retried
+                retried = true
+                retry
+              end
+              raise ex
+            end
             h.each { |k,v| s.send("#{k}=", v) }
             s
           else
