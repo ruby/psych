@@ -97,6 +97,17 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         case o.tag
+        when /!ruby\/object(:.*)?$/
+          name = $1.sub(/^:/, '')
+          h = Hash[*o.children.map { |c| accept c }]
+          s = name.split('::').inject(Object) { |k,sub|
+            k.const_get sub
+          }.allocate
+          h.each do |k,v|
+            s.instance_variable_set(:"@#{k}", v)
+          end
+          s
+
         when /!ruby\/struct(:.*)?$/
           klassname = $1
           h = Hash[*o.children.map { |c| accept c }].to_a

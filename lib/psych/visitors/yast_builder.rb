@@ -22,6 +22,16 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Object o
+        tag = ['!ruby/object', o.class.name].join(':')
+        @stack.push append Nodes::Mapping.new(nil, tag, false)
+        o.instance_variables.each do |iv|
+          accept iv.to_s.sub(/^@/, '')
+          accept o.instance_variable_get(iv)
+        end
+        @stack.pop
+      end
+
       def visit_Struct o
         tag = ['!ruby/struct', o.class.name].compact.join(':')
 
