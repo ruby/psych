@@ -11,6 +11,15 @@ module Psych
         @visitor = ToRuby.new
       end
 
+      def test_object
+        mapping = Nodes::Mapping.new nil, "!ruby/object"
+        mapping.children << Nodes::Scalar.new('foo')
+        mapping.children << Nodes::Scalar.new('bar')
+
+        o = mapping.to_ruby
+        assert_equal 'bar', o.instance_variable_get(:@foo)
+      end
+
       def test_awesome
         Psych.load('1900-01-01T00:00:00+00:00')
       end

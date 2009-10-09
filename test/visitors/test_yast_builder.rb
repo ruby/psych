@@ -8,6 +8,11 @@ module Psych
         @v = Visitors::YASTBuilder.new
       end
 
+      def test_object_has_no_class
+        yaml = Psych.dump(Object.new)
+        assert(Psych.dump(Object.new) !~ /Object/, yaml)
+      end
+
       def test_struct_const
         foo = Struct.new("Foo", :bar)
         assert_round_trip foo.new('bar')

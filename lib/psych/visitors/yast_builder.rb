@@ -23,7 +23,8 @@ module Psych
       end
 
       def visit_Object o
-        tag = ['!ruby/object', o.class.name].join(':')
+        klass = o.class == Object ? nil : o.class.name
+        tag = ['!ruby/object', klass].compact.join(':')
         @stack.push append Nodes::Mapping.new(nil, tag, false)
         o.instance_variables.each do |iv|
           accept iv.to_s.sub(/^@/, '')
