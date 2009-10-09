@@ -10,6 +10,20 @@ module Psych
         @st = {}
       end
 
+      def accept target
+        result = super
+        return result if Psych.domain_types.empty?
+
+        if target.respond_to?(:tag) && target.tag
+          short_name = target.tag.sub(/^!/, '').split('/').last
+          if Psych.domain_types.key? short_name
+            url, block = Psych.domain_types[short_name]
+            block.call "http://#{url}:#{short_name}", result
+          end
+        end
+        result
+      end
+
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
