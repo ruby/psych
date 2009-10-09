@@ -716,23 +716,32 @@ EOY
 		assert_equal( doc_ct, 2 )
 	end
 
-	def test_spec_url_escaping
-		YAML.add_domain_type( "domain.tld,2002", "type0" ) { |type, val|
-			"ONE: #{val}"
-		}
-		YAML.add_domain_type( "domain.tld,2002", "type%30" ) { |type, val|
-			"TWO: #{val}"
-		}
-		assert_parse_only(
-			{ 'same' => [ 'ONE: value', 'ONE: value' ], 'different' => [ 'TWO: value' ] }, <<EOY
-same:
-  - !domain.tld,2002/type\\x30 value
-  - !domain.tld,2002/type0 value
-different: # As far as the YAML parser is concerned
-  - !domain.tld,2002/type%30 value
-EOY
-		)
-	end
+    ###
+    # Commenting out this test.  This line:
+    #
+    #   - !domain.tld,2002/type\\x30 value
+    #
+    # Is invalid according to the YAML spec:
+    #
+    #   http://yaml.org/spec/1.1/#id896876
+    #
+#	def test_spec_url_escaping
+#		YAML.add_domain_type( "domain.tld,2002", "type0" ) { |type, val|
+#			"ONE: #{val}"
+#		}
+#		YAML.add_domain_type( "domain.tld,2002", "type%30" ) { |type, val|
+#			"TWO: #{val}"
+#		}
+#		assert_parse_only(
+#			{ 'same' => [ 'ONE: value', 'ONE: value' ], 'different' => [ 'TWO: value' ] }, <<EOY
+#same:
+#  - !domain.tld,2002/type\\x30 value
+#  - !domain.tld,2002/type0 value
+#different: # As far as the YAML parser is concerned
+#  - !domain.tld,2002/type%30 value
+#EOY
+#		)
+#	end
 
 	def test_spec_override_anchor
 		# Override anchor
@@ -1141,24 +1150,24 @@ EOY
 		)
 	end
 
-	#
-	# Test the YAML::Stream class -- INACTIVE at the moment
-	#
-	def test_document
-		y = YAML::Stream.new( :Indent => 2, :UseVersion => 0 )
-		y.add(
-			{ 'hi' => 'hello', 'map' =>
-				{ 'good' => 'two' },
-			  'time' => Time.now,
-			  'try' => /^po(.*)$/,
-			  'bye' => 'goodbye'
-			}
-		)
-		y.add( { 'po' => 'nil', 'oper' => 90 } )
-		y.add( { 'hi' => 'wow!', 'bye' => 'wow!' } )
-		y.add( { [ 'Red Socks', 'Boston' ] => [ 'One', 'Two', 'Three' ] } )
-		y.add( [ true, false, false ] )
-	end
+	##
+	## Test the YAML::Stream class -- INACTIVE at the moment
+	##
+	#def test_document
+	#	y = YAML::Stream.new( :Indent => 2, :UseVersion => 0 )
+	#	y.add(
+	#		{ 'hi' => 'hello', 'map' =>
+	#			{ 'good' => 'two' },
+	#		  'time' => Time.now,
+	#		  'try' => /^po(.*)$/,
+	#		  'bye' => 'goodbye'
+	#		}
+	#	)
+	#	y.add( { 'po' => 'nil', 'oper' => 90 } )
+	#	y.add( { 'hi' => 'wow!', 'bye' => 'wow!' } )
+	#	y.add( { [ 'Red Socks', 'Boston' ] => [ 'One', 'Two', 'Three' ] } )
+	#	y.add( [ true, false, false ] )
+	#end
 
     #
     # Test YPath choices parsing
@@ -1215,7 +1224,7 @@ EOY
         #
         # From Minero Aoki [ruby-core:2305]
         #
-        require 'yaml'
+        #require 'yaml'
         t = Time.now
         t = Time.at(t.tv_sec, t.tv_usec)
         5.times do
