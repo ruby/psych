@@ -41,6 +41,10 @@ module Psych
           accept member
           accept o[member]
         end
+        o.instance_variables.each do |iv|
+          accept iv.to_s.sub(/^@/, '')
+          accept o.instance_variable_get(iv)
+        end
         @stack.pop
       end
 

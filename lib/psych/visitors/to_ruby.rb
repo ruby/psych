@@ -99,7 +99,7 @@ module Psych
         case o.tag
         when /!ruby\/struct:?(.*)?$/
           klassname = $1
-          h = Hash[*o.children.map { |c| accept c }].to_a
+          members = o.children.map { |c| accept c }
 
           if klassname && klassname.length > 1
             name    = klassname
@@ -118,9 +118,17 @@ module Psych
               end
               raise ex
             end
-            h.each { |k,v| s.send("#{k}=", v) }
+            struct_members = s.members.map { |x| x.to_sym }
+            members.each_slice(2) { |k,v|
+              if struct_members.include? k.to_sym
+                s.send("#{k}=", v)
+              else
+                s.instance_variable_set(:"@#{k}", v)
+              end
+            }
             s
           else
+            h = Hash[*members]
             Struct.new(*h.map { |k,v| k.to_sym }).new(*h.map { |k,v| v })
           end
 

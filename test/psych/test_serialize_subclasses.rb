@@ -19,5 +19,21 @@ module Psych
       so = SomeObject.new('foo', [1,2,3])
       assert_equal so, Psych.load(Psych.dump(so))
     end
+
+    class StructSubclass < Struct.new(:foo)
+      def initialize foo, bar
+        super(foo)
+        @bar = bar
+      end
+
+      def == other
+        super(other) && @bar == other.instance_eval{ @bar }
+      end
+    end
+
+    def test_struct_subclass
+      so = StructSubclass.new('foo', [1,2,3])
+      assert_equal so, Psych.load(Psych.dump(so))
+    end
   end
 end
