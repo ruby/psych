@@ -10,6 +10,7 @@ module Psych
   class TreeBuilder < Psych::Handler
     def initialize
       @stack = []
+      @last  = nil
     end
 
     def root
@@ -23,36 +24,48 @@ module Psych
       class_eval %{
         def start_#{node.downcase}(*args)
           n = Nodes::#{node}.new(*args)
-          @stack.last.children << n
-          @stack.push n
+          @last.children << n
+          push n
         end
 
         def end_#{node.downcase}
-          @stack.pop
+          pop
         end
       }
     end
 
     def start_document(*args)
       n = Nodes::Document.new(*args)
-      @stack.last.children << n
-      @stack.push n
+      @last.children << n
+      push n
     end
 
     def end_document implicit_end
-      @stack.pop.implicit_end = implicit_end
+      @last.implicit_end = implicit_end
+      pop
     end
 
     def start_stream encoding
-      @stack.push Nodes::Stream.new(encoding)
+      push Nodes::Stream.new(encoding)
     end
 
     def scalar(*args)
-      @stack.last.children << Nodes::Scalar.new(*args)
+      @last.children << Nodes::Scalar.new(*args)
     end
 
     def alias(*args)
-      @stack.last.children << Nodes::Alias.new(*args)
+      @last.children << Nodes::Alias.new(*args)
+    end
+
+    private
+    def push value
+      @stack.push value
+      @last = value
+    end
+
+    def pop
+      @stack.pop
+      @last = @stack.last
     end
   end
 end

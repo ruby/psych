@@ -30,7 +30,6 @@ module Psych
       attr_accessor :style
 
       def initialize value, anchor = nil, tag = nil, plain = true, quoted = false, style = ANY
-        super()
         @value  = value
         @anchor = anchor
         @tag    = tag

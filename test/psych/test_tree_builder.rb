@@ -70,6 +70,7 @@ module Psych
     def test_alias
       doc = @tree.children.first
       seq = doc.children.first
+      assert_equal 3, seq.children.length
       al  = seq.children[2]
       assert_instance_of Nodes::Alias, al
       assert_equal 'A', al.anchor
