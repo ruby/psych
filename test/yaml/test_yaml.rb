@@ -823,7 +823,7 @@ EOY
 # have the same type and value.
 - 10.0
 - !float 10
-- !yaml.org,2002/^float '10'
+- !yaml.org,2002/float '10'
 - !yaml.org,2002/float "\\
   1\\
   0"
