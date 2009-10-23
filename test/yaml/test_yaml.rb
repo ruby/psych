@@ -589,14 +589,14 @@ EOY
 
 	def test_spec_root_fold
 		y = YAML::load( <<EOY
---- >
+---
 This YAML stream contains a single text value.
 The next stream is a log file - a sequence of
 log entries. Adding an entry to the log is a
 simple matter of appending it at the end.
 EOY
 		)
-		assert_equal( y, "This YAML stream contains a single text value. The next stream is a log file - a sequence of log entries. Adding an entry to the log is a simple matter of appending it at the end.\n" )
+		assert_equal( y, "This YAML stream contains a single text value. The next stream is a log file - a sequence of log entries. Adding an entry to the log is a simple matter of appending it at the end." )
 	end
 
 	def test_spec_root_mapping
