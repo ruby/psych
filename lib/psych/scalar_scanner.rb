@@ -15,6 +15,17 @@ module Psych
       return [:NULL, nil] if @string.empty?
 
       case @string
+      when /^[A-Za-z~]/
+        case @string
+        when /^(null|~)$/i
+          [:NULL, nil]
+        when /^(y|yes|true|on)$/i
+          [:BOOLEAN, true]
+        when /^(n|no|false|off)$/i
+          [:BOOLEAN, false]
+        else
+          [:SCALAR, @string]
+        end
       when TIME
         [:TIME, @string]
       when /^\d{4}-\d{1,2}-\d{1,2}$/
@@ -25,12 +36,6 @@ module Psych
         [:NEGATIVE_INFINITY, -1 / 0.0]
       when /^\.nan$/i
         [:NAN, 0.0 / 0.0]
-      when /^(null|~)$/i
-        [:NULL, nil]
-      when /^(y|yes|true|on)$/i
-        [:BOOLEAN, true]
-      when /^(n|no|false|off)$/i
-        [:BOOLEAN, false]
       when /^:.+/i
         [:SYMBOL, @string.sub(/^:/, '').to_sym]
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/

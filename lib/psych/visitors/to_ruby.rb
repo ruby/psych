@@ -28,6 +28,7 @@ module Psych
         @st[o.anchor] = o.value if o.anchor
 
         return o.value if o.quoted
+        return resolve_unknown(o) unless o.tag
 
         case o.tag
         when '!binary', 'tag:yaml.org,2002:binary'
@@ -61,30 +62,7 @@ module Psych
           args.push(args.delete_at(1) == '...')
           Range.new(*args)
         else
-          token = ScalarScanner.new(o.value).tokenize
-
-          case token.first
-          when :DATE
-            require 'date'
-            Date.strptime token.last, '%Y-%m-%d'
-          when :TIME
-            lexeme = token.last
-
-            date, time = *(lexeme.split(/[ tT]/, 2))
-            (yy, m, dd) = date.split('-').map { |x| x.to_i }
-            md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
-
-            (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
-
-            time = Time.utc(yy, m, dd, hh, mm, ss)
-
-            us = md[2] ? md[2].sub(/^\./, '').to_i : 0
-
-            tz = (!md[3] || md[3] == 'Z') ? 0 : Integer(md[3].split(':').first)
-            Time.at((time - (tz * 3600)).to_i, us)
-          else
-            token.last
-          end
+          resolve_unknown o
         end
       end
 
@@ -177,6 +155,34 @@ module Psych
 
       def visit_Psych_Nodes_Alias o
         @st[o.anchor]
+      end
+
+      private
+      def resolve_unknown o
+        token = ScalarScanner.new(o.value).tokenize
+
+        case token.first
+        when :DATE
+          require 'date'
+          Date.strptime token.last, '%Y-%m-%d'
+        when :TIME
+          lexeme = token.last
+
+          date, time = *(lexeme.split(/[ tT]/, 2))
+          (yy, m, dd) = date.split('-').map { |x| x.to_i }
+          md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
+
+          (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
+
+          time = Time.utc(yy, m, dd, hh, mm, ss)
+
+          us = md[2] ? md[2].sub(/^\./, '').to_i : 0
+
+          tz = (!md[3] || md[3] == 'Z') ? 0 : Integer(md[3].split(':').first)
+          Time.at((time - (tz * 3600)).to_i, us)
+        else
+          token.last
+        end
       end
     end
   end

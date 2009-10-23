@@ -19,6 +19,8 @@ Hoe.spec 'psych' do
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
 
+  self.spec_extras = { :extensions => ["ext/psych/extconf.rb"] }
+
   Rake::ExtensionTask.new "psych", spec do |ext|
     ext.lib_dir = File.join(*['lib', 'psych', ENV['FAT_DIR']].compact)
   end

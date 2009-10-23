@@ -1,4 +1,5 @@
 require "autotest/restart"
+require 'rbconfig'
 
 Autotest.add_hook :initialize do |at|
   at.find_directories = ARGV unless ARGV.empty?
@@ -7,11 +8,7 @@ end
 
 Autotest.add_hook :run_command do |at|
   at.unit_diff = 'cat'
-  if ENV['ONENINE']
-    system "rake1.9 compile"
-  else
-    system "rake compile"
-  end
+  system "ruby -S rake compile"
 end
 
 Autotest.add_hook :ran_command do |at|
