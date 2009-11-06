@@ -4,19 +4,20 @@
 
 == Description
 
-FIX (describe your package)
+Wrapper around libyaml that provides the same interface as Syck
 
 == Examples
 
-  FIX (code sample of usage)
+  Psych.load Psych.dump(:foo => :bar)
 
 == Dependencies
 
-* FIX (list of requirements)
+* libyaml
 
 == Installation
 
-* FIX (sudo gem install, anything else)
+* sudo port install libyaml +universal
+* sudo gem install psych
 
 == License
 
