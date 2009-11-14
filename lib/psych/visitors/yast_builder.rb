@@ -26,7 +26,13 @@ module Psych
         klass = o.class == Object ? nil : o.class.name
         tag = ['!ruby/object', klass].compact.join(':')
         @stack.push append Nodes::Mapping.new(nil, tag, false)
-        o.instance_variables.each do |iv|
+        if o.respond_to? :to_yaml_properties
+          ivars = o.to_yaml_properties
+        else
+          ivars = o.instance_variables
+        end
+
+        ivars.each do |iv|
           accept iv.to_s.sub(/^@/, '')
           accept o.instance_variable_get(iv)
         end
@@ -41,7 +47,14 @@ module Psych
           accept member
           accept o[member]
         end
-        o.instance_variables.each do |iv|
+
+        if o.respond_to? :to_yaml_properties
+          ivars = o.to_yaml_properties
+        else
+          ivars = o.instance_variables
+        end
+
+        ivars.each do |iv|
           accept iv.to_s.sub(/^@/, '')
           accept o.instance_variable_get(iv)
         end
@@ -114,10 +127,43 @@ module Psych
       end
 
       def visit_String o
-        quote = ScalarScanner.new(o).tokenize.first != :SCALAR
+        plain = false
+        quote = false
 
-        scalar = Nodes::Scalar.new(o, nil, nil, !quote, quote)
-        @stack.last.children << scalar
+        if o.index("\x00") || o.count("^ -~\t\r\n").fdiv(o.length) > 0.3
+          str   = [o].pack('m').chomp
+          tag   = '!binary'
+        else
+          str   = o
+          tag   = nil
+          quote = ScalarScanner.new(o).tokenize.first != :SCALAR
+          plain = !quote
+        end
+
+
+        if o.respond_to? :to_yaml_properties
+          ivars = o.to_yaml_properties
+        else
+          ivars = o.instance_variables
+        end
+
+        scalar = Nodes::Scalar.new str, nil, tag, plain, quote
+
+        if ivars.empty?
+          append scalar
+        else
+          mapping = append Nodes::Mapping.new(nil, '!str', false)
+
+          mapping.children << Nodes::Scalar.new('str')
+          mapping.children << scalar
+
+          @stack.push mapping
+          ivars.each do |iv|
+            mapping.children << Nodes::Scalar.new(":#{iv}")
+            accept o.instance_variable_get(iv)
+          end
+          @stack.pop
+        end
       end
 
       def visit_Class o

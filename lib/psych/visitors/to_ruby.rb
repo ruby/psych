@@ -75,6 +75,14 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         case o.tag
+        when '!str', 'tag:yaml.org,2002:str'
+          members = Hash[*o.children.map { |c| accept c }]
+          string = members.delete 'str'
+
+          members.each do |k,v|
+            string.instance_variable_set k, v
+          end
+          string
         when /!ruby\/struct:?(.*)?$/
           klassname = $1
           members = o.children.map { |c| accept c }

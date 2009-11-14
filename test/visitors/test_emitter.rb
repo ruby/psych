@@ -59,6 +59,21 @@ module Psych
         assert_equal @io.string, s.to_yaml
       end
 
+      def test_scalar_with_tag
+        s       = Nodes::Stream.new
+        doc     = Nodes::Document.new
+        scalar  = Nodes::Scalar.new 'hello world', nil, '!str', false, false, 5
+
+        doc.children << scalar
+        s.children << doc
+
+        @visitor.accept s
+
+        assert_match(/str/, @io.string)
+        assert_match(/hello/, @io.string)
+        assert_equal @io.string, s.to_yaml
+      end
+
       def test_sequence
         s       = Nodes::Stream.new
         doc     = Nodes::Document.new

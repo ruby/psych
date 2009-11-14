@@ -13,8 +13,6 @@ class Object
   include Psych::Visitable
 
   def to_yaml options = {}
-    visitor = Psych::Visitors::YASTBuilder.new options
-    visitor.accept self
-    visitor.tree.to_yaml
+    Psych.dump self, options
   end
 end

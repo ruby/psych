@@ -32,10 +32,12 @@ lib/psych/visitors/visitor.rb
 lib/psych/visitors/yast_builder.rb
 test/psych/test_parser.rb
 test/psych/test_serialize_subclasses.rb
+test/psych/test_to_yaml_properties.rb
 test/psych/test_tree_builder.rb
 test/test_psych.rb
 test/test_scalar_scanner.rb
 test/visitors/test_emitter.rb
 test/visitors/test_to_ruby.rb
 test/visitors/test_yast_builder.rb
+test/yaml/test_string.rb
 test/yaml/test_yaml.rb

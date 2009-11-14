@@ -42,8 +42,10 @@ module Psych
 
   ###
   # Dump object +o+ to a YAML string
-  def self.dump o
-    o.to_yaml
+  def self.dump o, options = {}
+    visitor = Psych::Visitors::YASTBuilder.new options
+    visitor.accept o
+    visitor.tree.to_yaml
   end
 
   ###
