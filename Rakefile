@@ -1,5 +1,13 @@
 # -*- ruby -*-
 
+$: << File.join(File.dirname(__FILE__), 'lib')
+
+begin
+  require 'psych'
+  $" << "yaml.rb"
+rescue LoadError
+end
+
 require 'rubygems'
 require 'hoe'
 

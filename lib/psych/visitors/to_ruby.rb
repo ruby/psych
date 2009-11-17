@@ -84,26 +84,11 @@ module Psych
           end
           string
         when /!ruby\/struct:?(.*)?$/
-          klassname = $1
+          klass   = resolve_class($1)
           members = o.children.map { |c| accept c }
 
-          if klassname && klassname.length > 1
-            name    = klassname
-            s       = nil
-            retried = false
-
-            begin
-              s = name.split('::').inject(Object) { |k,sub|
-                k.const_get sub
-              }.allocate
-            rescue NameError => ex
-              name    = "Struct::#{name}"
-              unless retried
-                retried = true
-                retry
-              end
-              raise ex
-            end
+          if klass
+            s = klass.allocate
             struct_members = s.members.map { |x| x.to_sym }
             members.each_slice(2) { |k,v|
               if struct_members.include? k.to_sym
@@ -122,9 +107,13 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
 
-        when "!ruby/exception"
+        when /!ruby\/exception:?(.*)?$/
           h = Hash[*o.children.map { |c| accept c }]
-          Exception.new h['message']
+
+          e = build_exception((resolve_class($1) || Exception), h.delete('message'))
+
+          h.each { |k,v| e.instance_variable_set :"@#{k}", v }
+          e
 
         when '!ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]
@@ -166,6 +155,27 @@ module Psych
       end
 
       private
+      # Convert +klassname+ to a Class
+      def resolve_class klassname
+        return nil unless klassname and not klassname.empty?
+
+        name    = klassname
+        retried = false
+
+        begin
+          name.split('::').inject(Object) { |k,sub|
+            k.const_get sub
+          }
+        rescue NameError => ex
+          name    = "Struct::#{name}"
+          unless retried
+            retried = true
+            retry
+          end
+          raise ex
+        end
+      end
+
       def resolve_unknown o
         token = ScalarScanner.new(o.value).tokenize
 

@@ -62,10 +62,24 @@ module Psych
       end
 
       def visit_Exception o
-        @stack.push append Nodes::Mapping.new(nil, '!ruby/exception', false)
+        tag = ['!ruby/exception', o.class.name].compact.join(':')
+        @stack.push append Nodes::Mapping.new(nil, tag, false)
+
         ['message', o.message].each do |m|
           accept m
         end
+
+        if o.respond_to? :to_yaml_properties
+          ivars = o.to_yaml_properties
+        else
+          ivars = o.instance_variables
+        end
+
+        ivars.each do |iv|
+          accept iv.to_s.sub(/^@/, '')
+          accept o.instance_variable_get(iv)
+        end
+
         @stack.pop
       end
 

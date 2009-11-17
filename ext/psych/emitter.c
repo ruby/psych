@@ -229,7 +229,7 @@ static VALUE alias(VALUE self, VALUE anchor)
 void Init_psych_emitter()
 {
   VALUE psych     = rb_define_module("Psych");
-  VALUE handler   = rb_define_class_under(psych, "Handler", rb_cObject); 
+  VALUE handler   = rb_define_class_under(psych, "Handler", rb_cObject);
   cPsychEmitter   = rb_define_class_under(psych, "Emitter", handler);
 
   rb_define_alloc_func(cPsychEmitter, allocate);

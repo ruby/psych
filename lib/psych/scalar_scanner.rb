@@ -36,8 +36,12 @@ module Psych
         [:NEGATIVE_INFINITY, -1 / 0.0]
       when /^\.nan$/i
         [:NAN, 0.0 / 0.0]
-      when /^:.+/i
-        [:SYMBOL, @string.sub(/^:/, '').to_sym]
+      when /^:.+/
+        if @string =~ /^:(["'])(.*)\1/
+          [:SYMBOL, $2.sub(/^:/, '').to_sym]
+        else
+          [:SYMBOL, @string.sub(/^:/, '').to_sym]
+        end
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0
         @string.split(':').each_with_index do |n,e|

@@ -6,8 +6,6 @@ require 'test/unit'
 require 'rational'
 require 'psych'
 
-YAML = Psych
-
 # [ruby-core:01946]
 module YAML_Tests
     StructTest = Struct::new( :c )

@@ -1,7 +1,4 @@
-require 'test/unit'
-require 'psych'
-
-YAML = Psych
+require 'helper'
 
 module YAML
   class TestString < Test::Unit::TestCase

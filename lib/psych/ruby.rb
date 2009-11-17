@@ -2,6 +2,8 @@ require 'complex'
 require 'rational'
 require 'date'
 
+YAML = Psych
+
 [
   Object, String, Class, Hash, Array, NilClass, Float, FalseClass, TrueClass,
   Range, Complex, Rational, Date, Time, Regexp, Exception, Struct
