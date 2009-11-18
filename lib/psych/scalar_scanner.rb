@@ -19,9 +19,9 @@ module Psych
         case @string
         when /^(null|~)$/i
           [:NULL, nil]
-        when /^(y|yes|true|on)$/i
+        when /^(yes|true|on)$/i
           [:BOOLEAN, true]
-        when /^(n|no|false|off)$/i
+        when /^(no|false|off)$/i
           [:BOOLEAN, false]
         else
           [:SCALAR, @string]

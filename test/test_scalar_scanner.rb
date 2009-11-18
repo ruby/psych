@@ -69,7 +69,5 @@ class TestScalarScanner < MiniTest::Unit::TestCase
   def test_scan_true
     ss = Psych::ScalarScanner.new('true')
     assert_equal [:BOOLEAN, true], ss.tokenize
-    ss = Psych::ScalarScanner.new('y')
-    assert_equal [:BOOLEAN, true], ss.tokenize
   end
 end

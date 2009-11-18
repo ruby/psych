@@ -797,16 +797,17 @@ EOY
 		YAML.add_domain_type( "clarkevans.com,2002", 'graph/circle', &one_shape_proc )
 		YAML.add_domain_type( "clarkevans.com,2002", 'graph/line', &one_shape_proc )
 		YAML.add_domain_type( "clarkevans.com,2002", 'graph/text', &one_shape_proc )
+        # MODIFIED to remove invalid YAML
 		assert_parse_only(
 			[[{"radius"=>7, "center"=>{"x"=>73, "y"=>129}, "TYPE"=>"Shape: graph/circle"}, {"finish"=>{"x"=>89, "y"=>102}, "TYPE"=>"Shape: graph/line", "start"=>{"x"=>73, "y"=>129}}, {"TYPE"=>"Shape: graph/text", "value"=>"Pretty vector drawing.", "start"=>{"x"=>73, "y"=>129}, "color"=>16772795}, "Shape Container"]], <<EOY
-- !clarkevans.com,2002/graph/^shape
-  - !^circle
+- !clarkevans.com,2002/graph/shape
+  - !/graph/circle
     center: &ORIGIN {x: 73, y: 129}
     radius: 7
-  - !^line # !clarkevans.com,2002/graph/line
+  - !/graph/line # !clarkevans.com,2002/graph/line
     start: *ORIGIN
     finish: { x: 89, y: 102 }
-  - !^text
+  - !/graph/text
     start: *ORIGIN
     color: 0xFFEEBB
     value: Pretty vector drawing.
