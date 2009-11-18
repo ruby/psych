@@ -1,6 +1,6 @@
 module Psych
   module Visitors
-    class YASTBuilder < Psych::Visitors::Visitor
+    class YAMLTree < Psych::Visitors::Visitor
       attr_reader :tree
 
       def initialize options = {}

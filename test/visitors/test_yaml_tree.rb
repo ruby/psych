@@ -3,9 +3,9 @@ require 'psych'
 
 module Psych
   module Visitors
-    class TestYASTBuilder < MiniTest::Unit::TestCase
+    class TestYAMLTree < MiniTest::Unit::TestCase
       def setup
-        @v = Visitors::YASTBuilder.new
+        @v = Visitors::YAMLTree.new
       end
 
       def test_object_has_no_class
@@ -154,7 +154,7 @@ module Psych
       end
 
       def assert_round_trip obj
-        v = Visitors::YASTBuilder.new
+        v = Visitors::YAMLTree.new
         v.accept(obj)
         assert_equal(obj, Psych.load(v.tree.to_yaml))
         assert_equal(obj, Psych.load(obj.to_yaml))
