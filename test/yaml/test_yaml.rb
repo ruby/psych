@@ -914,6 +914,7 @@ EOY
 		)
 	end
 
+    # MODIFIED for YAML compliance
 	def test_spec_builtin_literal_blocks
 		# Assortment of literal scalar blocks
 		assert_parse_only(
@@ -921,7 +922,7 @@ EOY
 empty: |
 
 literal: |
- The \\ ' " characters may be
+ The \\\ ' " characters may be
  freely used. Leading white
     space is significant.
 
@@ -931,7 +932,7 @@ literal: |
  single line break, but does
  not start with one.
 
-is equal to: "The \\ ' \\" characters may \\
+is equal to: "The \\\\ ' \\" characters may \\
  be\\nfreely used. Leading white\\n   space \\
  is significant.\\n\\nLine breaks are \\
  significant.\\nThus this value contains \\
