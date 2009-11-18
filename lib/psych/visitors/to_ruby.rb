@@ -15,10 +15,10 @@ module Psych
         return result if Psych.domain_types.empty?
 
         if target.respond_to?(:tag) && target.tag
-          short_name = target.tag.sub(/^!/, '').split('/', 2).last
+          short_name = target.tag.split('/', 2).last
           if Psych.domain_types.key? short_name
             url, block = Psych.domain_types[short_name]
-            block.call "http://#{url}:#{short_name}", result
+            return block.call "http://#{url}:#{short_name}", result
           end
         end
         result
