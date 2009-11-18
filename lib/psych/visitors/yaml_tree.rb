@@ -62,11 +62,16 @@ module Psych
       end
 
       def visit_Exception o
-        tag = ['!ruby/exception', o.class.name].compact.join(':')
+        tag = ['!ruby/exception', o.class.name].join ':'
         @stack.push append Nodes::Mapping.new(nil, tag, false)
 
-        ['message', o.message].each do |m|
-          accept m
+        {
+          'message'   => private_iv_get(o, 'mesg'),
+          'backtrace' => private_iv_get(o, 'backtrace'),
+        }.each do |k,v|
+          next unless v
+          append Nodes::Scalar.new k
+          accept v
         end
 
         if o.respond_to? :to_yaml_properties
