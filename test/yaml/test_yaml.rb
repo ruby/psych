@@ -914,7 +914,6 @@ EOY
 		)
 	end
 
-    # MODIFIED for YAML compliance
 	def test_spec_builtin_literal_blocks
 		# Assortment of literal scalar blocks
 		assert_parse_only(
