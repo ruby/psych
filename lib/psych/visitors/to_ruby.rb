@@ -69,8 +69,17 @@ module Psych
       def visit_Psych_Nodes_Sequence o
         list = []
         @st[o.anchor] = list if o.anchor
-        o.children.each { |c| list.push accept c }
-        list
+        case o.tag
+        when '!omap', 'tag:yaml.org,2002:omap'
+          map = Psych::Omap.new
+          o.children.each { |a|
+            map[accept(a.children.first)] = accept a.children.last
+          }
+          map
+        else
+          o.children.each { |c| list.push accept c }
+          list
+        end
       end
 
       def visit_Psych_Nodes_Mapping o
