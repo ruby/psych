@@ -15,11 +15,17 @@ module Psych
         target.class.ancestors.each do |klass|
           next unless klass.name
           method_name = :"visit_#{klass.name.split('::').join('_')}"
-          if respond_to?(method_name)
-            return send(method_name, target)
-          end
+          return send(method_name, target) if respond_to?(method_name)
         end
         raise TypeError, "Can't dump #{target.class}"
+      end
+
+      def visit_Psych_Omap o
+        @stack.push append Nodes::Sequence.new(nil, '!omap', false)
+        o.each do |k,v|
+          accept k => v
+        end
+        @stack.pop
       end
 
       def visit_Object o
