@@ -21,6 +21,11 @@ module Psych
       end
 
       def visit_Psych_Set o
+        if node = @st[o.object_id]
+          node.anchor = o.object_id.to_s
+          return append Nodes::Alias.new o.object_id.to_s
+        end
+
         map = Nodes::Mapping.new(nil, '!set', false)
         @st[o.object_id] = map
 

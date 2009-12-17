@@ -125,7 +125,12 @@ module Psych
           e
 
         when '!set', 'tag:yaml.org,2002:set'
-          Psych::Set[*o.children.map { |c| accept c }]
+          set = Psych::Set.new
+          @st[o.anchor] = set if o.anchor
+          o.children.map { |c| accept c }.each_slice(2) do |k,v|
+            set[k] = v
+          end
+          set
 
         when '!ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]

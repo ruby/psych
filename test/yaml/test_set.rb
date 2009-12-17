@@ -39,5 +39,10 @@ bar: baz
       eoyml
       assert_instance_of(YAML::Set, loaded)
     end
+
+    def test_set_self_reference
+      @set['self'] = @set
+      assert_equal(@set, YAML.load(YAML.dump(@set)))
+    end
   end
 end
