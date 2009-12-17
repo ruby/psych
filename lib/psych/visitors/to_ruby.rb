@@ -67,8 +67,6 @@ module Psych
       end
 
       def visit_Psych_Nodes_Sequence o
-        list = []
-        @st[o.anchor] = list if o.anchor
         case o.tag
         when '!omap', 'tag:yaml.org,2002:omap'
           map = Psych::Omap.new
@@ -78,6 +76,8 @@ module Psych
           }
           map
         else
+          list = []
+          @st[o.anchor] = list if o.anchor
           o.children.each { |c| list.push accept c }
           list
         end
@@ -95,10 +95,13 @@ module Psych
           string
         when /!ruby\/struct:?(.*)?$/
           klass   = resolve_class($1)
-          members = o.children.map { |c| accept c }
 
           if klass
             s = klass.allocate
+            @st[o.anchor] = s if o.anchor
+
+            members = o.children.map { |c| accept c }
+
             struct_members = s.members.map { |x| x.to_sym }
             members.each_slice(2) { |k,v|
               if struct_members.include? k.to_sym
@@ -109,6 +112,7 @@ module Psych
             }
             s
           else
+            members = o.children.map { |c| accept c }
             h = Hash[*members]
             Struct.new(*h.map { |k,v| k.to_sym }).new(*h.map { |k,v| v })
           end

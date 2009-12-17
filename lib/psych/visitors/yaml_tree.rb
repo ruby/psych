@@ -15,17 +15,23 @@ module Psych
         target.class.ancestors.each do |klass|
           next unless klass.name
           method_name = :"visit_#{klass.name.split('::').join('_')}"
-          return send(method_name, target) if respond_to?(method_name)
+
+          if respond_to?(method_name)
+
+            # return any aliases we find
+            if node = @st[target.object_id]
+              node.anchor = target.object_id.to_s
+              return append Nodes::Alias.new target.object_id.to_s
+            end
+
+            return send(method_name, target)
+          end
+
         end
         raise TypeError, "Can't dump #{target.class}"
       end
 
       def visit_Psych_Set o
-        if node = @st[o.object_id]
-          node.anchor = o.object_id.to_s
-          return append Nodes::Alias.new o.object_id.to_s
-        end
-
         map = Nodes::Mapping.new(nil, '!set', false)
         @st[o.object_id] = map
 
@@ -40,11 +46,6 @@ module Psych
       end
 
       def visit_Psych_Omap o
-        if node = @st[o.object_id]
-          node.anchor = o.object_id.to_s
-          return append Nodes::Alias.new o.object_id.to_s
-        end
-
         seq = Nodes::Sequence.new(nil, '!omap', false)
         @st[o.object_id] = seq
 
@@ -75,7 +76,10 @@ module Psych
       def visit_Struct o
         tag = ['!ruby/struct', o.class.name].compact.join(':')
 
-        @stack.push append Nodes::Mapping.new(nil, tag, false)
+        map = Nodes::Mapping.new(nil, tag, false)
+        @st[o.object_id] = map
+
+        @stack.push append map
         o.members.each do |member|
           accept member
           accept o[member]
