@@ -124,6 +124,9 @@ module Psych
           h.each { |k,v| e.instance_variable_set :"@#{k}", v }
           e
 
+        when '!set', 'tag:yaml.org,2002:set'
+          Psych::Set[*o.children.map { |c| accept c }]
+
         when '!ruby/object:Complex'
           h = Hash[*o.children.map { |c| accept c }]
           Complex(h['real'], h['image'])

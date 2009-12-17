@@ -15,6 +15,7 @@ require 'psych/tree_builder'
 require 'psych/parser'
 require 'psych/ruby'
 require 'psych/omap'
+require 'psych/set'
 require 'psych/psych'
 
 module Psych

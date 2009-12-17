@@ -20,6 +20,20 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
+      def visit_Psych_Set o
+        map = Nodes::Mapping.new(nil, '!set', false)
+        @st[o.object_id] = map
+
+        @stack.push append map
+
+        o.each do |k,v|
+          accept k
+          accept v
+        end
+
+        @stack.pop
+      end
+
       def visit_Psych_Omap o
         @stack.push append Nodes::Sequence.new(nil, '!omap', false)
         o.each do |k,v|
