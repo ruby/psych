@@ -2,6 +2,13 @@ require 'helper'
 
 module YAML
   class TestOmap < Test::Unit::TestCase
+    def test_self_referential
+      map = YAML::Omap.new
+      map['foo'] = 'bar'
+      map['self'] = map
+      assert_equal(map, YAML.load(YAML.dump(map)))
+    end
+
     def test_keys
       map = YAML::Omap.new
       map['foo'] = 'bar'

@@ -40,7 +40,15 @@ module Psych
       end
 
       def visit_Psych_Omap o
-        @stack.push append Nodes::Sequence.new(nil, '!omap', false)
+        if node = @st[o.object_id]
+          node.anchor = o.object_id.to_s
+          return append Nodes::Alias.new o.object_id.to_s
+        end
+
+        seq = Nodes::Sequence.new(nil, '!omap', false)
+        @st[o.object_id] = seq
+
+        @stack.push append seq
         o.each do |k,v|
           accept k => v
         end

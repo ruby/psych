@@ -72,6 +72,7 @@ module Psych
         case o.tag
         when '!omap', 'tag:yaml.org,2002:omap'
           map = Psych::Omap.new
+          @st[o.anchor] = map if o.anchor
           o.children.each { |a|
             map[accept(a.children.first)] = accept a.children.last
           }
