@@ -12,20 +12,17 @@ module Psych
       end
 
       def accept target
+        # return any aliases we find
+        if node = @st[target.object_id]
+          node.anchor = target.object_id.to_s
+          return append Nodes::Alias.new target.object_id.to_s
+        end
+
         target.class.ancestors.each do |klass|
           next unless klass.name
           method_name = :"visit_#{klass.name.split('::').join('_')}"
 
-          if respond_to?(method_name)
-
-            # return any aliases we find
-            if node = @st[target.object_id]
-              node.anchor = target.object_id.to_s
-              return append Nodes::Alias.new target.object_id.to_s
-            end
-
-            return send(method_name, target)
-          end
+          return send(method_name, target) if respond_to?(method_name)
 
         end
         raise TypeError, "Can't dump #{target.class}"
@@ -59,7 +56,10 @@ module Psych
       def visit_Object o
         klass = o.class == Object ? nil : o.class.name
         tag = ['!ruby/object', klass].compact.join(':')
-        @stack.push append Nodes::Mapping.new(nil, tag, false)
+
+        mapping = Nodes::Mapping.new(nil, tag, false)
+        @stack.push append mapping
+
         if o.respond_to? :to_yaml_properties
           ivars = o.to_yaml_properties
         else
@@ -67,7 +67,7 @@ module Psych
         end
 
         ivars.each do |iv|
-          accept iv.to_s.sub(/^@/, '')
+          mapping.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
           accept o.instance_variable_get(iv)
         end
         @stack.pop
@@ -92,7 +92,7 @@ module Psych
         end
 
         ivars.each do |iv|
-          accept iv.to_s.sub(/^@/, '')
+          map.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
           accept o.instance_variable_get(iv)
         end
         @stack.pop
@@ -100,7 +100,9 @@ module Psych
 
       def visit_Exception o
         tag = ['!ruby/exception', o.class.name].join ':'
-        @stack.push append Nodes::Mapping.new(nil, tag, false)
+
+        mapping = Nodes::Mapping.new(nil, tag, false)
+        @stack.push append mapping
 
         {
           'message'   => private_iv_get(o, 'mesg'),
@@ -118,7 +120,7 @@ module Psych
         end
 
         ivars.each do |iv|
-          accept iv.to_s.sub(/^@/, '')
+          mapping.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
           accept o.instance_variable_get(iv)
         end
 
@@ -235,11 +237,6 @@ module Psych
       end
 
       def visit_Hash o
-        if node = @st[o.object_id]
-          node.anchor = o.object_id.to_s
-          return append Nodes::Alias.new o.object_id.to_s
-        end
-
         map = Nodes::Mapping.new
         @st[o.object_id] = map
 
@@ -254,11 +251,6 @@ module Psych
       end
 
       def visit_Array o
-        if node = @st[o.object_id]
-          node.anchor = o.object_id.to_s
-          return append Nodes::Alias.new o.object_id.to_s
-        end
-
         seq = Nodes::Sequence.new
         @st[o.object_id] = seq
 
