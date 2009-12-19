@@ -33,9 +33,7 @@ module Psych
         register(o, seq)
 
         @stack.push append seq
-        o.each do |k,v|
-          accept k => v
-        end
+        o.each { |k,v| visit_Hash k => v }
         @stack.pop
       end
 
@@ -238,11 +236,9 @@ module Psych
       end
 
       def dump_ivars target, map
-        if target.respond_to? :to_yaml_properties
-          ivars = target.to_yaml_properties
-        else
-          ivars = target.instance_variables
-        end
+        ivars = target.respond_to?(:to_yaml_properties) ?
+          target.to_yaml_properties :
+          target.instance_variables
 
         ivars.each do |iv|
           map.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
