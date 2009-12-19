@@ -28,17 +28,6 @@ module Psych
         raise TypeError, "Can't dump #{target.class}"
       end
 
-      def visit_Psych_Set o
-        @stack.push append register(o, Nodes::Mapping.new(nil, '!set', false))
-
-        o.each do |k,v|
-          accept k
-          accept v
-        end
-
-        @stack.pop
-      end
-
       def visit_Psych_Omap o
         seq = Nodes::Sequence.new(nil, '!omap', false)
         register(o, seq)
@@ -138,37 +127,30 @@ module Psych
         append Nodes::Scalar.new formatted
       end
 
-      def visit_Date o
-        append Nodes::Scalar.new o.to_s
-      end
-
       def visit_Rational o
-        @stack.push append Nodes::Mapping.new(nil,'!ruby/object:Rational',false)
-        ['denominator', o.denominator, 'numerator', o.numerator].each do |m|
-          accept m
+        map = append Nodes::Mapping.new(nil, '!ruby/object:Rational', false)
+        [
+          'denominator', o.denominator.to_s,
+          'numerator', o.numerator.to_s
+        ].each do |m|
+          map.children << Nodes::Scalar.new(m)
         end
-        @stack.pop
       end
 
       def visit_Complex o
-        @stack.push append Nodes::Mapping.new(nil, '!ruby/object:Complex', false)
-        ['real', o.real, 'image', o.image].each do |m|
-          accept m
+        map = append Nodes::Mapping.new(nil, '!ruby/object:Complex', false)
+
+        ['real', o.real.to_s, 'image', o.image.to_s].each do |m|
+          map.children << Nodes::Scalar.new(m)
         end
-        @stack.pop
       end
 
       def visit_Integer o
         append Nodes::Scalar.new o.to_s
       end
-
-      def visit_TrueClass o
-        append Nodes::Scalar.new o.to_s
-      end
-
-      def visit_FalseClass o
-        append Nodes::Scalar.new o.to_s
-      end
+      alias :visit_TrueClass :visit_Integer
+      alias :visit_FalseClass :visit_Integer
+      alias :visit_Date :visit_Integer
 
       def visit_Float o
         if o.nan?
@@ -234,6 +216,17 @@ module Psych
 
       def visit_Hash o
         @stack.push append register(o, Nodes::Mapping.new)
+
+        o.each do |k,v|
+          accept k
+          accept v
+        end
+
+        @stack.pop
+      end
+
+      def visit_Psych_Set o
+        @stack.push append register(o, Nodes::Mapping.new(nil, '!set', false))
 
         o.each do |k,v|
           accept k
