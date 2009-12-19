@@ -18,21 +18,18 @@ module Psych
           return append Nodes::Alias.new target.object_id.to_s
         end
 
-        target.class.ancestors.each do |klass|
+        target.class.ancestors.find do |klass|
           next unless klass.name
           method_name = :"visit_#{klass.name.split('::').join('_')}"
 
           return send(method_name, target) if respond_to?(method_name)
-
         end
+
         raise TypeError, "Can't dump #{target.class}"
       end
 
       def visit_Psych_Set o
-        map = Nodes::Mapping.new(nil, '!set', false)
-        @st[o.object_id] = map
-
-        @stack.push append map
+        @stack.push append register(o, Nodes::Mapping.new(nil, '!set', false))
 
         o.each do |k,v|
           accept k
@@ -44,7 +41,7 @@ module Psych
 
       def visit_Psych_Omap o
         seq = Nodes::Sequence.new(nil, '!omap', false)
-        @st[o.object_id] = seq
+        register(o, seq)
 
         @stack.push append seq
         o.each do |k,v|
@@ -76,8 +73,7 @@ module Psych
       def visit_Struct o
         tag = ['!ruby/struct', o.class.name].compact.join(':')
 
-        map = Nodes::Mapping.new(nil, tag, false)
-        @st[o.object_id] = map
+        map = register(o, Nodes::Mapping.new(nil, tag, false))
 
         @stack.push append map
         o.members.each do |member|
@@ -237,10 +233,7 @@ module Psych
       end
 
       def visit_Hash o
-        map = Nodes::Mapping.new
-        @st[o.object_id] = map
-
-        @stack.push append map
+        @stack.push append register(o, Nodes::Mapping.new)
 
         o.each do |k,v|
           accept k
@@ -251,10 +244,7 @@ module Psych
       end
 
       def visit_Array o
-        seq = Nodes::Sequence.new
-        @st[o.object_id] = seq
-
-        @stack.push append seq
+        @stack.push append register(o, Nodes::Sequence.new)
         o.each { |c| accept c }
         @stack.pop
       end
@@ -271,6 +261,11 @@ module Psych
       def append o
         @stack.last.children << o
         o
+      end
+
+      def register target, yaml_obj
+        @st[target.object_id] = yaml_obj
+        yaml_obj
       end
     end
   end
