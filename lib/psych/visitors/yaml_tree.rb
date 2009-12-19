@@ -43,19 +43,10 @@ module Psych
         klass = o.class == Object ? nil : o.class.name
         tag = ['!ruby/object', klass].compact.join(':')
 
-        mapping = Nodes::Mapping.new(nil, tag, false)
-        @stack.push append mapping
+        map = append Nodes::Mapping.new(nil, tag, false)
 
-        if o.respond_to? :to_yaml_properties
-          ivars = o.to_yaml_properties
-        else
-          ivars = o.instance_variables
-        end
-
-        ivars.each do |iv|
-          mapping.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
-          accept o.instance_variable_get(iv)
-        end
+        @stack.push map
+        dump_ivars(o, map)
         @stack.pop
       end
 
@@ -65,49 +56,34 @@ module Psych
         map = register(o, Nodes::Mapping.new(nil, tag, false))
 
         @stack.push append map
+
         o.members.each do |member|
-          accept member
+          map.children <<  Nodes::Scalar.new(":#{member}")
           accept o[member]
         end
 
-        if o.respond_to? :to_yaml_properties
-          ivars = o.to_yaml_properties
-        else
-          ivars = o.instance_variables
-        end
+        dump_ivars(o, map)
 
-        ivars.each do |iv|
-          map.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
-          accept o.instance_variable_get(iv)
-        end
         @stack.pop
       end
 
       def visit_Exception o
         tag = ['!ruby/exception', o.class.name].join ':'
 
-        mapping = Nodes::Mapping.new(nil, tag, false)
-        @stack.push append mapping
+        map = append Nodes::Mapping.new(nil, tag, false)
+
+        @stack.push map
 
         {
           'message'   => private_iv_get(o, 'mesg'),
           'backtrace' => private_iv_get(o, 'backtrace'),
         }.each do |k,v|
           next unless v
-          append Nodes::Scalar.new k
+          map.children << Nodes::Scalar.new(k)
           accept v
         end
 
-        if o.respond_to? :to_yaml_properties
-          ivars = o.to_yaml_properties
-        else
-          ivars = o.instance_variables
-        end
-
-        ivars.each do |iv|
-          mapping.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
-          accept o.instance_variable_get(iv)
-        end
+        dump_ivars(o, map)
 
         @stack.pop
       end
@@ -259,6 +235,19 @@ module Psych
       def register target, yaml_obj
         @st[target.object_id] = yaml_obj
         yaml_obj
+      end
+
+      def dump_ivars target, map
+        if target.respond_to? :to_yaml_properties
+          ivars = target.to_yaml_properties
+        else
+          ivars = target.instance_variables
+        end
+
+        ivars.each do |iv|
+          map.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
+          accept target.instance_variable_get(iv)
+        end
       end
     end
   end
