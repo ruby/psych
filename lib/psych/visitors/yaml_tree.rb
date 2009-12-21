@@ -151,11 +151,9 @@ module Psych
         end
 
 
-        if o.respond_to? :to_yaml_properties
-          ivars = o.to_yaml_properties
-        else
-          ivars = o.instance_variables
-        end
+        ivars = o.respond_to?(:to_yaml_properties) ?
+          o.to_yaml_properties :
+          o.instance_variables
 
         scalar = Nodes::Scalar.new str, nil, tag, plain, quote
 

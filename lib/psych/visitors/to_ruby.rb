@@ -5,13 +5,18 @@ module Psych
     ###
     # This class walks a YAML AST, converting each node to ruby
     class ToRuby < Psych::Visitors::Visitor
+      YAML_NODE_DISPATCH_TABLE = Hash[
+        *Nodes.constants.map { |k|
+          [Nodes.const_get(k), :"visit_#{k}"]
+        }.flatten
+      ]
       def initialize
         super
         @st = {}
       end
 
       def accept target
-        result = super
+        result = send(YAML_NODE_DISPATCH_TABLE[target.class], target)
         return result if Psych.domain_types.empty?
 
         if target.respond_to?(:tag) && target.tag
@@ -24,7 +29,7 @@ module Psych
         result
       end
 
-      def visit_Psych_Nodes_Scalar o
+      def visit_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
         return o.value if o.quoted
@@ -66,7 +71,7 @@ module Psych
         end
       end
 
-      def visit_Psych_Nodes_Sequence o
+      def visit_Sequence o
         case o.tag
         when '!omap', 'tag:yaml.org,2002:omap'
           map = Psych::Omap.new
@@ -83,7 +88,7 @@ module Psych
         end
       end
 
-      def visit_Psych_Nodes_Mapping o
+      def visit_Mapping o
         case o.tag
         when '!str', 'tag:yaml.org,2002:str'
           members = Hash[*o.children.map { |c| accept c }]
@@ -146,7 +151,7 @@ module Psych
           Rational(h['numerator'], h['denominator'])
 
         when /!ruby\/object:?(.*)?$/
-          name = $1.nil? ? 'Object' : $1
+          name = $1 || 'Object'
           h = Hash[*o.children.map { |c| accept c }]
           s = name.split('::').inject(Object) { |k,sub|
             k.const_get sub
@@ -164,15 +169,15 @@ module Psych
         end
       end
 
-      def visit_Psych_Nodes_Document o
+      def visit_Document o
         accept o.root
       end
 
-      def visit_Psych_Nodes_Stream o
+      def visit_Stream o
         o.children.map { |c| accept c }
       end
 
-      def visit_Psych_Nodes_Alias o
+      def visit_Alias o
         @st[o.anchor]
       end
 
