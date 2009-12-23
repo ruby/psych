@@ -11,9 +11,9 @@ module Psych
         @st = {}
 
         @dispatch_cache = Hash.new do |h,klass|
-          method = klass.ancestors.map { |ancestor|
-            "visit_#{(ancestor.name || '').split('::').join('_')}"
-          }.find { |sig| respond_to? sig }
+          method = "visit_#{(klass.name || '').split('::').join('_')}"
+
+          method = respond_to?(method) ? method : h[klass.superclass]
 
           raise(TypeError, "Can't dump #{target.class}") unless method
 
