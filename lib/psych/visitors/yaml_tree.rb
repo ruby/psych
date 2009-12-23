@@ -9,6 +9,16 @@ module Psych
         @tree.children << Nodes::Document.new
         @stack = @tree.children.dup
         @st = {}
+
+        @dispatch_cache = Hash.new do |h,klass|
+          method = klass.ancestors.map { |ancestor|
+            "visit_#{(ancestor.name || '').split('::').join('_')}"
+          }.find { |sig| respond_to? sig }
+
+          raise(TypeError, "Can't dump #{target.class}") unless method
+
+          h[klass] = method
+        end
       end
 
       def accept target
@@ -18,14 +28,7 @@ module Psych
           return append Nodes::Alias.new target.object_id.to_s
         end
 
-        target.class.ancestors.find do |klass|
-          next unless klass.name
-          method_name = :"visit_#{klass.name.split('::').join('_')}"
-
-          return send(method_name, target) if respond_to?(method_name)
-        end
-
-        raise TypeError, "Can't dump #{target.class}"
+        send(@dispatch_cache[target.class], target)
       end
 
       def visit_Psych_Omap o
