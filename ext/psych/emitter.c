@@ -80,16 +80,42 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
     version_directive.minor = NUM2INT(minor);
   }
 
+  yaml_tag_directive_t * head = NULL;
+  yaml_tag_directive_t * tail = NULL;
+
+  if(RTEST(tags)) {
+    int i = 0;
+
+    head  = xcalloc(RARRAY_LEN(tags), sizeof(yaml_tag_directive_t));
+    tail  = head;
+
+    for(i = 0; i < RARRAY_LEN(tags); i++) {
+      VALUE tuple = RARRAY_PTR(tags)[i];
+
+      if(RARRAY_LEN(tuple) < 2) {
+        xfree(head);
+        rb_raise(rb_eRuntimeError, "tag tuple must be of length 2");
+      }
+
+      tail->handle = StringValuePtr(RARRAY_PTR(tuple)[0]);
+      tail->prefix = StringValuePtr(RARRAY_PTR(tuple)[1]);
+
+      tail++;
+    }
+  }
+
   yaml_event_t event;
   yaml_document_start_event_initialize(
       &event,
       (RARRAY_LEN(version) > 0) ? &version_directive : NULL,
-      NULL,
-      NULL,
+      head,
+      tail,
       imp == Qtrue ? 1 : 0
   );
 
   emit(emitter, &event);
+
+  if(head) xfree(head);
 
   return self;
 }
