@@ -79,23 +79,45 @@ require 'psych/psych'
 # information on dumping a Ruby data structure.
 
 module Psych
+  # The version is Psych you're using
   VERSION         = '1.0.0'
+
+  # The version of libyaml Psych is using
   LIBYAML_VERSION = Psych.libyaml_version.join '.'
 
   ###
-  # Load +yaml+ in to a Ruby data structure
+  # Load +yaml+ in to a Ruby data structure.  If multiple documents are
+  # provided, the object contained in the first document will be returned.
+  #
+  # Example:
+  #
+  #   Psych.load("--- a")           # => 'a'
+  #   Psych.load("---\n - a\n - b") # => ['a', 'b']
   def self.load yaml
     parse(yaml).to_ruby
   end
 
   ###
-  # Parse a YAML string.  Returns the first object of a YAML parse tree
+  # Parse a YAML string in +yaml+.  Returns the first object of a YAML AST.
+  #
+  # Example:
+  #
+  #   Psych.load("---\n - a\n - b") # => #<Psych::Nodes::Sequence:0x00>
+  #
+  # See Psych::Nodes for more information about YAML AST.
   def self.parse yaml
     yaml_ast(yaml).children.first.children.first
   end
 
   ###
-  # Parse a YAML string in +yaml+.  Returns the AST for the YAML parse tree.
+  # Parse a YAML string in +yaml+.  Returns the full AST for the YAML document.
+  # This method can handle multiple YAML documents contained in +yaml+.
+  #
+  # Example:
+  #
+  #   Psych.load("---\n - a\n - b") # => #<Psych::Nodes::Stream:0x00>
+  #
+  # See Psych::Nodes for more information about YAML AST.
   def self.yaml_ast yaml
     parser = Psych::Parser.new(TreeBuilder.new)
     parser.parse yaml
@@ -103,7 +125,11 @@ module Psych
   end
 
   ###
-  # Dump object +o+ to a YAML string
+  # Dump Ruby object +o+ to a YAML string using +options+.
+  #
+  # Example:
+  #
+  #   Psych.dump(['a', 'b'])  # => "---\n- a\n- b\n"
   def self.dump o, options = {}
     visitor = Psych::Visitors::YAMLTree.new options
     visitor.accept o
