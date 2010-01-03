@@ -19,13 +19,16 @@ require 'psych/set'
 require 'psych/psych'
 
 ###
-# Psych is a YAML parser and emitter.
+# Psych is a YAML parser and emitter.  Psych leverages
+# libyaml[http://libyaml.org] for it's YAML parsing and emitting capabilities.
+# In addition to wrapping libyaml, Psych also knows how to serialize and
+# de-serialize most Ruby objects to and from the YAML format.
 #
 # == YAML Parsing
 #
 # Psych provides a range of interfaces for parsing a YAML document ranging from
 # low level to high level, depending on your parsing needs.  At the lowest
-# level, is an event based parser.  Mid-level is access to the raw YAML AST,
+# level, is an event based parser.  Mid level is access to the raw YAML AST,
 # and at the highest level is the ability to unmarshal YAML to ruby objects.
 #
 # === Low level parsing
