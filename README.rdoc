@@ -4,7 +4,9 @@
 
 == Description
 
-Wrapper around libyaml that provides the same interface as Syck
+Psych is a YAML parser that wraps libyaml.  Psych provides a similar ruby
+interface for parsing and emitting that Syck does, but uses libyaml for the
+heavy lifting.
 
 == Examples
 
