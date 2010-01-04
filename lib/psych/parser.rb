@@ -40,15 +40,5 @@ module Psych
     def initialize handler = Handler.new
       @handler = handler
     end
-
-    ###
-    # Parse the YAML document contained in +yaml+.  Events will be called on
-    # the handler set on the parser instance.
-    #
-    # See Psych::Parser and Psych::Parser#handler
-
-    def parse yaml
-      parse_string string
-    end
   end
 end

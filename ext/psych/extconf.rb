@@ -1,5 +1,7 @@
 require 'mkmf'
 
+RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
+
 $CFLAGS << ' -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion' <<
            '  -Wmissing-noreturn -Winline'
 

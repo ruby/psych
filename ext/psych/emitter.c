@@ -5,7 +5,7 @@ VALUE cPsychEmitter;
 static void emit(yaml_emitter_t * emitter, yaml_event_t * event)
 {
   if(!yaml_emitter_emit(emitter, event))
-    rb_raise(rb_eRuntimeError, emitter->problem);
+    rb_raise(rb_eRuntimeError, "%s", emitter->problem);
 }
 
 static int writer(void *ctx, unsigned char *buffer, size_t size)
@@ -97,8 +97,8 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
         rb_raise(rb_eRuntimeError, "tag tuple must be of length 2");
       }
 
-      tail->handle = StringValuePtr(RARRAY_PTR(tuple)[0]);
-      tail->prefix = StringValuePtr(RARRAY_PTR(tuple)[1]);
+      tail->handle = (yaml_char_t *)StringValuePtr(RARRAY_PTR(tuple)[0]);
+      tail->prefix = (yaml_char_t *)StringValuePtr(RARRAY_PTR(tuple)[1]);
 
       tail++;
     }

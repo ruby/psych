@@ -25,6 +25,13 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_parse_io
+      @parser.parse StringIO.new("--- a")
+      assert_called :start_stream
+      assert_called :scalar
+      assert_called :end_stream
+    end
+
     def test_syntax_error
       assert_raises(Psych::SyntaxError) do
         @parser.parse("---\n\"foo\"\n\"bar\"\n")

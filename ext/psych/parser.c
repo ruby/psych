@@ -3,18 +3,46 @@
 VALUE cPsychParser;
 VALUE ePsychSyntaxError;
 
-static VALUE parse_string(VALUE self, VALUE string)
+static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
+{
+  VALUE io = (VALUE)data;
+  VALUE string = rb_funcall(io, rb_intern("read"), 1, INT2NUM(size));
+
+  *read = 0;
+
+  if(! NIL_P(string)) {
+    *read = (size_t)RSTRING_LEN(string);
+    memcpy(buf, StringValuePtr(string), *read);
+  }
+
+  return 1;
+}
+
+/*
+ * call-seq:
+ *    parser.parse(yaml)
+ *
+ * Parse the YAML document contained in +yaml+.  Events will be called on
+ * the handler set on the parser instance.
+ *
+ * See Psych::Parser and Psych::Parser#handler
+ */
+static VALUE parse(VALUE self, VALUE yaml)
 {
   yaml_parser_t parser;
   yaml_event_t event;
 
   yaml_parser_initialize(&parser);
 
-  yaml_parser_set_input_string(
-      &parser,
-      (const unsigned char *)StringValuePtr(string),
-      (size_t)RSTRING_LEN(string)
-  );
+  if(rb_respond_to(yaml, rb_intern("read"))) {
+    yaml_parser_set_input(&parser, io_reader, (void *)yaml);
+  } else {
+    yaml_parser_set_input_string(
+        &parser,
+        (const unsigned char *)StringValuePtr(yaml),
+        (size_t)RSTRING_LEN(yaml)
+    );
+  }
 
   int done = 0;
 
@@ -27,7 +55,7 @@ static VALUE parse_string(VALUE self, VALUE string)
 
       yaml_parser_delete(&parser);
       rb_raise(ePsychSyntaxError, "couldn't parse YAML at line %d column %d",
-          line, column);
+          (int)line, (int)column);
     }
 
     switch(event.type) {
@@ -168,5 +196,5 @@ void Init_psych_parser()
   cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
   ePsychSyntaxError = rb_define_class_under(mPsych, "SyntaxError", rb_eSyntaxError);
 
-  rb_define_private_method(cPsychParser, "parse_string", parse_string, 1);
+  rb_define_method(cPsychParser, "parse", parse, 1);
 }
