@@ -84,6 +84,40 @@ module Psych
     ###
     # Called when a scalar +value+ is found.  The scalar may have an
     # +anchor+, a +tag+, be implicitly +plain+ or implicitly +quoted+
+    #
+    # +value+ is the string value of the scalar
+    # +anchor+ is an associated anchor or nil
+    # +tag+ is an associated tag or nil
+    # +plain+ is a boolean value
+    # +quoted+ is a boolean value
+    # +style+ is an integer idicating the string style
+    #
+    # See this constants in Psych::Nodes::Scalar for the possible values of
+    # +style+
+    #
+    # === Example
+    #
+    # Here is a YAML document that exercises most of the possible ways this
+    # method can be called:
+    #
+    #   ---
+    #   - !str "foo"
+    #   - &anchor fun
+    #   - many
+    #     lines
+    #   - |
+    #     many
+    #     newlines
+    #
+    # The above YAML document contains a list with four strings.  Here are
+    # the parameters sent to this method in the same order:
+    #
+    #   # value               anchor    tag     plain   quoted  style
+    #   ["foo",               nil,      "!str", false,  false,  3    ]
+    #   ["fun",               "anchor", nil,    true,   false,  1    ]
+    #   ["many lines",        nil,      nil,    true,   false,  1    ]
+    #   ["many\nnewlines\n",  nil,      nil,    false,  true,   4    ]
+    #
     def scalar value, anchor, tag, plain, quoted, style
     end
 
