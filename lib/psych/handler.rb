@@ -92,7 +92,7 @@ module Psych
     # +quoted+ is a boolean value
     # +style+ is an integer idicating the string style
     #
-    # See this constants in Psych::Nodes::Scalar for the possible values of
+    # See the constants in Psych::Nodes::Scalar for the possible values of
     # +style+
     #
     # === Example
@@ -123,6 +123,37 @@ module Psych
 
     ###
     # Called when a sequence is started.
+    #
+    # +anchor+ is the anchor associated with the sequence or nil.
+    # +tag+ is the tag associated with the sequence or nil.
+    # +implicit+ a boolean indicating whether or not the sequence was implcitly
+    # started.
+    # +style+ is an integer indicating the list style.
+    #
+    # See the constants in Psych::Nodes::Sequence for the possible values of
+    # +style+.
+    #
+    # === Example
+    #
+    # Here is a YAML document that exercises most of the possible ways this
+    # method can be called:
+    #
+    #   ---
+    #   - !!seq [
+    #     a
+    #   ]
+    #   - &pewpew
+    #     - b
+    #
+    # The above YAML document consists of three lists, an outer list that
+    # contains two inner lists.  Here is a matrix of the parameters sent
+    # to represent these lists:
+    #
+    #   # anchor    tag                       implicit  style
+    #   [nil,       nil,                      true,     1     ]
+    #   [nil,       "tag:yaml.org,2002:seq",  false,    2     ]
+    #   ["pewpew",  nil,                      true,     1     ]
+
     def start_sequence anchor, tag, implicit, style
     end
 
