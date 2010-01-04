@@ -22,8 +22,8 @@ module Psych
       Mapping
     }.each do |node|
       class_eval %{
-        def start_#{node.downcase}(*args)
-          n = Nodes::#{node}.new(*args)
+        def start_#{node.downcase}(anchor, tag, implicit, style)
+          n = Nodes::#{node}.new(anchor, tag, implicit, style)
           @last.children << n
           push n
         end
@@ -34,8 +34,8 @@ module Psych
       }
     end
 
-    def start_document(*args)
-      n = Nodes::Document.new(*args)
+    def start_document version, tag_directives, implicit
+      n = Nodes::Document.new(version, tag_directives, implicit)
       @last.children << n
       push n
     end
@@ -49,12 +49,12 @@ module Psych
       push Nodes::Stream.new(encoding)
     end
 
-    def scalar(*args)
-      @last.children << Nodes::Scalar.new(*args)
+    def scalar value, anchor, tag, plain, quoted, style
+      @last.children << Nodes::Scalar.new(value,anchor,tag,plain,quoted,style)
     end
 
-    def alias(*args)
-      @last.children << Nodes::Alias.new(*args)
+    def alias anchor
+      @last.children << Nodes::Alias.new(anchor)
     end
 
     private

@@ -1,5 +1,7 @@
 require 'mkmf'
 
+# :stopdoc:
+
 RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
 
 $CFLAGS << ' -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion' <<
@@ -19,3 +21,5 @@ asplode('yaml.h')  unless find_header  'yaml.h'
 asplode('libyaml') unless find_library 'yaml', 'yaml_get_version'
 
 create_makefile 'psych/psych'
+
+# :startdoc:
