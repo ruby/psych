@@ -194,6 +194,19 @@ static VALUE parse(VALUE self, VALUE yaml)
 void Init_psych_parser()
 {
   cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
+
+  /* Any encoding: Let the parser choose the encoding */
+  rb_define_const(cPsychParser, "ANY", INT2NUM(YAML_ANY_ENCODING));
+
+  /* UTF-8 Encoding */
+  rb_define_const(cPsychParser, "UTF8", INT2NUM(YAML_UTF8_ENCODING));
+
+  /* UTF-16-LE Encoding with BOM */
+  rb_define_const(cPsychParser, "UTF16LE", INT2NUM(YAML_UTF16LE_ENCODING));
+
+  /* UTF-16-BE Encoding with BOM */
+  rb_define_const(cPsychParser, "UTF16BE", INT2NUM(YAML_UTF16BE_ENCODING));
+
   ePsychSyntaxError = rb_define_class_under(mPsych, "SyntaxError", rb_eSyntaxError);
 
   rb_define_method(cPsychParser, "parse", parse, 1);
