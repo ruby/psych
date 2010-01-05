@@ -126,7 +126,7 @@ module Psych
     #
     # +anchor+ is the anchor associated with the sequence or nil.
     # +tag+ is the tag associated with the sequence or nil.
-    # +implicit+ a boolean indicating whether or not the sequence was implcitly
+    # +implicit+ a boolean indicating whether or not the sequence was implicitly
     # started.
     # +style+ is an integer indicating the list style.
     #
@@ -163,7 +163,36 @@ module Psych
     end
 
     ###
-    # Called when a map starts
+    # Called when a map starts.
+    #
+    # +anchor+ is the anchor associated with the map or +nil+.
+    # +tag+ is the tag associated with the map or +nil+.
+    # +implicit+ is a boolean indicating whether or not the map was implicitly
+    # started.
+    # +style+ is an integer indicating the mapping style.
+    #
+    # See the constants in Psych::Nodes::Mapping for the possible values of
+    # +style+.
+    #
+    # === Example
+    #
+    # Here is a YAML document that exercises most of the possible ways this
+    # method can be called:
+    #
+    #   ---
+    #   k: !!map { hello: world }
+    #   v: &pewpew
+    #     hello: world
+    #
+    # The above YAML document consists of three maps, an outer map that contains
+    # two inner maps.  Below is a matrix of the parameters sent in order to
+    # represent these three maps:
+    #
+    #   # anchor    tag                       implicit  style
+    #   [nil,       nil,                      true,     1     ]
+    #   [nil,       "tag:yaml.org,2002:map",  false,    2     ]
+    #   ["pewpew",  nil,                      true,     1     ]
+
     def start_mapping anchor, tag, implicit, style
     end
 
