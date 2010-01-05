@@ -45,7 +45,7 @@ static VALUE parse(VALUE self, VALUE yaml)
   }
 
   int done = 0;
-  int encoding = YAML_ANY_ENCODING;
+  int encoding = rb_enc_find_index("ASCII-8BIT");
 
   VALUE handler = rb_iv_get(self, "@handler");
 
@@ -61,7 +61,22 @@ static VALUE parse(VALUE self, VALUE yaml)
 
     switch(event.type) {
       case YAML_STREAM_START_EVENT:
-        encoding = event.data.stream_start.encoding;
+
+        switch(event.data.stream_start.encoding) {
+          case YAML_ANY_ENCODING:
+            break;
+          case YAML_UTF8_ENCODING:
+            encoding = rb_enc_find_index("UTF-8");
+            break;
+          case YAML_UTF16LE_ENCODING:
+            encoding = rb_enc_find_index("UTF-16LE");
+            break;
+          case YAML_UTF16BE_ENCODING:
+            encoding = rb_enc_find_index("UTF-16BE");
+            break;
+          default:
+            break;
+        }
 
         rb_funcall(handler, rb_intern("start_stream"), 1,
             INT2NUM((long)event.data.stream_start.encoding)
@@ -117,7 +132,7 @@ static VALUE parse(VALUE self, VALUE yaml)
               (long)event.data.scalar.length
           );
 
-          PSYCH_ASSOCIATE_ENCODING(val, encoding);
+          rb_enc_associate_index(val, encoding);
 
           VALUE anchor = event.data.scalar.anchor ?
             rb_str_new2((const char *)event.data.scalar.anchor) :
