@@ -45,6 +45,7 @@ static VALUE parse(VALUE self, VALUE yaml)
   }
 
   int done = 0;
+  int encoding = YAML_ANY_ENCODING;
 
   VALUE handler = rb_iv_get(self, "@handler");
 
@@ -60,6 +61,8 @@ static VALUE parse(VALUE self, VALUE yaml)
 
     switch(event.type) {
       case YAML_STREAM_START_EVENT:
+        encoding = event.data.stream_start.encoding;
+
         rb_funcall(handler, rb_intern("start_stream"), 1,
             INT2NUM((long)event.data.stream_start.encoding)
         );
@@ -113,6 +116,8 @@ static VALUE parse(VALUE self, VALUE yaml)
               (const char *)event.data.scalar.value,
               (long)event.data.scalar.length
           );
+
+          PSYCH_ASSOCIATE_ENCODING(val, encoding);
 
           VALUE anchor = event.data.scalar.anchor ?
             rb_str_new2((const char *)event.data.scalar.anchor) :
