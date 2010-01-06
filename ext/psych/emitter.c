@@ -26,6 +26,7 @@ static VALUE allocate(VALUE klass)
 {
   yaml_emitter_t * emitter = malloc(sizeof(yaml_emitter_t));
   yaml_emitter_initialize(emitter);
+  yaml_emitter_set_unicode(emitter, 1);
   return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
 }
 
