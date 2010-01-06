@@ -27,6 +27,7 @@ static VALUE allocate(VALUE klass)
   yaml_emitter_t * emitter = malloc(sizeof(yaml_emitter_t));
   yaml_emitter_initialize(emitter);
   yaml_emitter_set_unicode(emitter, 1);
+
   return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
 }
 
@@ -111,7 +112,7 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
       (RARRAY_LEN(version) > 0) ? &version_directive : NULL,
       head,
       tail,
-      imp == Qtrue ? 1 : 0
+      imp ? 1 : 0
   );
 
   emit(emitter, &event);
@@ -127,7 +128,7 @@ static VALUE end_document(VALUE self, VALUE imp)
   Data_Get_Struct(self, yaml_emitter_t, emitter);
 
   yaml_event_t event;
-  yaml_document_end_event_initialize(&event, imp == Qtrue ? 1 : 0);
+  yaml_document_end_event_initialize(&event, imp ? 1 : 0);
 
   emit(emitter, &event);
 
@@ -149,12 +150,12 @@ static VALUE scalar(
   yaml_event_t event;
   yaml_scalar_event_initialize(
       &event,
-      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
-      (yaml_char_t *)(Qnil == tag ? NULL : StringValuePtr(tag)),
+      (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValuePtr(anchor)),
+      (yaml_char_t *)(NIL_P(tag) ? NULL : StringValuePtr(tag)),
       (yaml_char_t*)StringValuePtr(value),
       (int)RSTRING_LEN(value),
-      Qtrue == plain ? 1 : 0,
-      Qtrue == quoted ? 1 : 0,
+      plain ? 1 : 0,
+      quoted ? 1 : 0,
       (yaml_scalar_style_t)NUM2INT(style)
   );
 
@@ -176,9 +177,9 @@ static VALUE start_sequence(
   yaml_event_t event;
   yaml_sequence_start_event_initialize(
       &event,
-      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
-      (yaml_char_t *)(Qnil == tag ? NULL : StringValuePtr(tag)),
-      Qtrue == implicit ? 1 : 0,
+      (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValuePtr(anchor)),
+      (yaml_char_t *)(NIL_P(tag) ? NULL : StringValuePtr(tag)),
+      implicit ? 1 : 0,
       (yaml_sequence_style_t)NUM2INT(style)
   );
 
@@ -213,9 +214,9 @@ static VALUE start_mapping(
   yaml_event_t event;
   yaml_mapping_start_event_initialize(
       &event,
-      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor)),
-      (yaml_char_t *)(Qnil == tag ? NULL : StringValuePtr(tag)),
-      Qtrue == implicit ? 1 : 0,
+      (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValuePtr(anchor)),
+      (yaml_char_t *)(NIL_P(tag) ? NULL : StringValuePtr(tag)),
+      implicit ? 1 : 0,
       (yaml_sequence_style_t)NUM2INT(style)
   );
 
@@ -245,7 +246,7 @@ static VALUE alias(VALUE self, VALUE anchor)
   yaml_event_t event;
   yaml_alias_event_initialize(
       &event,
-      (yaml_char_t *)(Qnil == anchor ? NULL : StringValuePtr(anchor))
+      (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValuePtr(anchor))
   );
 
   emit(emitter, &event);
