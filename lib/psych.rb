@@ -1,5 +1,6 @@
-require 'psych/visitable'
+require 'psych/psych'
 
+require 'psych/visitable'
 require 'psych/nodes'
 require 'psych/visitors'
 require 'psych/handler'
@@ -8,7 +9,6 @@ require 'psych/parser'
 require 'psych/ruby'
 require 'psych/omap'
 require 'psych/set'
-require 'psych/psych'
 
 ###
 # Psych is a YAML parser and emitter.  Psych leverages

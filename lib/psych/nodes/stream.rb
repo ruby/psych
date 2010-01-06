@@ -6,10 +6,10 @@ module Psych
     class Stream < Psych::Nodes::Node
 
       # Encodings supported by Psych (and libyaml)
-      ANY     = 0
-      UTF8    = 1
-      UTF16LE = 2
-      UTF16BE = 3
+      ANY     = Psych::Parser::ANY
+      UTF8    = Psych::Parser::UTF8
+      UTF16LE = Psych::Parser::UTF16LE
+      UTF16BE = Psych::Parser::UTF16BE
 
       # The encoding used for this stream
       attr_reader :encoding
