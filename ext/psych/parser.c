@@ -3,10 +3,23 @@
 VALUE cPsychParser;
 VALUE ePsychSyntaxError;
 
+static ID id_read;
+static ID id_empty;
+static ID id_start_stream;
+static ID id_end_stream;
+static ID id_start_document;
+static ID id_end_document;
+static ID id_alias;
+static ID id_scalar;
+static ID id_start_sequence;
+static ID id_end_sequence;
+static ID id_start_mapping;
+static ID id_end_mapping;
+
 static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
 {
   VALUE io = (VALUE)data;
-  VALUE string = rb_funcall(io, rb_intern("read"), 1, INT2NUM(size));
+  VALUE string = rb_funcall(io, id_read, 1, INT2NUM(size));
 
   *read = 0;
 
@@ -34,7 +47,7 @@ static VALUE parse(VALUE self, VALUE yaml)
 
   yaml_parser_initialize(&parser);
 
-  if(rb_respond_to(yaml, rb_intern("read"))) {
+  if(rb_respond_to(yaml, id_read)) {
     yaml_parser_set_input(&parser, io_reader, (void *)yaml);
   } else {
     yaml_parser_set_input_string(
@@ -78,7 +91,7 @@ static VALUE parse(VALUE self, VALUE yaml)
             break;
         }
 
-        rb_funcall(handler, rb_intern("start_stream"), 1,
+        rb_funcall(handler, id_start_stream, 1,
             INT2NUM((long)event.data.stream_start.encoding)
         );
         break;
@@ -107,19 +120,19 @@ static VALUE parse(VALUE self, VALUE yaml)
               rb_ary_push(tag_directives, pair);
             }
           }
-          rb_funcall(handler, rb_intern("start_document"), 3,
+          rb_funcall(handler, id_start_document, 3,
               version, tag_directives,
               event.data.document_start.implicit == 1 ? Qtrue : Qfalse
           );
         }
         break;
       case YAML_DOCUMENT_END_EVENT:
-        rb_funcall(handler, rb_intern("end_document"), 1,
+        rb_funcall(handler, id_end_document, 1,
             event.data.document_end.implicit == 1 ? Qtrue : Qfalse
         );
         break;
       case YAML_ALIAS_EVENT:
-        rb_funcall(handler, rb_intern("alias"), 1,
+        rb_funcall(handler, id_alias, 1,
           event.data.alias.anchor ?
           rb_str_new2((const char *)event.data.alias.anchor) :
           Qnil
@@ -150,7 +163,7 @@ static VALUE parse(VALUE self, VALUE yaml)
 
           VALUE style = INT2NUM((long)event.data.scalar.style);
 
-          rb_funcall(handler, rb_intern("scalar"), 6,
+          rb_funcall(handler, id_scalar, 6,
               val, anchor, tag, plain_implicit, quoted_implicit, style);
         }
         break;
@@ -169,12 +182,12 @@ static VALUE parse(VALUE self, VALUE yaml)
 
           VALUE style = INT2NUM((long)event.data.sequence_start.style);
 
-          rb_funcall(handler, rb_intern("start_sequence"), 4,
+          rb_funcall(handler, id_start_sequence, 4,
               anchor, tag, implicit, style);
         }
         break;
       case YAML_SEQUENCE_END_EVENT:
-        rb_funcall(handler, rb_intern("end_sequence"), 0);
+        rb_funcall(handler, id_end_sequence, 0);
         break;
       case YAML_MAPPING_START_EVENT:
         {
@@ -191,18 +204,18 @@ static VALUE parse(VALUE self, VALUE yaml)
 
           VALUE style = INT2NUM((long)event.data.mapping_start.style);
 
-          rb_funcall(handler, rb_intern("start_mapping"), 4,
+          rb_funcall(handler, id_start_mapping, 4,
               anchor, tag, implicit, style);
         }
         break;
       case YAML_MAPPING_END_EVENT:
-        rb_funcall(handler, rb_intern("end_mapping"), 0);
+        rb_funcall(handler, id_end_mapping, 0);
         break;
       case YAML_NO_EVENT:
-        rb_funcall(handler, rb_intern("empty"), 0);
+        rb_funcall(handler, id_empty, 0);
         break;
       case YAML_STREAM_END_EVENT:
-        rb_funcall(handler, rb_intern("end_stream"), 0);
+        rb_funcall(handler, id_end_stream, 0);
         done = 1;
         break;
     }
@@ -230,4 +243,17 @@ void Init_psych_parser()
   ePsychSyntaxError = rb_define_class_under(mPsych, "SyntaxError", rb_eSyntaxError);
 
   rb_define_method(cPsychParser, "parse", parse, 1);
+
+  id_read           = rb_intern("read");
+  id_empty          = rb_intern("empty");
+  id_start_stream   = rb_intern("start_stream");
+  id_end_stream     = rb_intern("end_stream");
+  id_start_document = rb_intern("start_document");
+  id_end_document   = rb_intern("end_document");
+  id_alias          = rb_intern("alias");
+  id_scalar         = rb_intern("scalar");
+  id_start_sequence = rb_intern("start_sequence");
+  id_end_sequence   = rb_intern("end_sequence");
+  id_start_mapping  = rb_intern("start_mapping");
+  id_end_mapping    = rb_intern("end_mapping");
 }

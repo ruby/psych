@@ -1,6 +1,7 @@
 #include <psych.h>
 
 VALUE cPsychEmitter;
+static ID id_write;
 
 static void emit(yaml_emitter_t * emitter, yaml_event_t * event)
 {
@@ -12,7 +13,7 @@ static int writer(void *ctx, unsigned char *buffer, size_t size)
 {
   VALUE io = (VALUE)ctx;
   VALUE str = rb_str_new((const char *)buffer, (long)size);
-  VALUE wrote = rb_funcall(io, rb_intern("write"), 1, str);
+  VALUE wrote = rb_funcall(io, id_write, 1, str);
   return (int)NUM2INT(wrote);
 }
 
@@ -273,4 +274,6 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "start_mapping", start_mapping, 4);
   rb_define_method(cPsychEmitter, "end_mapping", end_mapping, 0);
   rb_define_method(cPsychEmitter, "alias", alias, 1);
+
+  id_write = rb_intern("write");
 }
