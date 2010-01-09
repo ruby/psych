@@ -107,7 +107,7 @@ module Psych
               if struct_members.include? k.to_sym
                 s.send("#{k}=", v)
               else
-                s.instance_variable_set(:"@#{k}", v)
+                s.instance_variable_set(:"@#{k.to_s.sub(/^@/, '')}", v)
               end
             }
             s

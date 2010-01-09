@@ -242,7 +242,7 @@ module Psych
           target.instance_variables
 
         ivars.each do |iv|
-          map.children << Nodes::Scalar.new(":#{iv.to_s.sub(/^@/, '')}")
+          map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
           accept target.instance_variable_get(iv)
         end
       end
