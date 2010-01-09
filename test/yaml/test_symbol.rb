@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestSymbol < Test::Unit::TestCase
+  class TestSymbol < MiniTest::Unit::TestCase
     def test_to_yaml
       assert_equal :a, YAML.load(:a.to_yaml)
     end

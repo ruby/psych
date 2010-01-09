@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestHash < Test::Unit::TestCase
+  class TestHash < MiniTest::Unit::TestCase
     def setup
       @hash = { :a => 'b' }
     end

@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestArray < Test::Unit::TestCase
+  class TestArray < MiniTest::Unit::TestCase
     def setup
       @list = [{ :a => 'b' }, 'foo']
     end

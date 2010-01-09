@@ -1,7 +1,8 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
 module Psych
-  class TestStruct < Test::Unit::TestCase
+  class TestStruct < MiniTest::Unit::TestCase
     class StructSubclass < Struct.new(:foo)
       def initialize foo, bar
         super(foo)

@@ -4,7 +4,7 @@ module YAML
   ###
   # Test booleans from YAML spec:
   # http://yaml.org/type/bool.html
-  class TestBoolean < Test::Unit::TestCase
+  class TestBoolean < MiniTest::Unit::TestCase
     %w{ yes Yes YES true True TRUE on On ON }.each do |truth|
       define_method(:"test_#{truth}") do
         assert_equal true, YAML.load("--- #{truth}")

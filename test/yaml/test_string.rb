@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestString < Test::Unit::TestCase
+  class TestString < MiniTest::Unit::TestCase
     def test_binary_string_null
       string = "\x00"
       yml = YAML.dump string

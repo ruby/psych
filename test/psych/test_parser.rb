@@ -21,6 +21,7 @@ module Psych
     end
 
     def setup
+      super
       warn "#{name}" if ENV['TESTOPTS'] == '-v'
       @parser = Psych::Parser.new EventCatcher.new
     end

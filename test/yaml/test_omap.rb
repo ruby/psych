@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestOmap < Test::Unit::TestCase
+  class TestOmap < MiniTest::Unit::TestCase
     def test_self_referential
       map = YAML::Omap.new
       map['foo'] = 'bar'

@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestException < Test::Unit::TestCase
+  class TestException < MiniTest::Unit::TestCase
     class Wups < Exception
       attr_reader :foo, :bar
       def initialize *args

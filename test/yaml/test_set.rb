@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestSet < Test::Unit::TestCase
+  class TestSet < MiniTest::Unit::TestCase
     def setup
       @set = YAML::Set.new
       @set['foo'] = 'bar'

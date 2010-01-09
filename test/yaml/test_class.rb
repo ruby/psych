@@ -1,7 +1,7 @@
 require 'helper'
 
 module YAML
-  class TestClass < Test::Unit::TestCase
+  class TestClass < MiniTest::Unit::TestCase
     def test_to_yaml
       assert_raises(::TypeError) do
         TestClass.to_yaml
