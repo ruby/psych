@@ -58,7 +58,9 @@ static VALUE parse(VALUE self, VALUE yaml)
   }
 
   int done = 0;
+#ifdef HAVE_RUBY_ENCODING_H
   int encoding = rb_enc_find_index("ASCII-8BIT");
+#endif
 
   VALUE handler = rb_iv_get(self, "@handler");
 
@@ -75,6 +77,7 @@ static VALUE parse(VALUE self, VALUE yaml)
     switch(event.type) {
       case YAML_STREAM_START_EVENT:
 
+#ifdef HAVE_RUBY_ENCODING_H
         switch(event.data.stream_start.encoding) {
           case YAML_ANY_ENCODING:
             break;
@@ -90,6 +93,7 @@ static VALUE parse(VALUE self, VALUE yaml)
           default:
             break;
         }
+#endif
 
         rb_funcall(handler, id_start_stream, 1,
             INT2NUM((long)event.data.stream_start.encoding)
@@ -116,13 +120,17 @@ static VALUE parse(VALUE self, VALUE yaml)
               VALUE handle = Qnil;
               if(start->handle) {
                 handle = rb_str_new2((const char *)start->handle);
+#ifdef HAVE_RUBY_ENCODING_H
                 rb_enc_associate_index(handle, encoding);
+#endif
               }
 
               VALUE prefix = Qnil;
               if(start->prefix) {
                 prefix = rb_str_new2((const char *)start->prefix);
+#ifdef HAVE_RUBY_ENCODING_H
                 rb_enc_associate_index(prefix, encoding);
+#endif
               }
 
               VALUE pair = rb_ary_new3((long)2, handle, prefix);
@@ -145,7 +153,9 @@ static VALUE parse(VALUE self, VALUE yaml)
           VALUE alias = Qnil;
           if(event.data.alias.anchor) {
             alias = rb_str_new2((const char *)event.data.alias.anchor);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(alias, encoding);
+#endif
           }
 
           rb_funcall(handler, id_alias, 1, alias);
@@ -158,18 +168,24 @@ static VALUE parse(VALUE self, VALUE yaml)
               (long)event.data.scalar.length
           );
 
+#ifdef HAVE_RUBY_ENCODING_H
           rb_enc_associate_index(val, encoding);
+#endif
 
           VALUE anchor = Qnil;
           if(event.data.scalar.anchor) {
             anchor = rb_str_new2((const char *)event.data.scalar.anchor);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(anchor, encoding);
+#endif
           }
 
           VALUE tag = Qnil;
           if(event.data.scalar.tag) {
             tag = rb_str_new2((const char *)event.data.scalar.tag);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(tag, encoding);
+#endif
           }
 
           VALUE plain_implicit =
@@ -189,13 +205,17 @@ static VALUE parse(VALUE self, VALUE yaml)
           VALUE anchor = Qnil;
           if(event.data.sequence_start.anchor) {
             anchor = rb_str_new2((const char *)event.data.sequence_start.anchor);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(anchor, encoding);
+#endif
           }
 
           VALUE tag = Qnil;
           if(event.data.sequence_start.tag) {
             tag = rb_str_new2((const char *)event.data.sequence_start.tag);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(tag, encoding);
+#endif
           }
 
           VALUE implicit =
@@ -215,13 +235,17 @@ static VALUE parse(VALUE self, VALUE yaml)
           VALUE anchor = Qnil;
           if(event.data.mapping_start.anchor) {
             anchor = rb_str_new2((const char *)event.data.mapping_start.anchor);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(anchor, encoding);
+#endif
           }
 
           VALUE tag = Qnil;
           if(event.data.mapping_start.tag) {
             tag = rb_str_new2((const char *)event.data.mapping_start.tag);
+#ifdef HAVE_RUBY_ENCODING_H
             rb_enc_associate_index(tag, encoding);
+#endif
           }
 
           VALUE implicit =
