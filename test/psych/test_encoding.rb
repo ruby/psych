@@ -50,6 +50,13 @@ module Psych
       assert_encodings @utf8, @handler.strings
     end
 
+    def test_list_anchor
+      list = %w{ a b }
+      list << list
+      @parser.parse(Psych.dump(list))
+      assert_encodings @utf8, @handler.strings
+    end
+
     private
     def assert_encodings encoding, strings
       strings.each do |str|

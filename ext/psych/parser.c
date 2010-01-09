@@ -177,9 +177,11 @@ static VALUE parse(VALUE self, VALUE yaml)
         break;
       case YAML_SEQUENCE_START_EVENT:
         {
-          VALUE anchor = event.data.sequence_start.anchor ?
-            rb_str_new2((const char *)event.data.sequence_start.anchor) :
-            Qnil;
+          VALUE anchor = Qnil;
+          if(event.data.sequence_start.anchor) {
+            anchor = rb_str_new2((const char *)event.data.sequence_start.anchor);
+            rb_enc_associate_index(anchor, encoding);
+          }
 
           VALUE tag = Qnil;
           if(event.data.sequence_start.tag) {
