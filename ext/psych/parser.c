@@ -113,10 +113,19 @@ static VALUE parse(VALUE self, VALUE yaml)
             yaml_tag_directive_t *end =
               event.data.document_start.tag_directives.end;
             for(; start != end; start++) {
-              VALUE pair = rb_ary_new3((long)2,
-                  start->handle ? rb_str_new2((const char *)start->handle) : Qnil,
-                  start->prefix ? rb_str_new2((const char *)start->prefix) : Qnil
-              );
+              VALUE handle = Qnil;
+              if(start->handle) {
+                handle = rb_str_new2((const char *)start->handle);
+                rb_enc_associate_index(handle, encoding);
+              }
+
+              VALUE prefix = Qnil;
+              if(start->prefix) {
+                prefix = rb_str_new2((const char *)start->prefix);
+                rb_enc_associate_index(prefix, encoding);
+              }
+
+              VALUE pair = rb_ary_new3((long)2, handle, prefix);
               rb_ary_push(tag_directives, pair);
             }
           }
@@ -203,13 +212,17 @@ static VALUE parse(VALUE self, VALUE yaml)
         break;
       case YAML_MAPPING_START_EVENT:
         {
-          VALUE anchor = event.data.mapping_start.anchor ?
-            rb_str_new2((const char *)event.data.mapping_start.anchor) :
-            Qnil;
+          VALUE anchor = Qnil;
+          if(event.data.mapping_start.anchor) {
+            anchor = rb_str_new2((const char *)event.data.mapping_start.anchor);
+            rb_enc_associate_index(anchor, encoding);
+          }
 
-          VALUE tag = event.data.mapping_start.tag ?
-            rb_str_new2((const char *)event.data.mapping_start.tag) :
-            Qnil;
+          VALUE tag = Qnil;
+          if(event.data.mapping_start.tag) {
+            tag = rb_str_new2((const char *)event.data.mapping_start.tag);
+            rb_enc_associate_index(tag, encoding);
+          }
 
           VALUE implicit =
             event.data.mapping_start.implicit == 0 ? Qfalse : Qtrue;

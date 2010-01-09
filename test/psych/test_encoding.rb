@@ -57,6 +57,31 @@ module Psych
       assert_encodings @utf8, @handler.strings
     end
 
+    def test_map_anchor
+      h = {}
+      h['a'] = h
+      @parser.parse(Psych.dump(h))
+      assert_encodings @utf8, @handler.strings
+    end
+
+    def test_map_tag
+      @parser.parse(<<-eoyml)
+%YAML 1.1
+---
+!!map { a : b }
+      eoyml
+      assert_encodings @utf8, @handler.strings
+    end
+
+    def test_doc_tag
+      @parser.parse(<<-eoyml)
+%YAML 1.1
+%TAG ! tag:tenderlovemaking.com,2009:
+--- !fun
+      eoyml
+      assert_encodings @utf8, @handler.strings
+    end
+
     private
     def assert_encodings encoding, strings
       strings.each do |str|
