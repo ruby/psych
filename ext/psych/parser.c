@@ -132,11 +132,15 @@ static VALUE parse(VALUE self, VALUE yaml)
         );
         break;
       case YAML_ALIAS_EVENT:
-        rb_funcall(handler, id_alias, 1,
-          event.data.alias.anchor ?
-          rb_str_new2((const char *)event.data.alias.anchor) :
-          Qnil
-        );
+        {
+          VALUE alias = Qnil;
+          if(event.data.alias.anchor) {
+            alias = rb_str_new2((const char *)event.data.alias.anchor);
+            rb_enc_associate_index(alias, encoding);
+          }
+
+          rb_funcall(handler, id_alias, 1, alias);
+        }
         break;
       case YAML_SCALAR_EVENT:
         {
@@ -147,13 +151,17 @@ static VALUE parse(VALUE self, VALUE yaml)
 
           rb_enc_associate_index(val, encoding);
 
-          VALUE anchor = event.data.scalar.anchor ?
-            rb_str_new2((const char *)event.data.scalar.anchor) :
-            Qnil;
+          VALUE anchor = Qnil;
+          if(event.data.scalar.anchor) {
+            anchor = rb_str_new2((const char *)event.data.scalar.anchor);
+            rb_enc_associate_index(anchor, encoding);
+          }
 
-          VALUE tag = event.data.scalar.tag ?
-            rb_str_new2((const char *)event.data.scalar.tag) :
-            Qnil;
+          VALUE tag = Qnil;
+          if(event.data.scalar.tag) {
+            tag = rb_str_new2((const char *)event.data.scalar.tag);
+            rb_enc_associate_index(tag, encoding);
+          }
 
           VALUE plain_implicit =
             event.data.scalar.plain_implicit == 0 ? Qfalse : Qtrue;
@@ -173,9 +181,11 @@ static VALUE parse(VALUE self, VALUE yaml)
             rb_str_new2((const char *)event.data.sequence_start.anchor) :
             Qnil;
 
-          VALUE tag = event.data.sequence_start.tag ?
-            rb_str_new2((const char *)event.data.sequence_start.tag) :
-            Qnil;
+          VALUE tag = Qnil;
+          if(event.data.sequence_start.tag) {
+            tag = rb_str_new2((const char *)event.data.sequence_start.tag);
+            rb_enc_associate_index(tag, encoding);
+          }
 
           VALUE implicit =
             event.data.sequence_start.implicit == 0 ? Qfalse : Qtrue;
