@@ -88,11 +88,7 @@ module Psych
         when '!str', 'tag:yaml.org,2002:str'
           members = Hash[*o.children.map { |c| accept c }]
           string = members.delete 'str'
-
-          members.each do |k,v|
-            string.instance_variable_set k, v
-          end
-          string
+          init_with(string, members.map { |k,v| [k.to_s.sub(/^@/, ''),v] })
         when /!ruby\/struct:?(.*)?$/
           klass   = resolve_class($1)
 
@@ -100,17 +96,18 @@ module Psych
             s = klass.allocate
             @st[o.anchor] = s if o.anchor
 
-            members = o.children.map { |c| accept c }
-
+            members = {}
             struct_members = s.members.map { |x| x.to_sym }
-            members.each_slice(2) { |k,v|
-              if struct_members.include? k.to_sym
-                s.send("#{k}=", v)
+            o.children.each_slice(2) do |k,v|
+              member = accept(k)
+              value  = accept(v)
+              if struct_members.include?(member.to_sym)
+                s.send("#{member}=", value)
               else
-                s.instance_variable_set(:"@#{k.to_s.sub(/^@/, '')}", v)
+                members[member.to_s.sub(/^@/, '')] = value
               end
-            }
-            s
+            end
+            init_with(s, members)
           else
             members = o.children.map { |c| accept c }
             h = Hash[*members]
@@ -124,9 +121,9 @@ module Psych
         when /!ruby\/exception:?(.*)?$/
           h = Hash[*o.children.map { |c| accept c }]
 
-          e = build_exception((resolve_class($1) || Exception), h.delete('message'))
-
-          h.each { |k,v| e.instance_variable_set :"@#{k}", v }
+          e = build_exception((resolve_class($1) || Exception),
+                              h.delete('message'))
+          init_with(e, h)
           e
 
         when '!set', 'tag:yaml.org,2002:set'
@@ -151,9 +148,7 @@ module Psych
           s = name.split('::').inject(Object) { |k,sub|
             k.const_get sub
           }.allocate
-          h.each { |k,v| s.instance_variable_set(:"@#{k}", v) }
-          s
-
+          init_with(s, h)
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
@@ -177,6 +172,11 @@ module Psych
       end
 
       private
+      def init_with o, h
+        h.each { |k,v| o.instance_variable_set(:"@#{k}", v) }
+        o
+      end
+
       # Convert +klassname+ to a Class
       def resolve_class klassname
         return nil unless klassname and not klassname.empty?

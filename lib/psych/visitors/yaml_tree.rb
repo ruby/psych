@@ -153,7 +153,6 @@ module Psych
           plain = !quote
         end
 
-
         ivars = o.respond_to?(:to_yaml_properties) ?
           o.to_yaml_properties :
           o.instance_variables
@@ -169,10 +168,7 @@ module Psych
           mapping.children << scalar
 
           @stack.push mapping
-          ivars.each do |iv|
-            mapping.children << Nodes::Scalar.new(":#{iv}")
-            accept o.instance_variable_get(iv)
-          end
+          dump_ivars o, mapping
           @stack.pop
         end
       end
