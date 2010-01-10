@@ -37,7 +37,7 @@ module Psych
         [[], [nil,nil], false],
       ].each do |args|
         assert_raises(TypeError) do
-          @emitter.start_document *args
+          @emitter.start_document(*args)
         end
       end
     end
@@ -53,8 +53,21 @@ module Psych
         ['foo', nil, nil, false, true, :foo],
       ].each do |args|
         assert_raises(TypeError) do
-          @emitter.scalar *args
+          @emitter.scalar(*args)
         end
+      end
+    end
+
+    def test_start_sequence_arg_error
+      @emitter.start_stream Psych::Nodes::Stream::UTF8
+      @emitter.start_document [], [], false
+
+      assert_raises(TypeError) do
+        @emitter.start_sequence(nil, Object.new, true, 1)
+      end
+
+      assert_raises(TypeError) do
+        @emitter.start_sequence(nil, nil, true, :foo)
       end
     end
   end
