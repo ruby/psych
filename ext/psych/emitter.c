@@ -154,6 +154,8 @@ static VALUE scalar(
   yaml_emitter_t * emitter;
   Data_Get_Struct(self, yaml_emitter_t, emitter);
 
+  Check_Type(value, T_STRING);
+
   yaml_event_t event;
   yaml_scalar_event_initialize(
       &event,

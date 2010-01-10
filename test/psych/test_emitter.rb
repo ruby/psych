@@ -41,5 +41,21 @@ module Psych
         end
       end
     end
+
+    def test_scalar_arg_error
+      @emitter.start_stream Psych::Nodes::Stream::UTF8
+      @emitter.start_document [], [], false
+
+      [
+        [:foo, nil, nil, false, true, 1],
+        ['foo', Object.new, nil, false, true, 1],
+        ['foo', nil, Object.new, false, true, 1],
+        ['foo', nil, nil, false, true, :foo],
+      ].each do |args|
+        assert_raises(TypeError) do
+          @emitter.scalar *args
+        end
+      end
+    end
   end
 end
