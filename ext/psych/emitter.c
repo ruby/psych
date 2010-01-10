@@ -46,6 +46,7 @@ static VALUE start_stream(VALUE self, VALUE encoding)
 {
   yaml_emitter_t * emitter;
   Data_Get_Struct(self, yaml_emitter_t, emitter);
+  Check_Type(encoding, T_FIXNUM);
 
   yaml_event_t event;
   yaml_stream_start_event_initialize(&event, (yaml_encoding_t)NUM2INT(encoding));
@@ -75,6 +76,8 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
 
   yaml_version_directive_t version_directive;
 
+  Check_Type(version, T_ARRAY);
+
   if(RARRAY_LEN(version) > 0) {
     VALUE major = rb_ary_entry(version, (long)0);
     VALUE minor = rb_ary_entry(version, (long)1);
@@ -89,11 +92,14 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
   if(RTEST(tags)) {
     int i = 0;
 
+    Check_Type(tags, T_ARRAY);
+
     head  = xcalloc(RARRAY_LEN(tags), sizeof(yaml_tag_directive_t));
     tail  = head;
 
     for(i = 0; i < RARRAY_LEN(tags); i++) {
       VALUE tuple = RARRAY_PTR(tags)[i];
+      Check_Type(tuple, T_ARRAY);
 
       if(RARRAY_LEN(tuple) < 2) {
         xfree(head);

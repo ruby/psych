@@ -233,13 +233,22 @@ module Psych
       end
 
       def dump_ivars target, map
-        ivars = target.respond_to?(:to_yaml_properties) ?
-          target.to_yaml_properties :
-          target.instance_variables
+        if target.respond_to?(:encode_with)
+          coder = {}
+          target.encode_with(coder)
+          coder.each do |k,v|
+            map.children << Nodes::Scalar.new(k)
+            accept v
+          end
+        else
+          ivars = target.respond_to?(:to_yaml_properties) ?
+            target.to_yaml_properties :
+            target.instance_variables
 
-        ivars.each do |iv|
-          map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
-          accept target.instance_variable_get(iv)
+          ivars.each do |iv|
+            map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
+            accept target.instance_variable_get(iv)
+          end
         end
       end
     end

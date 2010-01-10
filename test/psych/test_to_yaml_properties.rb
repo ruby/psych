@@ -16,6 +16,31 @@ module Psych
       end
     end
 
+    class InitApi < Foo
+      def init_with coder
+        @a = coder['aa']
+        @b = coder['bb']
+      end
+
+      def encode_with coder
+        coder['aa'] = @a
+        coder['bb'] = @b
+      end
+    end
+
+    def test_dump_encode_with
+      foo = InitApi.new
+      assert_match(/aa/, Psych.dump(foo))
+    end
+
+    def test_dump_init_with
+      foo = InitApi.new
+      bar = Psych.load(Psych.dump(foo))
+      assert_equal foo.a, bar.a
+      assert_equal foo.b, bar.b
+      assert_nil bar.c
+    end
+
     def test_object_dump_yaml_properties
       foo = Psych.load(Psych.dump(Foo.new))
       assert_equal 1, foo.a

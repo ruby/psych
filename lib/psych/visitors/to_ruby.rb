@@ -173,7 +173,11 @@ module Psych
 
       private
       def init_with o, h
-        h.each { |k,v| o.instance_variable_set(:"@#{k}", v) }
+        if o.respond_to?(:init_with)
+          o.init_with h
+        else
+          h.each { |k,v| o.instance_variable_set(:"@#{k}", v) }
+        end
         o
       end
 
