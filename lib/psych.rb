@@ -10,10 +10,23 @@ require 'psych/omap'
 require 'psych/set'
 
 ###
+# = Overview
+#
 # Psych is a YAML parser and emitter.  Psych leverages
 # libyaml[http://libyaml.org] for it's YAML parsing and emitting capabilities.
 # In addition to wrapping libyaml, Psych also knows how to serialize and
 # de-serialize most Ruby objects to and from the YAML format.
+#
+# = I NEED TO PARSE OR EMIT YAML RIGHT NOW!
+#
+#   # Parse some YAML
+#   Psych.load("--- foo") # => "foo"
+#
+#   # Emit some YAML
+#   Psych.dump("foo")     # => "--- foo\n...\n"
+#   { :a => 'b'}.to_yaml  # => "---\n:a: b\n"
+#
+# Got more time on your hands?  Keep on reading!
 #
 # == YAML Parsing
 #
