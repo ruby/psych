@@ -5,24 +5,26 @@ module Psych
   # Scan scalars for built in types
   class ScalarScanner
     # Taken from http://yaml.org/type/timestamp.html
-    TIME = /\d{4}-\d{1,2}-\d{1,2}([Tt]|\s+)\d{1,2}:\d\d:\d\d(\.\d*)?(\s*Z|[-+]\d{1,2}(:\d\d)?)?/
+    TIME = /^\d{4}-\d{1,2}-\d{1,2}([Tt]|\s+)\d{1,2}:\d\d:\d\d(\.\d*)?(\s*Z|[-+]\d{1,2}(:\d\d)?)?/
 
-    def initialize string
-      @string = string
+    def initialize
+      @string_cache = {}
     end
 
-    def tokenize
-      self.class.tokenize @string
-    end
-
-    def self.tokenize string
+    def tokenize string
       return nil if string.empty?
+      return string if @string_cache.key?(string)
 
       case string
       when /^[A-Za-z~]/
-        return string if string.length > 5
+        if string.length > 5
+          @string_cache[string] = true
+          return string
+        end
+
         case string
         when /^[^ytonf~]/i
+          @string_cache[string] = true
           string
         when '~', /^null$/i
           nil
@@ -31,6 +33,7 @@ module Psych
         when /^(no|false|off)$/i
           false
         else
+          @string_cache[string] = true
           string
         end
       when TIME
@@ -77,6 +80,7 @@ module Psych
       else
         return Integer(string.gsub(/[,_]/, '')) rescue ArgumentError
         return Float(string.gsub(/[,_]/, '')) rescue ArgumentError
+        @string_cache[string] = true
         string
       end
     end

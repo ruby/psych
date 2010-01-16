@@ -8,12 +8,13 @@ module Psych
       def initialize
         super
         @st = {}
+        @ss = ScalarScanner.new
       end
 
       def accept target
         result = super
-        return result if Psych.domain_types.empty?
         return result unless target.tag
+        return result if Psych.domain_types.empty?
 
         short_name = target.tag.sub(/^!/, '').split('/', 2).last
         if Psych.domain_types.key? short_name
@@ -28,7 +29,7 @@ module Psych
         @st[o.anchor] = o.value if o.anchor
 
         return o.value if o.quoted
-        return ScalarScanner.tokenize(o.value) unless o.tag
+        return @ss.tokenize(o.value) unless o.tag
 
         case o.tag
         when '!binary', 'tag:yaml.org,2002:binary'
@@ -40,7 +41,7 @@ module Psych
         when "!ruby/object:Rational"
           Rational(o.value)
         when "tag:yaml.org,2002:float", "!float"
-          Float(ScalarScanner.tokenize(o.value))
+          Float(@ss.tokenize(o.value))
         when "!ruby/regexp"
           o.value =~ /^\/(.*)\/([mix]*)$/
           source  = $1
@@ -62,7 +63,7 @@ module Psych
           args.push(args.delete_at(1) == '...')
           Range.new(*args)
         else
-          ScalarScanner.tokenize o.value
+          @ss.tokenize o.value
         end
       end
 
@@ -89,7 +90,7 @@ module Psych
           members = Hash[*o.children.map { |c| accept c }]
           string = members.delete 'str'
           init_with(string, members.map { |k,v| [k.to_s.sub(/^@/, ''),v] })
-        when /!ruby\/struct:?(.*)?$/
+        when /^!ruby\/struct:?(.*)?$/
           klass   = resolve_class($1)
 
           if klass
@@ -118,7 +119,7 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }]
           Range.new(h['begin'], h['end'], h['excl'])
 
-        when /!ruby\/exception:?(.*)?$/
+        when /^!ruby\/exception:?(.*)?$/
           h = Hash[*o.children.map { |c| accept c }]
 
           e = build_exception((resolve_class($1) || Exception),
@@ -142,7 +143,7 @@ module Psych
           h = Hash[*o.children.map { |c| accept c }]
           Rational(h['numerator'], h['denominator'])
 
-        when /!ruby\/object:?(.*)?$/
+        when /^!ruby\/object:?(.*)?$/
           name = $1 || 'Object'
           h = Hash[*o.children.map { |c| accept c }]
           s = name.split('::').inject(Object) { |k,sub|

@@ -9,6 +9,7 @@ module Psych
         @tree.children << Nodes::Document.new
         @stack = @tree.children.dup
         @st = {}
+        @ss = ScalarScanner.new
 
         @dispatch_cache = Hash.new do |h,klass|
           method = "visit_#{(klass.name || '').split('::').join('_')}"
@@ -149,7 +150,7 @@ module Psych
         else
           str   = o
           tag   = nil
-          quote = !(String === ScalarScanner.new(o).tokenize)
+          quote = !(String === @ss.tokenize(o))
           plain = !quote
         end
 
