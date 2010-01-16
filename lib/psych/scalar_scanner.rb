@@ -12,25 +12,29 @@ module Psych
     end
 
     def tokenize
-      return [:NULL, nil] if @string.empty?
+      self.class.tokenize @string
+    end
 
-      case @string
+    def self.tokenize string
+      return nil if string.empty?
+
+      case string
       when /^[A-Za-z~]/
-        return [:SCALAR, @string] if @string.length > 5
-        case @string
+        return string if string.length > 5
+        case string
         when /^[^ytonf~]/i
-          [:SCALAR, @string]
+          string
         when '~', /^null$/i
-          [:NULL, nil]
+          nil
         when /^(yes|true|on)$/i
-          [:BOOLEAN, true]
+          true
         when /^(no|false|off)$/i
-          [:BOOLEAN, false]
+          false
         else
-          [:SCALAR, @string]
+          string
         end
       when TIME
-        date, time = *(@string.split(/[ tT]/, 2))
+        date, time = *(string.split(/[ tT]/, 2))
         (yy, m, dd) = date.split('-').map { |x| x.to_i }
         md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
 
@@ -39,44 +43,41 @@ module Psych
 
         time = Time.utc(yy, m, dd, hh, mm, ss, us)
 
-        return [:TIME, time] if 'Z' == md[3]
+        return time if 'Z' == md[3]
 
         tz = md[3] ? Integer(md[3].split(':').first) : 0
-        [:TIME, Time.at((time - (tz * 3600)).to_i, us)]
+        Time.at((time - (tz * 3600)).to_i, us)
       when /^\d{4}-\d{1,2}-\d{1,2}$/
         require 'date'
-        [:DATE, Date.strptime(@string, '%Y-%m-%d')]
+        Date.strptime(string, '%Y-%m-%d')
       when /^\.inf$/i
-        [:POSITIVE_INFINITY, 1 / 0.0]
+        1 / 0.0
       when /^-\.inf$/i
-        [:NEGATIVE_INFINITY, -1 / 0.0]
+        -1 / 0.0
       when /^\.nan$/i
-        [:NAN, 0.0 / 0.0]
+        0.0 / 0.0
       when /^:./
-        if @string =~ /^:(["'])(.*)\1/
-          [:SYMBOL, $2.sub(/^:/, '').to_sym]
+        if string =~ /^:(["'])(.*)\1/
+          $2.sub(/^:/, '').to_sym
         else
-          [:SYMBOL, @string.sub(/^:/, '').to_sym]
+          string.sub(/^:/, '').to_sym
         end
       when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0
-        @string.split(':').each_with_index do |n,e|
+        string.split(':').each_with_index do |n,e|
           i += (n.to_i * 60 ** (e - 2).abs)
         end
-
-        [:INTEGER, i]
+        i
       when /^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+\.[0-9_]*$/
         i = 0
-        @string.split(':').each_with_index do |n,e|
+        string.split(':').each_with_index do |n,e|
           i += (n.to_f * 60 ** (e - 2).abs)
         end
-
-        [:FLOAT, i]
+        i
       else
-        return [:INTEGER, Integer(@string.gsub(/[,_]/, ''))] rescue ArgumentError
-        return [:FLOAT, Float(@string.gsub(/[,_]/, ''))] rescue ArgumentError
-
-        [:SCALAR, @string]
+        return Integer(string.gsub(/[,_]/, '')) rescue ArgumentError
+        return Float(string.gsub(/[,_]/, '')) rescue ArgumentError
+        string
       end
     end
   end

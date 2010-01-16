@@ -149,7 +149,7 @@ module Psych
         else
           str   = o
           tag   = nil
-          quote = ScalarScanner.new(o).tokenize.first != :SCALAR
+          quote = !(String === ScalarScanner.new(o).tokenize)
           plain = !quote
         end
 

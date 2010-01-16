@@ -28,7 +28,7 @@ module Psych
         @st[o.anchor] = o.value if o.anchor
 
         return o.value if o.quoted
-        return resolve_unknown(o) unless o.tag
+        return ScalarScanner.tokenize(o.value) unless o.tag
 
         case o.tag
         when '!binary', 'tag:yaml.org,2002:binary'
@@ -40,7 +40,7 @@ module Psych
         when "!ruby/object:Rational"
           Rational(o.value)
         when "tag:yaml.org,2002:float", "!float"
-          Float(ScalarScanner.new(o.value).tokenize.last)
+          Float(ScalarScanner.tokenize(o.value))
         when "!ruby/regexp"
           o.value =~ /^\/(.*)\/([mix]*)$/
           source  = $1
@@ -62,7 +62,7 @@ module Psych
           args.push(args.delete_at(1) == '...')
           Range.new(*args)
         else
-          resolve_unknown o
+          ScalarScanner.tokenize o.value
         end
       end
 
@@ -198,10 +198,6 @@ module Psych
           end
           raise ex
         end
-      end
-
-      def resolve_unknown o
-        ScalarScanner.new(o.value).tokenize.last
       end
     end
   end
