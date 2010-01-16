@@ -16,7 +16,11 @@ class TestScalarScanner < MiniTest::Unit::TestCase
   def test_scan_date
     date = '1980-12-16'
     ss = Psych::ScalarScanner.new date
-    assert_equal [:DATE, date], ss.tokenize
+    type, token = ss.tokenize
+    assert_equal :DATE, type
+    assert_equal 1980, token.year
+    assert_equal 12, token.month
+    assert_equal 16, token.day
   end
 
   def test_scan_inf

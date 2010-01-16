@@ -1,15 +1,23 @@
 module Psych
   module Visitors
     class Visitor
-      YAML_NODE_DISPATCH_TABLE = Hash[
-        *Nodes.constants.map { |k|
-          k = Nodes.const_get k
-          [k, :"visit_#{k.name.split('::').join('_')}"]
-        }.flatten
-      ]
-
       def accept target
-        send(YAML_NODE_DISPATCH_TABLE[target.class], target)
+        case target
+        when Psych::Nodes::Scalar
+          visit_Psych_Nodes_Scalar target
+        when Psych::Nodes::Mapping
+          visit_Psych_Nodes_Mapping target
+        when Psych::Nodes::Sequence
+          visit_Psych_Nodes_Sequence target
+        when Psych::Nodes::Document
+          visit_Psych_Nodes_Document target
+        when Psych::Nodes::Stream
+          visit_Psych_Nodes_Stream target
+        when Psych::Nodes::Alias
+          visit_Psych_Nodes_Alias target
+        else
+          raise "Can't handle #{target}"
+        end
       end
     end
   end

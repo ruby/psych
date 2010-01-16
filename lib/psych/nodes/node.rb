@@ -9,6 +9,7 @@ module Psych
       include Psych::Visitable
 
       attr_reader :children
+      attr_reader :tag
 
       def initialize
         @children = []

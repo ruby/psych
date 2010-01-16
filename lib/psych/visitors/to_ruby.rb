@@ -13,14 +13,14 @@ module Psych
       def accept target
         result = super
         return result if Psych.domain_types.empty?
+        return result unless target.tag
 
-        if target.respond_to?(:tag) && target.tag
-          short_name = target.tag.sub(/^!/, '').split('/', 2).last
-          if Psych.domain_types.key? short_name
-            url, block = Psych.domain_types[short_name]
-            return block.call "http://#{url}:#{short_name}", result
-          end
+        short_name = target.tag.sub(/^!/, '').split('/', 2).last
+        if Psych.domain_types.key? short_name
+          url, block = Psych.domain_types[short_name]
+          return block.call "http://#{url}:#{short_name}", result
         end
+
         result
       end
 
@@ -201,31 +201,22 @@ module Psych
       end
 
       def resolve_unknown o
-        token = ScalarScanner.new(o.value).tokenize
+        type, lexeme = ScalarScanner.new(o.value).tokenize
+        return lexeme unless :TIME == type
 
-        case token.first
-        when :DATE
-          require 'date'
-          Date.strptime token.last, '%Y-%m-%d'
-        when :TIME
-          lexeme = token.last
+        date, time = *(lexeme.split(/[ tT]/, 2))
+        (yy, m, dd) = date.split('-').map { |x| x.to_i }
+        md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
 
-          date, time = *(lexeme.split(/[ tT]/, 2))
-          (yy, m, dd) = date.split('-').map { |x| x.to_i }
-          md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
+        (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
+        us = (md[2] ? Rational(md[2].sub(/^\./, '0.')) : 0) * 1000000
 
-          (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
-          us = (md[2] ? Rational(md[2].sub(/^\./, '0.')) : 0) * 1000000
+        time = Time.utc(yy, m, dd, hh, mm, ss, us)
 
-          time = Time.utc(yy, m, dd, hh, mm, ss, us)
+        return time if 'Z' == md[3]
 
-          return time if 'Z' == md[3]
-
-          tz = md[3] ? Integer(md[3].split(':').first) : 0
-          Time.at((time - (tz * 3600)).to_i, us)
-        else
-          token.last
-        end
+        tz = md[3] ? Integer(md[3].split(':').first) : 0
+        Time.at((time - (tz * 3600)).to_i, us)
       end
     end
   end

@@ -16,8 +16,11 @@ module Psych
 
       case @string
       when /^[A-Za-z~]/
+        return [:SCALAR, @string] if @string.length > 5
         case @string
-        when /^(null|~)$/i
+        when /^[^ytonf~]/i
+          [:SCALAR, @string]
+        when '~', /^null$/i
           [:NULL, nil]
         when /^(yes|true|on)$/i
           [:BOOLEAN, true]
@@ -29,14 +32,15 @@ module Psych
       when TIME
         [:TIME, @string]
       when /^\d{4}-\d{1,2}-\d{1,2}$/
-        [:DATE, @string]
+        require 'date'
+        [:DATE, Date.strptime(@string, '%Y-%m-%d')]
       when /^\.inf$/i
         [:POSITIVE_INFINITY, 1 / 0.0]
       when /^-\.inf$/i
         [:NEGATIVE_INFINITY, -1 / 0.0]
       when /^\.nan$/i
         [:NAN, 0.0 / 0.0]
-      when /^:.+/
+      when /^:./
         if @string =~ /^:(["'])(.*)\1/
           [:SYMBOL, $2.sub(/^:/, '').to_sym]
         else
