@@ -26,6 +26,15 @@ module Psych
       @parser = Psych::Parser.new EventCatcher.new
     end
 
+    def test_bogus_io
+      o = Object.new
+      def o.read len; self end
+
+      assert_raises(TypeError) do
+        @parser.parse o
+      end
+    end
+
     def test_parse_io
       @parser.parse StringIO.new("--- a")
       assert_called :start_stream

@@ -24,8 +24,9 @@ static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
   *read = 0;
 
   if(! NIL_P(string)) {
+    void * str = (void *)StringValuePtr(string);
     *read = (size_t)RSTRING_LEN(string);
-    memcpy(buf, StringValuePtr(string), *read);
+    memcpy(buf, str, *read);
   }
 
   return 1;
