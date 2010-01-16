@@ -189,10 +189,8 @@ module Psych
         retried = false
 
         begin
-          name.split('::').inject(Object) { |k,sub|
-            k.const_get sub
-          }
-        rescue NameError => ex
+          path2class(name)
+        rescue ArgumentError => ex
           name    = "Struct::#{name}"
           unless retried
             retried = true
