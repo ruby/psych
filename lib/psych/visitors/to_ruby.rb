@@ -91,7 +91,7 @@ module Psych
           string = members.delete 'str'
           init_with(string, members.map { |k,v| [k.to_s.sub(/^@/, ''),v] })
         when /^!ruby\/struct:?(.*)?$/
-          klass   = resolve_class($1)
+          klass = resolve_class($1)
 
           if klass
             s = klass.allocate
@@ -125,13 +125,12 @@ module Psych
           e = build_exception((resolve_class($1) || Exception),
                               h.delete('message'))
           init_with(e, h)
-          e
 
         when '!set', 'tag:yaml.org,2002:set'
           set = Psych::Set.new
           @st[o.anchor] = set if o.anchor
-          o.children.map { |c| accept c }.each_slice(2) do |k,v|
-            set[k] = v
+          o.children.each_slice(2) do |k,v|
+            set[accept(k)] = accept(v)
           end
           set
 
@@ -146,15 +145,13 @@ module Psych
         when /^!ruby\/object:?(.*)?$/
           name = $1 || 'Object'
           h = Hash[*o.children.map { |c| accept c }]
-          s = name.split('::').inject(Object) { |k,sub|
-            k.const_get sub
-          }.allocate
+          s = (resolve_class(name) || Object).allocate
           init_with(s, h)
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
-          o.children.map { |c| accept c }.each_slice(2) { |k,v|
-            hash[k] = v
+          o.children.each_slice(2) { |k,v|
+            hash[accept(k)] = accept(v)
           }
           hash
         end
