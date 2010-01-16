@@ -30,7 +30,19 @@ module Psych
           [:SCALAR, @string]
         end
       when TIME
-        [:TIME, @string]
+        date, time = *(@string.split(/[ tT]/, 2))
+        (yy, m, dd) = date.split('-').map { |x| x.to_i }
+        md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
+
+        (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
+        us = (md[2] ? Rational(md[2].sub(/^\./, '0.')) : 0) * 1000000
+
+        time = Time.utc(yy, m, dd, hh, mm, ss, us)
+
+        return [:TIME, time] if 'Z' == md[3]
+
+        tz = md[3] ? Integer(md[3].split(':').first) : 0
+        [:TIME, Time.at((time - (tz * 3600)).to_i, us)]
       when /^\d{4}-\d{1,2}-\d{1,2}$/
         require 'date'
         [:DATE, Date.strptime(@string, '%Y-%m-%d')]

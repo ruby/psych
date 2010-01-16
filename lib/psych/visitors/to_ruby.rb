@@ -201,22 +201,7 @@ module Psych
       end
 
       def resolve_unknown o
-        type, lexeme = ScalarScanner.new(o.value).tokenize
-        return lexeme unless :TIME == type
-
-        date, time = *(lexeme.split(/[ tT]/, 2))
-        (yy, m, dd) = date.split('-').map { |x| x.to_i }
-        md = time.match(/(\d+:\d+:\d+)(\.\d*)?\s*(Z|[-+]\d+(:\d\d)?)?/)
-
-        (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
-        us = (md[2] ? Rational(md[2].sub(/^\./, '0.')) : 0) * 1000000
-
-        time = Time.utc(yy, m, dd, hh, mm, ss, us)
-
-        return time if 'Z' == md[3]
-
-        tz = md[3] ? Integer(md[3].split(':').first) : 0
-        Time.at((time - (tz * 3600)).to_i, us)
+        ScalarScanner.new(o.value).tokenize.last
       end
     end
   end
