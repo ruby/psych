@@ -29,10 +29,22 @@ module Psych
     #     "has a tag"
     #   ]
     #
+    # This class represents a sequence in a YAML document.  A
+    # Psych::Nodes::Sequence node may have 0 or more children.  Valid children
+    # for this node are:
+    #
+    # * Psych::Nodes::Sequence
+    # * Psych::Nodes::Mapping
+    # * Psych::Nodes::Scalar
+    # * Psych::Nodes::Alias
     class Sequence < Psych::Nodes::Node
-      # Sequence Styles
+      # Any Styles, emitter chooses
       ANY   = 0
+
+      # Block style sequence
       BLOCK = 1
+
+      # Flow style sequence
       FLOW  = 2
 
       # The anchor for this sequence (if any)
@@ -47,6 +59,16 @@ module Psych
       # The sequece style used
       attr_accessor :style
 
+      ###
+      # Create a new object representing a YAML sequence.
+      #
+      # +anchor+ is the anchor associated with the sequence or nil.
+      # +tag+ is the tag associated with the sequence or nil.
+      # +implicit+ a boolean indicating whether or not the sequence was
+      # implicitly started.
+      # +style+ is an integer indicating the list style.
+      #
+      # See Psych::Handler#start_sequence
       def initialize anchor = nil, tag = nil, implicit = true, style = BLOCK
         super()
         @anchor   = anchor

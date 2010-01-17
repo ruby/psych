@@ -1,5 +1,4 @@
 require 'psych/psych'
-
 require 'psych/visitable'
 require 'psych/nodes'
 require 'psych/visitors'
@@ -152,9 +151,11 @@ module Psych
     end
   end
 
+  # :stopdoc:
   @domain_types = {}
   def self.add_domain_type domain, type_tag, &block
     @domain_types[type_tag] = [domain, block]
   end
   class << self; attr_accessor :domain_types; end
+  # :startdoc:
 end

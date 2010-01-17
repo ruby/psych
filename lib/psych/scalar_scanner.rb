@@ -7,10 +7,12 @@ module Psych
     # Taken from http://yaml.org/type/timestamp.html
     TIME = /^\d{4}-\d{1,2}-\d{1,2}([Tt]|\s+)\d{1,2}:\d\d:\d\d(\.\d*)?(\s*Z|[-+]\d{1,2}(:\d\d)?)?/
 
+    # Create a new scanner
     def initialize
       @string_cache = {}
     end
 
+    # Tokenize +string+ returning the ruby object
     def tokenize string
       return nil if string.empty?
       return string if @string_cache.key?(string)

@@ -276,6 +276,10 @@ static VALUE parse(VALUE self, VALUE yaml)
 
 void Init_psych_parser()
 {
+#if 0
+  mPsych = rb_define_module("Psych");
+#endif
+
   cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
 
   /* Any encoding: Let the parser choose the encoding */

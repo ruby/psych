@@ -32,6 +32,10 @@ static VALUE allocate(VALUE klass)
   return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
 }
 
+/* call-seq: Psych::Emitter.new(io)
+ *
+ * Create a new Psych::Emitter that writes to +io+.
+ */
 static VALUE initialize(VALUE self, VALUE io)
 {
   yaml_emitter_t * emitter;
@@ -42,6 +46,12 @@ static VALUE initialize(VALUE self, VALUE io)
   return self;
 }
 
+/* call-seq: emitter.start_stream(encoding)
+ *
+ * Start a stream emission with +encoding+
+ *
+ * See Psych::Handler#start_stream
+ */
 static VALUE start_stream(VALUE self, VALUE encoding)
 {
   yaml_emitter_t * emitter;
@@ -56,6 +66,12 @@ static VALUE start_stream(VALUE self, VALUE encoding)
   return self;
 }
 
+/* call-seq: emitter.end_stream
+ *
+ * End a stream emission
+ *
+ * See Psych::Handler#end_stream
+ */
 static VALUE end_stream(VALUE self)
 {
   yaml_emitter_t * emitter;
@@ -69,6 +85,13 @@ static VALUE end_stream(VALUE self)
   return self;
 }
 
+/* call-seq: emitter.start_document(version, tags, implicit)
+ *
+ * Start a document emission with YAML +version+, +tags+, and an +implicit+
+ * start.
+ *
+ * See Psych::Handler#start_document
+ */
 static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
 {
   yaml_emitter_t * emitter;
@@ -129,6 +152,12 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
   return self;
 }
 
+/* call-seq: emitter.end_document(implicit)
+ *
+ * End a document emission with an +implicit+ ending.
+ *
+ * See Psych::Handler#end_document
+ */
 static VALUE end_document(VALUE self, VALUE imp)
 {
   yaml_emitter_t * emitter;
@@ -142,6 +171,13 @@ static VALUE end_document(VALUE self, VALUE imp)
   return self;
 }
 
+/* call-seq: emitter.scalar(value, anchor, tag, plain, quoted, style)
+ *
+ * Emit a scalar with +value+, +anchor+, +tag+, and a +plain+ or +quoted+
+ * string type with +style+.
+ *
+ * See Psych::Handler#scalar
+ */
 static VALUE scalar(
     VALUE self,
     VALUE value,
@@ -173,6 +209,13 @@ static VALUE scalar(
   return self;
 }
 
+/* call-seq: emitter.start_sequence(anchor, tag, implicit, style)
+ *
+ * Start emitting a sequence with +anchor+, a +tag+, +implicit+ sequence
+ * start and end, along with +style+.
+ *
+ * See Psych::Handler#start_sequence
+ */
 static VALUE start_sequence(
     VALUE self,
     VALUE anchor,
@@ -197,6 +240,12 @@ static VALUE start_sequence(
   return self;
 }
 
+/* call-seq: emitter.end_sequence
+ *
+ * End sequence emission.
+ *
+ * See Psych::Handler#end_sequence
+ */
 static VALUE end_sequence(VALUE self)
 {
   yaml_emitter_t * emitter;
@@ -210,6 +259,13 @@ static VALUE end_sequence(VALUE self)
   return self;
 }
 
+/* call-seq: emitter.start_mapping(anchor, tag, implicit, style)
+ *
+ * Start emitting a YAML map with +anchor+, +tag+, an +implicit+ start
+ * and end, and +style+.
+ *
+ * See Psych::Handler#start_mapping
+ */
 static VALUE start_mapping(
     VALUE self,
     VALUE anchor,
@@ -234,6 +290,12 @@ static VALUE start_mapping(
   return self;
 }
 
+/* call-seq: emitter.end_mapping
+ *
+ * Emit the end of a mapping.
+ *
+ * See Psych::Handler#end_mapping
+ */
 static VALUE end_mapping(VALUE self)
 {
   yaml_emitter_t * emitter;
@@ -247,6 +309,12 @@ static VALUE end_mapping(VALUE self)
   return self;
 }
 
+/* call-seq: emitter.alias(anchor)
+ *
+ * Emit an alias with +anchor+.
+ *
+ * See Psych::Handler#alias
+ */
 static VALUE alias(VALUE self, VALUE anchor)
 {
   yaml_emitter_t * emitter;

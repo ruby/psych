@@ -2,6 +2,10 @@
 
 VALUE cPsychVisitorsToRuby;
 
+/* call-seq: vis.build_exception(klass, message)
+ *
+ * Create an exception with class +klass+ and +message+
+ */
 static VALUE build_exception(VALUE self, VALUE klass, VALUE mesg)
 {
   VALUE e = rb_obj_alloc(klass);
@@ -11,6 +15,10 @@ static VALUE build_exception(VALUE self, VALUE klass, VALUE mesg)
   return e;
 }
 
+/* call-seq: vis.path2class(path)
+ *
+ * Convert +path+ string to a class
+ */
 static VALUE path2class(VALUE self, VALUE path)
 {
 #ifdef HAVE_RUBY_ENCODING_H

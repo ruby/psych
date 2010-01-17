@@ -1,5 +1,9 @@
 #include <psych.h>
 
+/* call-seq: Psych.libyaml_version
+ *
+ * Returns the version of libyaml being used
+ */
 static VALUE libyaml_version(VALUE module)
 {
   int major, minor, patch;

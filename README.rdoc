@@ -4,13 +4,18 @@
 
 == Description
 
-Psych is a YAML parser that wraps libyaml.  Psych provides a similar ruby
-interface for parsing and emitting that Syck does, but uses libyaml for the
-heavy lifting.
+Psych is a YAML parser and emitter.  Psych leverages libyaml[http://libyaml.org]
+for it's YAML parsing and emitting capabilities.  In addition to wrapping
+libyaml, Psych also knows how to serialize and de-serialize most Ruby objects
+to and from the YAML format.
 
 == Examples
 
-  Psych.load Psych.dump(:foo => :bar)
+  # Load YAML in to a Ruby object
+  Psych.load('--- foo') # => 'foo'
+
+  # Emit YAML from a Ruby object
+  Psych.dump("foo")     # => "--- foo\n...\n"
 
 == Dependencies
 
