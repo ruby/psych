@@ -12,8 +12,6 @@ YAML = Psych
 end
 
 class Object
-  include Psych::Visitable
-
   def to_yaml options = {}
     Psych.dump self, options
   end
