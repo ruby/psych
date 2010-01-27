@@ -6,6 +6,7 @@ require 'psych/tree_builder'
 require 'psych/parser'
 require 'psych/omap'
 require 'psych/set'
+require 'psych/coder'
 
 ###
 # = Overview

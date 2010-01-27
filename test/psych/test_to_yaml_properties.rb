@@ -17,15 +17,45 @@ module Psych
     end
 
     class InitApi < Foo
+      attr_accessor :implicit
+      attr_accessor :style
+      attr_accessor :tag
+
       def init_with coder
         @a = coder['aa']
         @b = coder['bb']
+        @implicit = coder.implicit
+        @tag      = coder.tag
+        @style    = coder.style
       end
 
       def encode_with coder
         coder['aa'] = @a
         coder['bb'] = @b
       end
+    end
+
+    class TaggingCoder < InitApi
+      def encode_with coder
+        super
+        coder.tag       = coder.tag.sub(/!/, '!hello')
+        coder.implicit  = false
+        coder.style     = Psych::Nodes::Mapping::FLOW
+      end
+    end
+
+    def test_load_dumped_tagging
+      foo = InitApi.new
+      bar = Psych.load(Psych.dump(foo))
+      assert_equal false, bar.implicit
+      assert_equal "!ruby/object:Psych::TestToYamlProperties::InitApi", bar.tag
+      assert_equal Psych::Nodes::Mapping::BLOCK, bar.style
+    end
+
+    def test_dump_with_tag
+      foo = TaggingCoder.new
+      assert_match(/hello/, Psych.dump(foo))
+      assert_match(/{aa/, Psych.dump(foo))
     end
 
     def test_dump_encode_with

@@ -89,7 +89,7 @@ module Psych
         when '!str', 'tag:yaml.org,2002:str'
           members = Hash[*o.children.map { |c| accept c }]
           string = members.delete 'str'
-          init_with(string, members.map { |k,v| [k.to_s.sub(/^@/, ''),v] })
+          init_with(string, members.map { |k,v| [k.to_s.sub(/^@/, ''),v] }, o)
         when /^!ruby\/struct:?(.*)?$/
           klass = resolve_class($1)
 
@@ -108,7 +108,7 @@ module Psych
                 members[member.to_s.sub(/^@/, '')] = value
               end
             end
-            init_with(s, members)
+            init_with(s, members, o)
           else
             members = o.children.map { |c| accept c }
             h = Hash[*members]
@@ -124,7 +124,7 @@ module Psych
 
           e = build_exception((resolve_class($1) || Exception),
                               h.delete('message'))
-          init_with(e, h)
+          init_with(e, h, o)
 
         when '!set', 'tag:yaml.org,2002:set'
           set = Psych::Set.new
@@ -146,7 +146,7 @@ module Psych
           name = $1 || 'Object'
           h = Hash[*o.children.map { |c| accept c }]
           s = (resolve_class(name) || Object).allocate
-          init_with(s, h)
+          init_with(s, h, o)
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
@@ -170,9 +170,9 @@ module Psych
       end
 
       private
-      def init_with o, h
+      def init_with o, h, node
         if o.respond_to?(:init_with)
-          o.init_with h
+          o.init_with Psych::Coder.new(node, h)
         else
           h.each { |k,v| o.instance_variable_set(:"@#{k}", v) }
         end

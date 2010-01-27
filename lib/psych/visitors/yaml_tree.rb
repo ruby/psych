@@ -235,7 +235,7 @@ module Psych
 
       def dump_ivars target, map
         if target.respond_to?(:encode_with)
-          coder = {}
+          coder = Psych::Coder.new(map)
           target.encode_with(coder)
           coder.each do |k,v|
             map.children << Nodes::Scalar.new(k)
