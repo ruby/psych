@@ -249,6 +249,10 @@ module Psych
 
         c = Psych::Coder.new(tag)
         o.encode_with(c)
+        emit_coder c
+      end
+
+      def emit_coder c
         case c.type
         when :scalar
           append Nodes::Scalar.new(c.scalar, nil, c.tag)
