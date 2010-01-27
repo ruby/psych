@@ -85,6 +85,8 @@ module Psych
       end
 
       def visit_Psych_Nodes_Mapping o
+        return revive(Psych.load_tags[o.tag], o) if Psych.load_tags[o.tag]
+
         case o.tag
         when '!str', 'tag:yaml.org,2002:str'
           members = Hash[*o.children.map { |c| accept c }]
@@ -144,9 +146,7 @@ module Psych
 
         when /^!ruby\/object:?(.*)?$/
           name = $1 || 'Object'
-          h = Hash[*o.children.map { |c| accept c }]
-          s = (resolve_class(name) || Object).allocate
-          init_with(s, h, o)
+          revive((resolve_class(name) || Object), o)
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
@@ -170,9 +170,17 @@ module Psych
       end
 
       private
+      def revive klass, node
+        s = klass.allocate
+        h = Hash[*node.children.map { |c| accept c }]
+        init_with(s, h, node)
+      end
+
       def init_with o, h, node
         if o.respond_to?(:init_with)
-          o.init_with Psych::Coder.new(node, h)
+          c = Psych::Coder.new(node.tag)
+          c.map = h
+          o.init_with c
         else
           h.each { |k,v| o.instance_variable_set(:"@#{k}", v) }
         end

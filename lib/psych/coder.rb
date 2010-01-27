@@ -1,33 +1,50 @@
 module Psych
-  class Coder < ::Hash
-    def initialize map, h = nil
-      super()
-      merge!(h) if h
-      @map = map
+  ###
+  # If an object defines +encode_with+, then an instance of Psych::Coder will
+  # passed to the method when the object is being serialized.  The Coder
+  # automatically assumes a Psych::Nodes::Mapping is being emitted.  Other
+  # objects like Sequence and Scalar may be emitted if +seq=+ or +scalar=+ are
+  # called, respectively.
+  class Coder
+    attr_accessor :tag, :style, :implicit
+    attr_reader   :type, :map, :scalar, :seq
+
+    def initialize tag
+      @map        = {}
+      @seq        = []
+      @implicit   = false
+      @type       = :map
+      @tag        = tag
+      @style      = Psych::Nodes::Mapping::BLOCK
+      @scalar     = nil
     end
 
-    def tag= tag
-      @map.tag = tag
+    # Emit a scalar with +value+
+    def scalar= value
+      @type   = :scalar
+      @scalar = value
     end
 
-    def tag
-      @map.tag
+    # Emit a map with +value+
+    def map= map
+      @type = :map
+      @map  = map
     end
 
-    def style= style
-      @map.style = style
+    def []= k, v
+      @type = :map
+      @map[k] = v
     end
 
-    def style
-      @map.style
+    def [] k
+      @type = :map
+      @map[k]
     end
 
-    def implicit= implicity
-      @map.implicit = implicity
-    end
-
-    def implicit
-      @map.implicit
+    # Emit a sequence of +list+
+    def seq= list
+      @type = :seq
+      @seq  = list
     end
   end
 end

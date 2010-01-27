@@ -29,7 +29,11 @@ module Psych
           return append Nodes::Alias.new target.object_id.to_s
         end
 
-        send(@dispatch_cache[target.class], target)
+        if target.respond_to?(:encode_with)
+          dump_coder target
+        else
+          send(@dispatch_cache[target.class], target)
+        end
       end
 
       def visit_Psych_Omap o
@@ -42,8 +46,11 @@ module Psych
       end
 
       def visit_Object o
-        klass = o.class == Object ? nil : o.class.name
-        tag = ['!ruby/object', klass].compact.join(':')
+        tag = Psych.dump_tags[o.class]
+        unless tag
+          klass = o.class == Object ? nil : o.class.name
+          tag   = ['!ruby/object', klass].compact.join(':')
+        end
 
         map = append Nodes::Mapping.new(nil, tag, false)
 
@@ -233,23 +240,37 @@ module Psych
         yaml_obj
       end
 
-      def dump_ivars target, map
-        if target.respond_to?(:encode_with)
-          coder = Psych::Coder.new(map)
-          target.encode_with(coder)
-          coder.each do |k,v|
+      def dump_coder o
+        tag = Psych.dump_tags[o.class]
+        unless tag
+          klass = o.class == Object ? nil : o.class.name
+          tag   = ['!ruby/object', klass].compact.join(':')
+        end
+
+        c = Psych::Coder.new(tag)
+        o.encode_with(c)
+        case c.type
+        when :scalar
+          append Nodes::Scalar.new(c.scalar, nil, c.tag)
+        when :map
+          map = append Nodes::Mapping.new(nil, c.tag, c.implicit, c.style)
+          @stack.push map
+          c.map.each do |k,v|
             map.children << Nodes::Scalar.new(k)
             accept v
           end
-        else
-          ivars = target.respond_to?(:to_yaml_properties) ?
-            target.to_yaml_properties :
-            target.instance_variables
+          @stack.pop
+        end
+      end
 
-          ivars.each do |iv|
-            map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
-            accept target.instance_variable_get(iv)
-          end
+      def dump_ivars target, map
+        ivars = target.respond_to?(:to_yaml_properties) ?
+          target.to_yaml_properties :
+          target.instance_variables
+
+        ivars.each do |iv|
+          map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
+          accept target.instance_variable_get(iv)
         end
       end
     end

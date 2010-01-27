@@ -7,6 +7,7 @@ require 'psych/parser'
 require 'psych/omap'
 require 'psych/set'
 require 'psych/coder'
+require 'psych/yaml'
 
 ###
 # = Overview
@@ -156,6 +157,19 @@ module Psych
   def self.add_domain_type domain, type_tag, &block
     @domain_types[type_tag] = [domain, block]
   end
-  class << self; attr_accessor :domain_types; end
+
+  @load_tags = {}
+  @dump_tags = {}
+  def self.add_tag tag, klass
+    @load_tags[tag] = klass
+    @dump_tags[klass] = tag
+  end
+
+  class << self
+    attr_accessor :load_tags
+    attr_accessor :dump_tags
+    attr_accessor :domain_types
+  end
+
   # :startdoc:
 end
