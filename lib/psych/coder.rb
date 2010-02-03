@@ -19,6 +19,12 @@ module Psych
       @scalar     = nil
     end
 
+    # Emit a scalar with +value+ and +tag+
+    def represent_scalar tag, value
+      self.tag    = tag
+      self.scalar = value
+    end
+
     # Emit a scalar with +value+
     def scalar= value
       @type   = :scalar

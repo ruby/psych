@@ -28,6 +28,18 @@ module Psych
       def visit_Psych_Nodes_Scalar o
         @st[o.anchor] = o.value if o.anchor
 
+        if klass = Psych.load_tags[o.tag]
+          instance = klass.allocate
+
+          if instance.respond_to?(:init_with)
+            coder = Psych::Coder.new(o.tag)
+            coder.scalar = o.value
+            instance.init_with coder
+          end
+
+          return instance
+        end
+
         return o.value if o.quoted
         return @ss.tokenize(o.value) unless o.tag
 

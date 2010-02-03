@@ -255,7 +255,7 @@ module Psych
       def emit_coder c
         case c.type
         when :scalar
-          append Nodes::Scalar.new(c.scalar, nil, c.tag)
+          append Nodes::Scalar.new(c.scalar, nil, c.tag, c.tag.nil?)
         when :map
           map = append Nodes::Mapping.new(nil, c.tag, c.implicit, c.style)
           @stack.push map

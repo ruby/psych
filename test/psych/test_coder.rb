@@ -44,6 +44,36 @@ module Psych
       end
     end
 
+    class Represent
+      yaml_tag 'foo'
+      def encode_with coder
+        coder.represent_scalar 'foo', 'bar'
+      end
+    end
+
+    class RepresentWithInit
+      yaml_tag name
+      attr_accessor :str
+
+      def init_with coder
+        @str = coder.scalar
+      end
+
+      def encode_with coder
+        coder.represent_scalar self.class.name, 'bar'
+      end
+    end
+
+    def test_represent_with_init
+      thing = Psych.load(Psych.dump(RepresentWithInit.new))
+      assert_equal 'bar', thing.str
+    end
+
+    def test_represent!
+      assert_match(/foo/, Psych.dump(Represent.new))
+      assert_instance_of(Represent, Psych.load(Psych.dump(Represent.new)))
+    end
+
     def test_scalar_coder
       foo = Psych.load(Psych.dump(ScalarCoder.new))
       assert_equal 'foo', foo
