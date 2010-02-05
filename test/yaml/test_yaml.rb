@@ -38,12 +38,12 @@ class YAML_Unit_Tests < Test::Unit::TestCase
         assert_equal( obj, YAML::load( obj.to_yaml ) )
     end
 
-    def assert_path_segments( path, segments )
-        YAML::YPath.each_path( path ) { |choice|
-            assert_equal( choice.segments, segments.shift )
-        }
-        assert_equal( segments.length, 0, "Some segments leftover: #{ segments.inspect }" )
-    end
+    #def assert_path_segments( path, segments )
+    #    YAML::YPath.each_path( path ) { |choice|
+    #        assert_equal( choice.segments, segments.shift )
+    #    }
+    #    assert_equal( segments.length, 0, "Some segments leftover: #{ segments.inspect }" )
+    #end
 
 	#
 	# Make a time with the time zone
@@ -1171,14 +1171,14 @@ EOY
     #
     # Test YPath choices parsing
     #
-    def test_ypath_parsing
-        assert_path_segments( "/*/((one|three)/name|place)|//place",
-          [ ["*", "one", "name"],
-            ["*", "three", "name"],
-            ["*", "place"],
-            ["/", "place"] ]
-        )
-    end
+    #def test_ypath_parsing
+    #    assert_path_segments( "/*/((one|three)/name|place)|//place",
+    #      [ ["*", "one", "name"],
+    #        ["*", "three", "name"],
+    #        ["*", "place"],
+    #        ["/", "place"] ]
+    #    )
+    #end
 
     #
     # Tests from Tanaka Akira on [ruby-core]
