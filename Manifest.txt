@@ -3,6 +3,7 @@ CHANGELOG.rdoc
 Manifest.txt
 README.rdoc
 Rakefile
+bench.rb
 ext/psych/emitter.c
 ext/psych/emitter.h
 ext/psych/extconf.rb
@@ -15,6 +16,7 @@ ext/psych/to_ruby.h
 ext/psych/yaml_tree.c
 ext/psych/yaml_tree.h
 lib/psych.rb
+lib/psych/coder.rb
 lib/psych/emitter.rb
 lib/psych/handler.rb
 lib/psych/nodes.rb
@@ -30,7 +32,6 @@ lib/psych/parser.rb
 lib/psych/scalar_scanner.rb
 lib/psych/set.rb
 lib/psych/tree_builder.rb
-lib/psych/visitable.rb
 lib/psych/visitors.rb
 lib/psych/visitors/emitter.rb
 lib/psych/visitors/to_ruby.rb
@@ -38,6 +39,7 @@ lib/psych/visitors/visitor.rb
 lib/psych/visitors/yaml_tree.rb
 lib/psych/yaml.rb
 test/helper.rb
+test/psych/test_coder.rb
 test/psych/test_document.rb
 test/psych/test_emitter.rb
 test/psych/test_encoding.rb
@@ -58,8 +60,10 @@ test/yaml/test_class.rb
 test/yaml/test_exception.rb
 test/yaml/test_hash.rb
 test/yaml/test_null.rb
+test/yaml/test_object.rb
 test/yaml/test_omap.rb
 test/yaml/test_set.rb
 test/yaml/test_string.rb
+test/yaml/test_struct.rb
 test/yaml/test_symbol.rb
 test/yaml/test_yaml.rb
