@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'psych'
+require 'tempfile'
 
 class TestPsych < MiniTest::Unit::TestCase
   def test_simple
@@ -33,5 +34,12 @@ class TestPsych < MiniTest::Unit::TestCase
 
     Psych.load("--- !foo.bar,2002/foo\nhello: world")
     assert_equal({ 'hello' => 'world' }, got)
+  end
+
+  def test_load_file
+    name = File.join(Dir.tmpdir, 'yikes.yml')
+    File.open(name, 'wb') { |f| f.write('--- hello world') }
+
+    assert_equal 'hello world', Psych.load_file(name)
   end
 end

@@ -152,6 +152,13 @@ module Psych
     end
   end
 
+  ###
+  # Load the document contained in +filename+.  Returns the yaml contained in
+  # +filename+ as a ruby object
+  def self.load_file filename
+    self.load File.read(filename)
+  end
+
   # :stopdoc:
   @domain_types = {}
   def self.add_domain_type domain, type_tag, &block
