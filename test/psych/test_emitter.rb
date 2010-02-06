@@ -11,6 +11,14 @@ module Psych
       @emitter = Psych::Emitter.new @out
     end
 
+    def test_set_canonical
+      @emitter.canonical = true
+      assert_equal true, @emitter.canonical
+
+      @emitter.canonical = false
+      assert_equal false, @emitter.canonical
+    end
+
     def test_emit_utf_8
       @emitter.start_stream Psych::Nodes::Stream::UTF8
       @emitter.start_document [], [], false

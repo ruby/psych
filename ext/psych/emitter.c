@@ -331,6 +331,32 @@ static VALUE alias(VALUE self, VALUE anchor)
   return self;
 }
 
+/* call-seq: emitter.canonical = true
+ *
+ * Set the output style to canonical, or not.
+ */
+static VALUE set_canonical(VALUE self, VALUE style)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_emitter_set_canonical(emitter, Qtrue == style ? 1 : 0);
+
+  return style;
+}
+
+/* call-seq: emitter.canonical
+ *
+ * Get the output style, canonical or not.
+ */
+static VALUE canonical(VALUE self)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  return (emitter->canonical == 0) ? Qfalse : Qtrue;
+}
+
 void Init_psych_emitter()
 {
   VALUE psych     = rb_define_module("Psych");
@@ -350,6 +376,8 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "start_mapping", start_mapping, 4);
   rb_define_method(cPsychEmitter, "end_mapping", end_mapping, 0);
   rb_define_method(cPsychEmitter, "alias", alias, 1);
+  rb_define_method(cPsychEmitter, "canonical", canonical, 0);
+  rb_define_method(cPsychEmitter, "canonical=", set_canonical, 1);
 
   id_write = rb_intern("write");
 }
