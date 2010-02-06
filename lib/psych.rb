@@ -156,7 +156,7 @@ module Psych
   # Load the document contained in +filename+.  Returns the yaml contained in
   # +filename+ as a ruby object
   def self.load_file filename
-    self.load File.read(filename)
+    self.load File.open(filename)
   end
 
   # :stopdoc:
