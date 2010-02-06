@@ -28,6 +28,7 @@ static VALUE allocate(VALUE klass)
   yaml_emitter_t * emitter = malloc(sizeof(yaml_emitter_t));
   yaml_emitter_initialize(emitter);
   yaml_emitter_set_unicode(emitter, 1);
+  yaml_emitter_set_indent(emitter, 2);
 
   return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
 }
@@ -357,6 +358,32 @@ static VALUE canonical(VALUE self)
   return (emitter->canonical == 0) ? Qfalse : Qtrue;
 }
 
+/* call-seq: emitter.indentation = level
+ *
+ * Set the indentation level to +level+.
+ */
+static VALUE set_indentation(VALUE self, VALUE level)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  yaml_emitter_set_indent(emitter, NUM2INT(level));
+
+  return level;
+}
+
+/* call-seq: emitter.indentation
+ *
+ * Get the indentation level.
+ */
+static VALUE indentation(VALUE self)
+{
+  yaml_emitter_t * emitter;
+  Data_Get_Struct(self, yaml_emitter_t, emitter);
+
+  return INT2NUM(emitter->best_indent);
+}
+
 void Init_psych_emitter()
 {
   VALUE psych     = rb_define_module("Psych");
@@ -378,6 +405,8 @@ void Init_psych_emitter()
   rb_define_method(cPsychEmitter, "alias", alias, 1);
   rb_define_method(cPsychEmitter, "canonical", canonical, 0);
   rb_define_method(cPsychEmitter, "canonical=", set_canonical, 1);
+  rb_define_method(cPsychEmitter, "indentation", indentation, 0);
+  rb_define_method(cPsychEmitter, "indentation=", set_indentation, 1);
 
   id_write = rb_intern("write");
 }

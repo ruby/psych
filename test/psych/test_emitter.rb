@@ -19,6 +19,12 @@ module Psych
       assert_equal false, @emitter.canonical
     end
 
+    def test_indentation_set
+      assert_equal 2, @emitter.indentation
+      @emitter.indentation = 5
+      assert_equal 5, @emitter.indentation
+    end
+
     def test_emit_utf_8
       @emitter.start_stream Psych::Nodes::Stream::UTF8
       @emitter.start_document [], [], false
