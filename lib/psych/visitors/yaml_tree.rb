@@ -5,8 +5,9 @@ module Psych
 
       def initialize options = {}
         super()
+        @json = options[:json]
         @tree = Nodes::Stream.new
-        @tree.children << Nodes::Document.new
+        @tree.children << create_document
         @stack = @tree.children.dup
         @st = {}
         @ss = ScalarScanner.new
@@ -165,7 +166,7 @@ module Psych
           o.to_yaml_properties :
           o.instance_variables
 
-        scalar = Nodes::Scalar.new str, nil, tag, plain, quote
+        scalar = create_scalar str, nil, tag, plain, quote
 
         if ivars.empty?
           append scalar
@@ -194,7 +195,7 @@ module Psych
       end
 
       def visit_Hash o
-        @stack.push append register(o, Nodes::Mapping.new)
+        @stack.push append register(o, create_mapping)
 
         o.each do |k,v|
           accept k
@@ -216,7 +217,7 @@ module Psych
       end
 
       def visit_Array o
-        @stack.push append register(o, Nodes::Sequence.new)
+        @stack.push append register(o, create_sequence)
         o.each { |c| accept c }
         @stack.pop
       end
@@ -226,7 +227,7 @@ module Psych
       end
 
       def visit_Symbol o
-        append Nodes::Scalar.new ":#{o}"
+        append create_scalar ":#{o}"
       end
 
       private
@@ -255,12 +256,12 @@ module Psych
       def emit_coder c
         case c.type
         when :scalar
-          append Nodes::Scalar.new(c.scalar, nil, c.tag, c.tag.nil?)
+          append create_scalar(c.scalar, nil, c.tag, c.tag.nil?)
         when :map
           map = append Nodes::Mapping.new(nil, c.tag, c.implicit, c.style)
           @stack.push map
           c.map.each do |k,v|
-            map.children << Nodes::Scalar.new(k)
+            map.children << create_scalar(k)
             accept v
           end
           @stack.pop
@@ -273,9 +274,25 @@ module Psych
           target.instance_variables
 
         ivars.each do |iv|
-          map.children << Nodes::Scalar.new("#{iv.to_s.sub(/^@/, '')}")
+          map.children << create_scalar("#{iv.to_s.sub(/^@/, '')}")
           accept target.instance_variable_get(iv)
         end
+      end
+
+      def create_document
+        Nodes::Document.new
+      end
+
+      def create_mapping
+        Nodes::Mapping.new
+      end
+
+      def create_scalar value, anchor = nil, tag = nil, plain = true, quoted = false, style = Nodes::Scalar::ANY
+        Nodes::Scalar.new(value, anchor, tag, plain, quoted, style)
+      end
+
+      def create_sequence anchor = nil, tag = nil, implicit = true, style = Nodes::Sequence::BLOCK
+        Nodes::Sequence.new(anchor, tag, implicit, style)
       end
     end
   end

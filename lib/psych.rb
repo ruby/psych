@@ -144,6 +144,14 @@ module Psych
   end
 
   ###
+  # Dump Ruby object +o+ to a JSON string.
+  def self.to_json o
+    visitor = Psych::Visitors::JSONTree.new(:json => true)
+    visitor.accept o
+    visitor.tree.to_yaml
+  end
+
+  ###
   # Load multiple documents given in +yaml+, yielding each document to
   # the block provided.
   def self.load_documents yaml, &block

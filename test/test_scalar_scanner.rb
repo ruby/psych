@@ -29,7 +29,7 @@ class TestScalarScanner < MiniTest::Unit::TestCase
   end
 
   def test_scan_inf
-    assert_equal 1 / 0.0, ss.tokenize('.inf')
+    assert_equal(1 / 0.0, ss.tokenize('.inf'))
   end
 
   def test_scan_minus_inf
