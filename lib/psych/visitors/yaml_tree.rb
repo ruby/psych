@@ -68,7 +68,7 @@ module Psych
         @stack.push append map
 
         o.members.each do |member|
-          map.children <<  Nodes::Scalar.new(":#{member}")
+          map.children <<  Nodes::Scalar.new("#{member}")
           accept o[member]
         end
 
