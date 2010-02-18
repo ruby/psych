@@ -50,7 +50,7 @@ module Psych
 
         return time if 'Z' == md[3]
 
-        tz = md[3] ? Integer(md[3].split(':').first) : 0
+        tz = md[3] ? Integer(md[3].split(':').first.sub(/([-+])0/, '\1')) : 0
         Time.at((time - (tz * 3600)).to_i, us)
       when /^\d{4}-\d{1,2}-\d{1,2}$/
         require 'date'

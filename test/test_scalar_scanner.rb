@@ -6,6 +6,7 @@ class TestScalarScanner < MiniTest::Unit::TestCase
     [ '2001-12-15T02:59:43.1Z',
       '2001-12-14t21:59:43.10-05:00',
       '2001-12-14 21:59:43.10 -5',
+      '2010-01-06 00:00:00 -08:00',
       '2001-12-15 2:59:43.10',
     ].each do |time|
       ss = Psych::ScalarScanner.new
