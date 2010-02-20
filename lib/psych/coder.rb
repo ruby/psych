@@ -25,6 +25,12 @@ module Psych
       self.scalar = value
     end
 
+    # Emit a sequence with +value+ and +tag+
+    def represent_seq tag, list
+      @tag = tag
+      self.seq = list
+    end
+
     # Emit a scalar with +value+
     def scalar= value
       @type   = :scalar

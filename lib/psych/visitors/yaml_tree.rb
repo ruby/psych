@@ -257,6 +257,12 @@ module Psych
         case c.type
         when :scalar
           append create_scalar(c.scalar, nil, c.tag, c.tag.nil?)
+        when :seq
+          @stack.push append create_sequence(nil, c.tag, c.tag.nil?)
+          c.seq.each do |thing|
+            accept thing
+          end
+          @stack.pop
         when :map
           map = append Nodes::Mapping.new(nil, c.tag, c.implicit, c.style)
           @stack.push map

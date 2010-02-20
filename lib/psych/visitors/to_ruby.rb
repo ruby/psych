@@ -80,6 +80,18 @@ module Psych
       end
 
       def visit_Psych_Nodes_Sequence o
+        if klass = Psych.load_tags[o.tag]
+          instance = klass.allocate
+
+          if instance.respond_to?(:init_with)
+            coder = Psych::Coder.new(o.tag)
+            coder.seq = o.children.map { |c| accept c }
+            instance.init_with coder
+          end
+
+          return instance
+        end
+
         case o.tag
         when '!omap', 'tag:yaml.org,2002:omap'
           map = Psych::Omap.new

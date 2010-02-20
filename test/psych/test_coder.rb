@@ -64,6 +64,24 @@ module Psych
       end
     end
 
+    class RepresentWithSeq
+      yaml_tag name
+      attr_accessor :seq
+
+      def init_with coder
+        @seq = coder.seq
+      end
+
+      def encode_with coder
+        coder.represent_seq self.class.name, %w{ foo bar }
+      end
+    end
+
+    def test_represent_sequence
+      thing = Psych.load(Psych.dump(RepresentWithSeq.new))
+      assert_equal %w{ foo bar }, thing.seq
+    end
+
     def test_represent_with_init
       thing = Psych.load(Psych.dump(RepresentWithInit.new))
       assert_equal 'bar', thing.str
