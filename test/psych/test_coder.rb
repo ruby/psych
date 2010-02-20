@@ -77,6 +77,24 @@ module Psych
       end
     end
 
+    class RepresentWithMap
+      yaml_tag name
+      attr_accessor :map
+
+      def init_with coder
+        @map = coder.map
+      end
+
+      def encode_with coder
+        coder.represent_map self.class.name, { 'a' => 'b' }
+      end
+    end
+
+    def test_represent_map
+      thing = Psych.load(Psych.dump(RepresentWithMap.new))
+      assert_equal({ 'a' => 'b' }, thing.map)
+    end
+
     def test_represent_sequence
       thing = Psych.load(Psych.dump(RepresentWithSeq.new))
       assert_equal %w{ foo bar }, thing.seq

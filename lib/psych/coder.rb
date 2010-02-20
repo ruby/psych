@@ -25,10 +25,16 @@ module Psych
       self.scalar = value
     end
 
-    # Emit a sequence with +value+ and +tag+
+    # Emit a sequence with +list+ and +tag+
     def represent_seq tag, list
       @tag = tag
       self.seq = list
+    end
+
+    # Emit a sequence with +map+ and +tag+
+    def represent_map tag, map
+      @tag = tag
+      self.map = map
     end
 
     # Emit a scalar with +value+
