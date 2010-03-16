@@ -107,7 +107,7 @@ module Psych
         if o.utc?
           formatted += ".%06dZ" % [o.usec]
         else
-          formatted += ".%06d %d:00" % [o.usec, o.gmt_offset / 3600]
+          formatted += ".%06d %+d:00" % [o.usec, o.gmt_offset / 3600]
         end
 
         append Nodes::Scalar.new formatted
