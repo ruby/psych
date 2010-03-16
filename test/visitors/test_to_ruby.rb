@@ -116,7 +116,7 @@ description:
       def test_time
         now = Time.now
         formatted = now.strftime("%Y-%m-%d %H:%M:%S") +
-          ".%06d %+d:00" % [now.usec, now.gmt_offset / 3600]
+          ".%06d %+.2d:00" % [now.usec, now.gmt_offset / 3600]
 
         assert_equal now, Nodes::Scalar.new(formatted).to_ruby
       end
