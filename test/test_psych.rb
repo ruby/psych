@@ -20,6 +20,17 @@ class TestPsych < MiniTest::Unit::TestCase
     assert_equal %w{ foo bar }, docs
   end
 
+  def test_add_builtin_type
+    got = nil
+    Psych.add_builtin_type 'omap', do |type, val|
+      got = val
+    end
+    Psych.load('--- !omap hello')
+    assert_equal 'hello', got
+  ensure
+    Psych.remove_type 'omap'
+  end
+
   def test_domain_types
     got = nil
     Psych.add_domain_type 'foo.bar,2002', 'foo' do |type, val|
