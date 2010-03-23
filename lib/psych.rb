@@ -46,7 +46,7 @@ require 'psych/yaml'
 #
 # Psych provides access to an AST produced from parsing a YAML document.  This
 # tree is built using the Psych::Parser and Psych::TreeBuilder.  The AST can
-# be examined and manipulated freely.  Please see Psych::yaml_ast,
+# be examined and manipulated freely.  Please see Psych::parse_stream,
 # Psych::Nodes, and Psych::Nodes::Node for more information on dealing with
 # YAML syntax trees.
 #
@@ -113,7 +113,7 @@ module Psych
   #
   # See Psych::Nodes for more information about YAML AST.
   def self.parse yaml
-    yaml_ast(yaml).children.first.children.first
+    parse_stream(yaml).children.first.children.first
   end
 
   ###
@@ -139,10 +139,15 @@ module Psych
   #   Psych.load("---\n - a\n - b") # => #<Psych::Nodes::Stream:0x00>
   #
   # See Psych::Nodes for more information about YAML AST.
-  def self.yaml_ast yaml
+  def self.parse_stream yaml
     parser = self.parser
     parser.parse yaml
     parser.handler.root
+  end
+
+  def self.load_stream yaml # :nodoc:
+    warn "#{caller[0]}: load_stream is deprecated, use parse_stream"
+    parse_stream yaml
   end
 
   ###
@@ -172,9 +177,12 @@ module Psych
   #   Psych.load_documents("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
   #
   def self.load_documents yaml, &block
-    list = yaml_ast(yaml).children.map { |child| child.to_ruby }
+    list = parse_stream(yaml).children.map { |child| child.to_ruby }
+
     return list unless block_given?
-    warn "#{caller[0]}: calling load_documents with a block is deprecated"
+    if $VERBOSE
+      warn "#{caller[0]}: calling load_documents with a block is deprecated"
+    end
     list.each(&block)
   end
 

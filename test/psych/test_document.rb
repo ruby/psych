@@ -4,7 +4,7 @@ require 'psych'
 module Psych
   class TestDocument < MiniTest::Unit::TestCase
     def setup
-      @stream = Psych.yaml_ast(<<-eoyml)
+      @stream = Psych.parse_stream(<<-eoyml)
 %YAML 1.1
 %TAG ! tag:tenderlovemaking.com,2009:
 --- !fun

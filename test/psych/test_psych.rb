@@ -17,6 +17,11 @@ class TestPsych < MiniTest::Unit::TestCase
     assert_equal %w{ foo bar }, docs
   end
 
+  def test_parse_stream
+    docs = Psych.parse_stream("--- foo\n...\n--- bar\n...")
+    assert_equal %w{ foo bar }, docs.children.map { |x| x.transform }
+  end
+
   def test_add_builtin_type
     got = nil
     Psych.add_builtin_type 'omap', do |type, val|
