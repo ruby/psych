@@ -1,6 +1,5 @@
 require 'minitest/autorun'
 require 'psych'
-require 'complex'
 require 'date'
 require 'rational'
 

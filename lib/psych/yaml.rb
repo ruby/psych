@@ -1,5 +1,3 @@
-require 'complex'
-require 'rational'
 require 'date'
 
 YAML = Psych

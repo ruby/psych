@@ -3,7 +3,6 @@
 # $Id$
 #
 require 'test/unit'
-require 'rational'
 require 'psych'
 
 # [ruby-core:01946]

@@ -126,7 +126,7 @@ module Psych
       def visit_Complex o
         map = append Nodes::Mapping.new(nil, '!ruby/object:Complex', false)
 
-        ['real', o.real.to_s, 'image', o.image.to_s].each do |m|
+        ['real', o.real.to_s, 'image', o.imag.to_s].each do |m|
           map.children << Nodes::Scalar.new(m)
         end
       end
