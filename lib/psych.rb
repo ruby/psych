@@ -166,12 +166,16 @@ module Psych
   end
 
   ###
-  # Load multiple documents given in +yaml+, yielding each document to
-  # the block provided.
+  # Load multiple documents given in +yaml+.  Returns the parsed documents
+  # as a list.  For example:
+  #
+  #   Psych.load_documents("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
+  #
   def self.load_documents yaml, &block
-    yaml_ast(yaml).children.each do |child|
-      block.call child.to_ruby
-    end
+    list = yaml_ast(yaml).children.map { |child| child.to_ruby }
+    return list unless block_given?
+    warn "#{caller[0]}: calling load_documents with a block is deprecated"
+    list.each(&block)
   end
 
   ###

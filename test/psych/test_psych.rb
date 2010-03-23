@@ -13,10 +13,7 @@ class TestPsych < MiniTest::Unit::TestCase
   end
 
   def test_load_documents
-    docs = []
-    Psych.load_documents("--- foo\n...\n--- bar\n...") { |doc|
-      docs << doc
-    }
+    docs = Psych.load_documents("--- foo\n...\n--- bar\n...")
     assert_equal %w{ foo bar }, docs
   end
 
