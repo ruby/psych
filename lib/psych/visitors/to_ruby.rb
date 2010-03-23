@@ -174,8 +174,22 @@ module Psych
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
+
           o.children.each_slice(2) { |k,v|
-            hash[accept(k)] = accept(v)
+            key = accept(k)
+
+            if key == '<<' && Nodes::Alias === v
+              # FIXME: remove this when "<<" syntax is deprecated
+              if $VERBOSE
+                where = caller.find { |x| x !~ /psych/ }
+                warn where
+                warn "\"<<: *#{v.anchor}\" is no longer supported, please switch to \"*#{v.anchor}\""
+              end
+              return accept(v)
+            else
+              hash[key] = accept(v)
+            end
+
           }
           hash
         end
