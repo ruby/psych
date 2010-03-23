@@ -117,6 +117,20 @@ module Psych
   end
 
   ###
+  # Parse a file at +filename+. Returns the YAML AST.
+  def self.parse_file filename
+    File.open filename do |f|
+      parse f
+    end
+  end
+
+  ###
+  # Returns a default parser
+  def self.parser
+    Psych::Parser.new(TreeBuilder.new)
+  end
+
+  ###
   # Parse a YAML string in +yaml+.  Returns the full AST for the YAML document.
   # This method can handle multiple YAML documents contained in +yaml+.
   #
@@ -126,7 +140,7 @@ module Psych
   #
   # See Psych::Nodes for more information about YAML AST.
   def self.yaml_ast yaml
-    parser = Psych::Parser.new(TreeBuilder.new)
+    parser = self.parser
     parser.parse yaml
     parser.handler.root
   end

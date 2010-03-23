@@ -10,8 +10,8 @@ YAML = Psych
 end
 
 class Object
-  def self.yaml_tag name
-    Psych.add_tag(name, self)
+  def self.yaml_tag url
+    Psych.add_tag(url, self)
   end
 
   def to_yaml options = {}

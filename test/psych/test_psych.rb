@@ -53,4 +53,11 @@ class TestPsych < MiniTest::Unit::TestCase
 
     assert_equal 'hello world', Psych.load_file(name)
   end
+
+  def test_parse_file
+    name = File.join(Dir.tmpdir, 'yikes.yml')
+    File.open(name, 'wb') { |f| f.write('--- hello world') }
+
+    assert_equal 'hello world', Psych.parse_file(name).transform
+  end
 end
