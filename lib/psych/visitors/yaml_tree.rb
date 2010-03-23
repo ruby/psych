@@ -54,6 +54,7 @@ module Psych
         end
 
         map = append Nodes::Mapping.new(nil, tag, false)
+        register(o, map)
 
         @stack.push map
         dump_ivars(o, map)

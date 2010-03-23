@@ -74,6 +74,8 @@ module Psych
           }
           args.push(args.delete_at(1) == '...')
           Range.new(*args)
+        when /^!ruby\/sym(bol)?:?(.*)?$/
+          o.value.to_sym
         else
           @ss.tokenize o.value
         end
@@ -170,7 +172,9 @@ module Psych
 
         when /^!ruby\/object:?(.*)?$/
           name = $1 || 'Object'
-          revive((resolve_class(name) || Object), o)
+          obj = revive((resolve_class(name) || Object), o)
+          @st[o.anchor] = obj if o.anchor
+          obj
         else
           hash = {}
           @st[o.anchor] = hash if o.anchor
