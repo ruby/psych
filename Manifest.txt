@@ -3,7 +3,6 @@ CHANGELOG.rdoc
 Manifest.txt
 README.rdoc
 Rakefile
-bench.rb
 ext/psych/emitter.c
 ext/psych/emitter.h
 ext/psych/extconf.rb
