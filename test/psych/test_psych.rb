@@ -3,6 +3,12 @@ require 'psych'
 require 'tempfile'
 
 class TestPsych < MiniTest::Unit::TestCase
+  def test_dump_stream
+    things = [22, "foo \n", {}]
+    stream = Psych.dump_stream(*things)
+    assert_equal things, Psych.load_stream(stream)
+  end
+
   def test_simple
     assert_equal 'foo', Psych.load("--- foo\n")
   end

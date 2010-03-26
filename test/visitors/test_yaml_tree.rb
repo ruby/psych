@@ -155,7 +155,7 @@ module Psych
 
       def assert_round_trip obj
         v = Visitors::YAMLTree.new
-        v.accept(obj)
+        v << obj
         assert_equal(obj, Psych.load(v.tree.to_yaml))
         assert_equal(obj, Psych.load(obj.to_yaml))
         assert_equal(obj, Psych.load(Psych.dump(obj)))

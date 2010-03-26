@@ -145,11 +145,6 @@ module Psych
     parser.handler.root
   end
 
-  def self.load_stream yaml # :nodoc:
-    warn "#{caller[0]}: load_stream is deprecated, use parse_stream"
-    parse_stream yaml
-  end
-
   ###
   # Dump Ruby object +o+ to a YAML string using +options+.
   #
@@ -158,7 +153,21 @@ module Psych
   #   Psych.dump(['a', 'b'])  # => "---\n- a\n- b\n"
   def self.dump o, options = {}
     visitor = Psych::Visitors::YAMLTree.new options
-    visitor.accept o
+    visitor << o
+    visitor.tree.to_yaml
+  end
+
+  ###
+  # Dump a list of objects as separate documents to a document stream.
+  #
+  # Example:
+  #
+  #   Psych.dump_stream("foo\n  ", {}) # => "--- ! \"foo\\n  \"\n--- {}\n"
+  def self.dump_stream *objects
+    visitor = Psych::Visitors::YAMLTree.new {}
+    objects.each do |o|
+      visitor << o
+    end
     visitor.tree.to_yaml
   end
 
@@ -166,7 +175,7 @@ module Psych
   # Dump Ruby object +o+ to a JSON string.
   def self.to_json o
     visitor = Psych::Visitors::JSONTree.new(:json => true)
-    visitor.accept o
+    visitor << o
     visitor.tree.to_yaml
   end
 
@@ -176,13 +185,16 @@ module Psych
   #
   #   Psych.load_documents("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
   #
-  def self.load_documents yaml, &block
-    list = parse_stream(yaml).children.map { |child| child.to_ruby }
+  def self.load_stream yaml
+    parse_stream(yaml).children.map { |child| child.to_ruby }
+  end
 
-    return list unless block_given?
+  def self.load_documents yaml, &block
     if $VERBOSE
-      warn "#{caller[0]}: calling load_documents with a block is deprecated"
+      warn "#{caller[0]}: load_documents is deprecated, use load_stream"
     end
+    list = load_stream yaml
+    return list unless block_given?
     list.each(&block)
   end
 
