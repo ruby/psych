@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'psych'
 
-class StructWithIvar < Struct.new(:foo)
+class PsychStructWithIvar < Struct.new(:foo)
   attr_reader :bar
   def initialize *args
     super
@@ -31,7 +31,7 @@ module Psych
     end
 
     def test_roundtrip
-      thing = StructWithIvar.new('bar')
+      thing = PsychStructWithIvar.new('bar')
       struct = Psych.load(Psych.dump(thing))
 
       assert_equal 'hello', struct.bar
@@ -40,7 +40,7 @@ module Psych
 
     def test_load
       obj = Psych.load(<<-eoyml)
---- !ruby/struct:StructWithIvar 
+--- !ruby/struct:PsychStructWithIvar 
 :foo: bar
 :@bar: hello
       eoyml
