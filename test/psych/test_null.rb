@@ -1,12 +1,13 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   ###
   # Test null from YAML spec:
   # http://yaml.org/type/null.html
   class TestNull < MiniTest::Unit::TestCase
     def test_null_list
-      assert_equal [nil] * 5, YAML.load(<<-eoyml)
+      assert_equal [nil] * 5, Psych.load(<<-eoyml)
 ---
 - ~
 - null

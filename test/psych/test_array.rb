@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class TestArray < MiniTest::Unit::TestCase
     def setup
       @list = [{ :a => 'b' }, 'foo']
@@ -8,15 +9,15 @@ module YAML
 
     def test_self_referential
       @list << @list
-      assert_equal @list, YAML.load(@list.to_yaml)
+      assert_equal @list, Psych.load(@list.to_yaml)
     end
 
     def test_to_yaml
-      assert_equal @list, YAML.load(@list.to_yaml)
+      assert_equal @list, Psych.load(@list.to_yaml)
     end
 
     def test_dump
-      assert_equal @list, YAML.load(YAML.dump(@list))
+      assert_equal @list, Psych.load(Psych.dump(@list))
     end
   end
 end

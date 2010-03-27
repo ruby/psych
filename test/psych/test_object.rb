@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class Tagged
     yaml_tag '!foo'
 

@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class TestHash < MiniTest::Unit::TestCase
     def setup
       @hash = { :a => 'b' }
@@ -8,19 +9,19 @@ module YAML
 
     def test_self_referential
       @hash['self'] = @hash
-      assert_equal @hash, YAML.load(YAML.dump(@hash))
+      assert_equal @hash, Psych.load(Psych.dump(@hash))
     end
 
     def test_to_yaml
-      assert_equal @hash, YAML.load(@hash.to_yaml)
+      assert_equal @hash, Psych.load(@hash.to_yaml)
     end
 
     def test_dump
-      assert_equal @hash, YAML.load(YAML.dump(@hash))
+      assert_equal @hash, Psych.load(Psych.dump(@hash))
     end
 
     def test_ref_append
-      hash = YAML.load(<<-eoyml)
+      hash = Psych.load(<<-eoyml)
 ---
 foo: &foo
   hello: world

@@ -1,6 +1,14 @@
 require 'minitest/autorun'
 require 'psych'
 
+class StructWithIvar < Struct.new(:foo)
+  attr_reader :bar
+  def initialize *args
+    super
+    @bar = 'hello'
+  end
+end
+
 module Psych
   class TestStruct < MiniTest::Unit::TestCase
     class StructSubclass < Struct.new(:foo)
@@ -20,6 +28,25 @@ module Psych
       # FIXME: This seems to cause an infinite loop.  wtf.  Must report a bug
       # in ruby.
       # assert_equal(ss, loaded)
+    end
+
+    def test_roundtrip
+      thing = StructWithIvar.new('bar')
+      struct = Psych.load(Psych.dump(thing))
+
+      assert_equal 'hello', struct.bar
+      assert_equal 'bar', struct.foo
+    end
+
+    def test_load
+      obj = Psych.load(<<-eoyml)
+--- !ruby/struct:StructWithIvar 
+:foo: bar
+:@bar: hello
+      eoyml
+
+      assert_equal 'hello', obj.bar
+      assert_equal 'bar', obj.foo
     end
   end
 end

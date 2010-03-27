@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class TestClass < MiniTest::Unit::TestCase
     def test_to_yaml
       assert_raises(::TypeError) do
@@ -10,7 +11,7 @@ module YAML
 
     def test_dump
       assert_raises(::TypeError) do
-        YAML.dump TestClass
+        Psych.dump TestClass
       end
     end
   end

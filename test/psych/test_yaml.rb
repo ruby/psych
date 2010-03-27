@@ -2,25 +2,25 @@
 #												vim:sw=4:ts=4
 # $Id$
 #
-require 'test/unit'
+require 'minitest/autorun'
 require 'psych'
 
 # [ruby-core:01946]
-module YAML_Tests
+module Psych_Tests
     StructTest = Struct::new( :c )
 end
 
-class YAML_Unit_Tests < Test::Unit::TestCase
+class Psych_Unit_Tests < MiniTest::Unit::TestCase
 	#
-	# Convert between YAML and the object to verify correct parsing and
+	# Convert between Psych and the object to verify correct parsing and
 	# emitting
 	#
 	def assert_to_yaml( obj, yaml )
-		assert_equal( obj, YAML::load( yaml ) )
-		assert_equal( obj, YAML::parse( yaml ).transform )
-        assert_equal( obj, YAML::load( obj.to_yaml ) )
-		assert_equal( obj, YAML::parse( obj.to_yaml ).transform )
-        assert_equal( obj, YAML::load(
+		assert_equal( obj, Psych::load( yaml ) )
+		assert_equal( obj, Psych::parse( yaml ).transform )
+        assert_equal( obj, Psych::load( obj.to_yaml ) )
+		assert_equal( obj, Psych::parse( obj.to_yaml ).transform )
+        assert_equal( obj, Psych::load(
 			obj.to_yaml( :UseVersion => true, :UseHeader => true, :SortKeys => true )
 		) )
 	end
@@ -29,16 +29,16 @@ class YAML_Unit_Tests < Test::Unit::TestCase
 	# Test parser only
 	#
 	def assert_parse_only( obj, yaml )
-		assert_equal( obj, YAML::load( yaml ) )
-		assert_equal( obj, YAML::parse( yaml ).transform )
+		assert_equal( obj, Psych::load( yaml ) )
+		assert_equal( obj, Psych::parse( yaml ).transform )
 	end
 
     def assert_cycle( obj )
-        assert_equal( obj, YAML::load( obj.to_yaml ) )
+        assert_equal( obj, Psych::load( obj.to_yaml ) )
     end
 
     #def assert_path_segments( path, segments )
-    #    YAML::YPath.each_path( path ) { |choice|
+    #    Psych::YPath.each_path( path ) { |choice|
     #        assert_equal( choice.segments, segments.shift )
     #    }
     #    assert_equal( segments.length, 0, "Some segments leftover: #{ segments.inspect }" )
@@ -60,7 +60,7 @@ class YAML_Unit_Tests < Test::Unit::TestCase
 	end
 
 	#
-	# Tests modified from 00basic.t in YAML.pm
+	# Tests modified from 00basic.t in Psych.pm
 	#
 	def test_basic_map
 		# Simple map
@@ -80,13 +80,13 @@ EOY
 		assert_cycle(":")
 		assert_parse_only(
 			{ 1 => 'simple string', 2 => 42, 3 => '1 Single Quoted String',
-			  4 => 'YAML\'s Double "Quoted" String', 5 => "A block\n  with several\n    lines.\n",
+			  4 => 'Psych\'s Double "Quoted" String', 5 => "A block\n  with several\n    lines.\n",
 			  6 => "A \"chomped\" block", 7 => "A folded\n string\n", 8 => ": started string" },
 			  <<EOY
 1: simple string
 2: 42
 3: '1 Single Quoted String'
-4: "YAML's Double \\\"Quoted\\\" String"
+4: "Psych's Double \\\"Quoted\\\" String"
 5: |
   A block
     with several
@@ -470,7 +470,7 @@ exponential: 12.3015e+02
 fixed: 1,230.15
 negative infinity: -.inf
 EOY
-		nan = YAML::load( <<EOY )
+		nan = Psych::load( <<EOY )
 not a number: .NaN
 EOY
 		assert( nan['not a number'].nan? )
@@ -536,7 +536,7 @@ EOY
 
 	def test_spec_log_file
 		doc_ct = 0
-		YAML::load_documents( <<EOY
+		Psych::load_documents( <<EOY
 ---
 Time: 2001-11-23 15:01:42 -05:00
 User: ed
@@ -585,19 +585,19 @@ EOY
 	end
 
 	def test_spec_root_fold
-		y = YAML::load( <<EOY
+		y = Psych::load( <<EOY
 ---
-This YAML stream contains a single text value.
+This Psych stream contains a single text value.
 The next stream is a log file - a sequence of
 log entries. Adding an entry to the log is a
 simple matter of appending it at the end.
 EOY
 		)
-		assert_equal( y, "This YAML stream contains a single text value. The next stream is a log file - a sequence of log entries. Adding an entry to the log is a simple matter of appending it at the end." )
+		assert_equal( y, "This Psych stream contains a single text value. The next stream is a log file - a sequence of log entries. Adding an entry to the log is a simple matter of appending it at the end." )
 	end
 
 	def test_spec_root_mapping
-		y = YAML::load( <<EOY
+		y = Psych::load( <<EOY
 # This stream is an example of a top-level mapping.
 invoice : 34843
 date    : 2001-01-23
@@ -609,7 +609,7 @@ EOY
 
 	def test_spec_oneline_docs
 		doc_ct = 0
-		YAML::load_documents( <<EOY
+		Psych::load_documents( <<EOY
 # The following is a sequence of three documents.
 # The first contains an empty mapping, the second
 # an empty sequence, and the last an empty string.
@@ -641,8 +641,8 @@ EOY
                 raise ArgumentError, "Not a Hash in domain.tld,2002/invoice: " + val.inspect
             end
         }
-        YAML.add_domain_type( "domain.tld,2002", 'invoice', &customer_proc )
-        YAML.add_domain_type( "domain.tld,2002", 'customer', &customer_proc )
+        Psych.add_domain_type( "domain.tld,2002", 'invoice', &customer_proc )
+        Psych.add_domain_type( "domain.tld,2002", 'customer', &customer_proc )
 		assert_parse_only( { "invoice"=> { "customers"=> [ { "given"=>"Chris", "type"=>"domain customer", "family"=>"Dumars" } ], "type"=>"domain invoice" } }, <<EOY
 # 'http://domain.tld,2002/invoice' is some type family.
 invoice: !domain.tld,2002/invoice
@@ -687,32 +687,6 @@ EOY
 		)
 	end
 
-	def test_spec_private_types
-		doc_ct = 0
-		YAML::parse_documents( <<EOY
-# Private types are per-document.
----
-pool: !!ball
-   number: 8
-   color: black
----
-bearing: !!ball
-   material: steel
-EOY
-		) { |doc|
-			case doc_ct
-				when 0
-					assert_equal( doc['pool'].type_id, 'x-private:ball' )
-					assert_equal( doc['pool'].transform.value, { 'number' => 8, 'color' => 'black' } )
-				when 1
-					assert_equal( doc['bearing'].type_id, 'x-private:ball' )
-					assert_equal( doc['bearing'].transform.value, { 'material' => 'steel' } )
-			end
-			doc_ct += 1
-		}
-		assert_equal( doc_ct, 2 )
-	end
-
     ###
     # Commenting out this test.  This line:
     #
@@ -723,10 +697,10 @@ EOY
     #   http://yaml.org/spec/1.1/#id896876
     #
 #	def test_spec_url_escaping
-#		YAML.add_domain_type( "domain.tld,2002", "type0" ) { |type, val|
+#		Psych.add_domain_type( "domain.tld,2002", "type0" ) { |type, val|
 #			"ONE: #{val}"
 #		}
-#		YAML.add_domain_type( "domain.tld,2002", "type%30" ) { |type, val|
+#		Psych.add_domain_type( "domain.tld,2002", "type%30" ) { |type, val|
 #			"TWO: #{val}"
 #		}
 #		assert_parse_only(
@@ -734,7 +708,7 @@ EOY
 #same:
 #  - !domain.tld,2002/type\\x30 value
 #  - !domain.tld,2002/type0 value
-#different: # As far as the YAML parser is concerned
+#different: # As far as the Psych parser is concerned
 #  - !domain.tld,2002/type%30 value
 #EOY
 #		)
@@ -755,7 +729,7 @@ EOY
 	end
 
 	def test_spec_explicit_families
-        YAML.add_domain_type( "somewhere.com,2002", 'type' ) { |type, val|
+        Psych.add_domain_type( "somewhere.com,2002", 'type' ) { |type, val|
             "SOMEWHERE: #{val}"
         }
 		assert_parse_only(
@@ -776,7 +750,7 @@ EOY
 
 	def test_spec_application_family
 		# Testing the clarkevans.com graphs
-		YAML.add_domain_type( "clarkevans.com,2002", 'graph/shape' ) { |type, val|
+		Psych.add_domain_type( "clarkevans.com,2002", 'graph/shape' ) { |type, val|
 			if Array === val
 				val << "Shape Container"
 				val
@@ -793,10 +767,10 @@ EOY
 				raise ArgumentError, "Invalid graph of type #{val.class}: " + val.inspect
 			end
 		}
-		YAML.add_domain_type( "clarkevans.com,2002", 'graph/circle', &one_shape_proc )
-		YAML.add_domain_type( "clarkevans.com,2002", 'graph/line', &one_shape_proc )
-		YAML.add_domain_type( "clarkevans.com,2002", 'graph/text', &one_shape_proc )
-        # MODIFIED to remove invalid YAML
+		Psych.add_domain_type( "clarkevans.com,2002", 'graph/circle', &one_shape_proc )
+		Psych.add_domain_type( "clarkevans.com,2002", 'graph/line', &one_shape_proc )
+		Psych.add_domain_type( "clarkevans.com,2002", 'graph/text', &one_shape_proc )
+        # MODIFIED to remove invalid Psych
 		assert_parse_only(
 			[[{"radius"=>7, "center"=>{"x"=>73, "y"=>129}, "TYPE"=>"Shape: graph/circle"}, {"finish"=>{"x"=>89, "y"=>102}, "TYPE"=>"Shape: graph/line", "start"=>{"x"=>73, "y"=>129}}, {"TYPE"=>"Shape: graph/text", "value"=>"Pretty vector drawing.", "start"=>{"x"=>73, "y"=>129}, "color"=>16772795}, "Shape Container"]], <<EOY
 - !clarkevans.com,2002/graph/shape
@@ -1110,8 +1084,8 @@ EOY
 EOY
 		)
 
-        assert_to_yaml( YAML_Tests::StructTest.new( 123 ), <<EOY )
---- !ruby/struct:YAML_Tests::StructTest
+        assert_to_yaml( Psych_Tests::StructTest.new( 123 ), <<EOY )
+--- !ruby/struct:Psych_Tests::StructTest
 c: 123
 EOY
 
@@ -1124,9 +1098,9 @@ numerator: 1
 denominator: 2
 EOY
 
-		# Read YAML dumped by the ruby 1.8.3.
+		# Read Psych dumped by the ruby 1.8.3.
 		assert_to_yaml( Rational(1, 2), "!ruby/object:Rational 1/2\n" )
-		assert_raise( ArgumentError ) { YAML.load("!ruby/object:Rational INVALID/RATIONAL\n") }
+		assert_raises( ArgumentError ) { Psych.load("!ruby/object:Rational INVALID/RATIONAL\n") }
 	end
 
 	def test_ruby_complex
@@ -1136,9 +1110,9 @@ image: 4
 real: 3
 EOY
 
-		# Read YAML dumped by the ruby 1.8.3.
+		# Read Psych dumped by the ruby 1.8.3.
 		assert_to_yaml( Complex(3, 4), "!ruby/object:Complex 3+4i\n" )
-		assert_raise( ArgumentError ) { YAML.load("!ruby/object:Complex INVALID+COMPLEXi\n") }
+		assert_raises( ArgumentError ) { Psych.load("!ruby/object:Complex INVALID+COMPLEXi\n") }
 	end
 
 	def test_emitting_indicators
@@ -1149,10 +1123,10 @@ EOY
 	end
 
 	##
-	## Test the YAML::Stream class -- INACTIVE at the moment
+	## Test the Psych::Stream class -- INACTIVE at the moment
 	##
 	#def test_document
-	#	y = YAML::Stream.new( :Indent => 2, :UseVersion => 0 )
+	#	y = Psych::Stream.new( :Indent => 2, :UseVersion => 0 )
 	#	y.add(
 	#		{ 'hi' => 'hello', 'map' =>
 	#			{ 'good' => 'two' },
@@ -1211,7 +1185,7 @@ EOY
 
         # Stress test [ruby-core:1071]
         # a = []; 1000.times { a << {"a"=>"b", "c"=>"d"} }
-        # YAML::load( a.to_yaml )
+        # Psych::load( a.to_yaml )
 
     end
 
@@ -1258,7 +1232,7 @@ EOY
     def test_circular_references
         a = []; a[0] = a; a[1] = a
         inspect_str = "[[...], [...]]"
-        assert_equal( inspect_str, YAML::load( a.to_yaml ).inspect )
+        assert_equal( inspect_str, Psych::load( a.to_yaml ).inspect )
     end
 
     #
@@ -1295,14 +1269,14 @@ EOY
       #
       # empty seq as key
       #
-      o = YAML.load({[]=>""}.to_yaml)
+      o = Psych.load({[]=>""}.to_yaml)
       assert_equal(Hash, o.class)
       assert_equal([[]], o.keys)
 
       #
       # empty map as key
       #
-      o = YAML.load({{}=>""}.to_yaml)
+      o = Psych.load({{}=>""}.to_yaml)
       assert_equal(Hash, o.class)
       assert_equal([{}], o.keys)
     end
@@ -1311,23 +1285,23 @@ EOY
     # contributed by riley lynch [ruby-Bugs-8548]
     #
     def test_object_id_collision
-      omap = YAML::Omap.new
+      omap = Psych::Omap.new
       1000.times { |i| omap["key_#{i}"] = { "value" => i } }
       raise "id collision in ordered map" if omap.to_yaml =~ /id\d+/
     end
 
     def test_date_out_of_range
-      assert_nothing_raised{YAML::load('1900-01-01T00:00:00+00:00')}
+      Psych::load('1900-01-01T00:00:00+00:00')
     end
 
     def test_normal_exit
-      YAML.load("2000-01-01 00:00:00.#{"0"*1000} +00:00\n")
+      Psych.load("2000-01-01 00:00:00.#{"0"*1000} +00:00\n")
       # '[ruby-core:13735]'
     end
 end
 
 #if $0 == __FILE__
-#  suite = Test::Unit::TestSuite.new('YAML')
+#  suite = Test::Unit::TestSuite.new('Psych')
 #  ObjectSpace.each_object(Class) do |klass|
 #    suite << klass.suite if (Test::Unit::TestCase > klass)
 #  end

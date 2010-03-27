@@ -7,6 +7,7 @@ gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
 Hoe.plugin :debugging, :doofus, :git
+Hoe::RUBY_FLAGS << " -I. "
 
 Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaronp@rubyforge.org'

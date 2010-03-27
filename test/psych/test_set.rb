@@ -1,9 +1,10 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class TestSet < MiniTest::Unit::TestCase
     def setup
-      @set = YAML::Set.new
+      @set = Psych::Set.new
       @set['foo'] = 'bar'
       @set['bar'] = 'baz'
     end
@@ -13,13 +14,13 @@ module YAML
     end
 
     def test_roundtrip
-      assert_equal(@set, YAML.load(YAML.dump(@set)))
+      assert_equal(@set, Psych.load(Psych.dump(@set)))
     end
 
     ###
     # FIXME: Syck should also support !!set as shorthand
     def test_load_from_yaml
-      loaded = YAML.load(<<-eoyml)
+      loaded = Psych.load(<<-eoyml)
 --- !set
 foo: bar
 bar: baz
@@ -28,21 +29,21 @@ bar: baz
     end
 
     def test_loaded_class
-      assert_instance_of(YAML::Set, YAML.load(YAML.dump(@set)))
+      assert_instance_of(Psych::Set, Psych.load(Psych.dump(@set)))
     end
 
     def test_set_shorthand
-      loaded = YAML.load(<<-eoyml)
+      loaded = Psych.load(<<-eoyml)
 --- !!set
 foo: bar
 bar: baz
       eoyml
-      assert_instance_of(YAML::Set, loaded)
+      assert_instance_of(Psych::Set, loaded)
     end
 
     def test_set_self_reference
       @set['self'] = @set
-      assert_equal(@set, YAML.load(YAML.dump(@set)))
+      assert_equal(@set, Psych.load(Psych.dump(@set)))
     end
   end
 end

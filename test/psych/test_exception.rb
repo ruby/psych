@@ -1,6 +1,7 @@
-require 'helper'
+require 'minitest/autorun'
+require 'psych'
 
-module YAML
+module Psych
   class TestException < MiniTest::Unit::TestCase
     class Wups < Exception
       attr_reader :foo, :bar
@@ -16,14 +17,14 @@ module YAML
     end
 
     def test_to_yaml
-      w = YAML.load(@wups.to_yaml)
+      w = Psych.load(@wups.to_yaml)
       assert_equal @wups, w
       assert_equal 1, w.foo
       assert_equal 2, w.bar
     end
 
     def test_dump
-      w = YAML.load(@wups.to_yaml)
+      w = Psych.load(@wups.to_yaml)
       assert_equal @wups, w
       assert_equal 1, w.foo
       assert_equal 2, w.bar
@@ -36,7 +37,7 @@ module YAML
         end
       end
 
-      w = YAML.load(YAML.dump(@wups))
+      w = Psych.load(Psych.dump(@wups))
       assert_equal @wups, w
       assert_equal 1, w.foo
       assert_nil w.bar
