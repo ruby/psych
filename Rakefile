@@ -27,6 +27,8 @@ Hoe.spec 'psych' do
   end
 end
 
+Hoe.add_include_dirs('.')
+
 task :test => :compile
 
 # vim: syntax=ruby

@@ -1,7 +1,6 @@
 require 'minitest/autorun'
 require 'psych'
 require 'date'
-require 'rational'
 
 module Psych
   module Visitors
