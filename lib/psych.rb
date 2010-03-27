@@ -7,7 +7,7 @@ require 'psych/parser'
 require 'psych/omap'
 require 'psych/set'
 require 'psych/coder'
-require 'psych/yaml'
+require 'psych/core_ext'
 
 ###
 # = Overview
