@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-require 'minitest/autorun'
-require 'psych'
-require 'stringio'
+require 'test/psych/helper'
 
 module Psych
-  class TestEmitter < MiniTest::Unit::TestCase
+  class TestEmitter < TestCase
     def setup
+      super
       @out = StringIO.new
       @emitter = Psych::Emitter.new @out
     end

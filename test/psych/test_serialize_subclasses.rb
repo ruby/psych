@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestSerializeSubclasses < MiniTest::Unit::TestCase
+  class TestSerializeSubclasses < TestCase
     class SomeObject
       def initialize one, two
         @one = one

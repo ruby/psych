@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestClass < MiniTest::Unit::TestCase
+  class TestClass < TestCase
     def test_to_yaml
       assert_raises(::TypeError) do
         TestClass.to_yaml

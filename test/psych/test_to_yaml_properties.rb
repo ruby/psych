@@ -1,5 +1,4 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
   class TestToYamlProperties < MiniTest::Unit::TestCase

@@ -1,8 +1,6 @@
-require 'minitest/autorun'
-require 'psych'
-require 'tempfile'
+require 'test/psych/helper'
 
-class TestPsych < MiniTest::Unit::TestCase
+class TestPsych < Psych::TestCase
   def test_dump_stream
     things = [22, "foo \n", {}]
     stream = Psych.dump_stream(*things)

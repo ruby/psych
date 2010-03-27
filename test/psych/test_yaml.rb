@@ -2,15 +2,14 @@
 #												vim:sw=4:ts=4
 # $Id$
 #
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 # [ruby-core:01946]
 module Psych_Tests
     StructTest = Struct::new( :c )
 end
 
-class Psych_Unit_Tests < MiniTest::Unit::TestCase
+class Psych_Unit_Tests < Psych::TestCase
 	#
 	# Convert between Psych and the object to verify correct parsing and
 	# emitting

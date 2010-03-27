@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestCoder < MiniTest::Unit::TestCase
+  class TestCoder < TestCase
     class InitApi
       attr_accessor :implicit
       attr_accessor :style

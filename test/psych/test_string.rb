@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestString < MiniTest::Unit::TestCase
+  class TestString < TestCase
     def test_binary_string_null
       string = "\x00"
       yml = Psych.dump string

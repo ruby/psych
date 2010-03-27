@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestSymbol < MiniTest::Unit::TestCase
+  class TestSymbol < TestCase
     def test_to_yaml
       assert_equal :a, Psych.load(:a.to_yaml)
     end

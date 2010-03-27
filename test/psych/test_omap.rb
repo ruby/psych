@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestOmap < MiniTest::Unit::TestCase
+  class TestOmap < TestCase
     def test_self_referential
       map = Psych::Omap.new
       map['foo'] = 'bar'

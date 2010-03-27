@@ -1,9 +1,9 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestTreeBuilder < MiniTest::Unit::TestCase
+  class TestTreeBuilder < TestCase
     def setup
+      super
       @parser = Psych::Parser.new TreeBuilder.new
       @parser.parse(<<-eoyml)
 %YAML 1.1

@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestParser < MiniTest::Unit::TestCase
+  class TestParser < TestCase
     class EventCatcher < Handler
       attr_reader :calls
       def initialize
@@ -22,7 +21,6 @@ module Psych
 
     def setup
       super
-      warn "#{name}" if ENV['TESTOPTS'] == '-v'
       @parser = Psych::Parser.new EventCatcher.new
     end
 

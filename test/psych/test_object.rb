@@ -1,5 +1,4 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
   class Tagged
@@ -12,7 +11,7 @@ module Psych
     end
   end
 
-  class TestObject < MiniTest::Unit::TestCase
+  class TestObject < TestCase
     def test_dump_with_tag
       tag = Tagged.new
       assert_match('foo', Psych.dump(tag))

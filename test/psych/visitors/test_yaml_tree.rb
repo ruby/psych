@@ -1,10 +1,10 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
   module Visitors
-    class TestYAMLTree < MiniTest::Unit::TestCase
+    class TestYAMLTree < TestCase
       def setup
+        super
         @v = Visitors::YAMLTree.new
       end
 

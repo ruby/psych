@@ -1,9 +1,9 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestArray < MiniTest::Unit::TestCase
+  class TestArray < TestCase
     def setup
+      super
       @list = [{ :a => 'b' }, 'foo']
     end
 

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestEncoding < MiniTest::Unit::TestCase
+  class TestEncoding < TestCase
     class EncodingCatcher < Handler
       attr_reader :strings
       def initialize

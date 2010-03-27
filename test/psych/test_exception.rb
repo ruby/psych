@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestException < MiniTest::Unit::TestCase
+  class TestException < TestCase
     class Wups < Exception
       attr_reader :foo, :bar
       def initialize *args
@@ -13,6 +12,7 @@ module Psych
     end
 
     def setup
+      super
       @wups = Wups.new
     end
 

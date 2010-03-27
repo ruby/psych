@@ -1,9 +1,9 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestDocument < MiniTest::Unit::TestCase
+  class TestDocument < TestCase
     def setup
+      super
       @stream = Psych.parse_stream(<<-eoyml)
 %YAML 1.1
 %TAG ! tag:tenderlovemaking.com,2009:

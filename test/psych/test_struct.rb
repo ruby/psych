@@ -1,5 +1,4 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 class PsychStructWithIvar < Struct.new(:foo)
   attr_reader :bar
@@ -10,7 +9,7 @@ class PsychStructWithIvar < Struct.new(:foo)
 end
 
 module Psych
-  class TestStruct < MiniTest::Unit::TestCase
+  class TestStruct < TestCase
     class StructSubclass < Struct.new(:foo)
       def initialize foo, bar
         super(foo)

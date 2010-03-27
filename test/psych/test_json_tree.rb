@@ -1,8 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestJSONTree < MiniTest::Unit::TestCase
+  class TestJSONTree < TestCase
     def test_string
       assert_match(/(['"])foo\1/, Psych.to_json("foo"))
     end

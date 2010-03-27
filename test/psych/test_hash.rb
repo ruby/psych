@@ -1,9 +1,9 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestHash < MiniTest::Unit::TestCase
+  class TestHash < TestCase
     def setup
+      super
       @hash = { :a => 'b' }
     end
 

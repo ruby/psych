@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestScalar < MiniTest::Unit::TestCase
+  class TestScalar < TestCase
     def test_utf_8
       assert_equal "日本語", Psych.load("--- 日本語")
     end

@@ -1,9 +1,7 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
- class TestAliasAndAnchor < MiniTest::Unit::TestCase
-
+ class TestAliasAndAnchor < TestCase
    def test_mri_compatibility
      yaml = <<EOYAML
 ---

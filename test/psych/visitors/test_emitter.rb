@@ -1,10 +1,10 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
   module Visitors
-    class TestEmitter < MiniTest::Unit::TestCase
+    class TestEmitter < TestCase
       def setup
+        super
         @io = StringIO.new
         @visitor = Visitors::Emitter.new @io
       end

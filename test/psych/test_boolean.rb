@@ -1,11 +1,10 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
   ###
   # Test booleans from YAML spec:
   # http://yaml.org/type/bool.html
-  class TestBoolean < MiniTest::Unit::TestCase
+  class TestBoolean < TestCase
     %w{ yes Yes YES true True TRUE on On ON }.each do |truth|
       define_method(:"test_#{truth}") do
         assert_equal true, Psych.load("--- #{truth}")

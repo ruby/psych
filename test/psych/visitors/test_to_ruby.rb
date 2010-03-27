@@ -1,11 +1,10 @@
-require 'minitest/autorun'
-require 'psych'
-require 'date'
+require 'test/psych/helper'
 
 module Psych
   module Visitors
-    class TestToRuby < MiniTest::Unit::TestCase
+    class TestToRuby < TestCase
       def setup
+        super
         @visitor = ToRuby.new
       end
 

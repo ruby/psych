@@ -1,9 +1,9 @@
-require 'minitest/autorun'
-require 'psych'
+require 'test/psych/helper'
 
 module Psych
-  class TestSet < MiniTest::Unit::TestCase
+  class TestSet < TestCase
     def setup
+      super
       @set = Psych::Set.new
       @set['foo'] = 'bar'
       @set['bar'] = 'baz'
