@@ -7,7 +7,6 @@ gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
 Hoe.plugin :debugging, :doofus, :git
-Hoe::RUBY_FLAGS << " -I. "
 
 Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaronp@rubyforge.org'
@@ -30,5 +29,20 @@ end
 Hoe.add_include_dirs('.')
 
 task :test => :compile
+
+desc "merge psych in to ruby trunk"
+task :merge do
+  basedir = File.expand_path File.dirname __FILE__
+  rubydir = File.join ENV['HOME'], 'git', 'ruby'
+  {
+    # From                          # To
+    [basedir, 'ext', 'psych/']   => [rubydir, 'ext', 'psych/'],
+    [basedir, 'lib', 'psych/']   => [rubydir, 'lib', 'psych/'],
+    [basedir, 'test', 'psych/']  => [rubydir, 'test', 'psych/'],
+    [basedir, 'lib', 'psych.rb'] => [rubydir, 'lib', 'psych.rb'],
+  }.each do |from, to|
+    sh "rsync -av --delete #{File.join(*from)} #{File.join(*to)}"
+  end
+end
 
 # vim: syntax=ruby
