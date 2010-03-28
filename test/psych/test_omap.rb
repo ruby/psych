@@ -30,9 +30,9 @@ module Psych
       assert_equal 'c', map['b']
     end
 
-    def test_to_yaml
+    def test_dump
       map = Psych::Omap['a', 'b', 'c', 'd']
-      yaml = map.to_yaml
+      yaml = Psych.dump(map)
       assert_match('!omap', yaml)
       assert_match('- a: b', yaml)
       assert_match('- c: d', yaml)
@@ -41,10 +41,7 @@ module Psych
     def test_round_trip
       list = [["a", "b"], ["b", "c"]]
       map = Psych::Omap[*list.flatten]
-      loaded = Psych.load(Psych.dump(map))
-
-      assert_equal map, loaded
-      assert_equal list, loaded.to_a
+      assert_cycle(map)
     end
 
     def test_load

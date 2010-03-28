@@ -2,9 +2,9 @@ require 'test/psych/helper'
 
 module Psych
   class TestClass < TestCase
-    def test_to_yaml
+    def test_cycle
       assert_raises(::TypeError) do
-        TestClass.to_yaml
+        assert_cycle(TestClass)
       end
     end
 

@@ -32,6 +32,11 @@ module Psych
       assert_equal ivar, food.instance_variable_get(:@we_built_this_city)
     end
 
+    def test_binary
+      string = [0, 123,22, 44, 9, 32, 34, 39].pack('C*')
+      assert_cycle string
+    end
+
     def binary_string percentage = 0.31, length = 100
       string = ''
       (percentage * length).to_i.times do |i|

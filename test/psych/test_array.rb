@@ -9,15 +9,11 @@ module Psych
 
     def test_self_referential
       @list << @list
-      assert_equal @list, Psych.load(@list.to_yaml)
+      assert_cycle(@list)
     end
 
-    def test_to_yaml
-      assert_equal @list, Psych.load(@list.to_yaml)
-    end
-
-    def test_dump
-      assert_equal @list, Psych.load(Psych.dump(@list))
+    def test_cycle
+      assert_cycle(@list)
     end
   end
 end

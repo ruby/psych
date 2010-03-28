@@ -2,16 +2,12 @@ require 'test/psych/helper'
 
 module Psych
   class TestSymbol < TestCase
-    def test_to_yaml
-      assert_equal :a, Psych.load(:a.to_yaml)
-    end
-
-    def test_dump
-      assert_equal :a, Psych.load(Psych.dump(:a))
+    def test_cycle
+      assert_cycle :a
     end
 
     def test_stringy
-      assert_equal :"1", Psych.load(Psych.dump(:"1"))
+      assert_cycle :"1"
     end
 
     def test_load_quoted

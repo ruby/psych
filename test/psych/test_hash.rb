@@ -9,15 +9,11 @@ module Psych
 
     def test_self_referential
       @hash['self'] = @hash
-      assert_equal @hash, Psych.load(Psych.dump(@hash))
+      assert_cycle(@hash)
     end
 
-    def test_to_yaml
-      assert_equal @hash, Psych.load(@hash.to_yaml)
-    end
-
-    def test_dump
-      assert_equal @hash, Psych.load(Psych.dump(@hash))
+    def test_cycles
+      assert_cycle(@hash)
     end
 
     def test_ref_append

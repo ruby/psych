@@ -13,7 +13,8 @@ class Object
     Psych.add_tag(url, self)
   end
 
-  def to_yaml options = {}
+  def psych_to_yaml options = {}
     Psych.dump self, options
   end
+  #alias :to_yaml :psych_to_yaml
 end

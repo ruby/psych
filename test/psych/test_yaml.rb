@@ -11,54 +11,6 @@ end
 
 class Psych_Unit_Tests < Psych::TestCase
 	#
-	# Convert between Psych and the object to verify correct parsing and
-	# emitting
-	#
-	def assert_to_yaml( obj, yaml )
-		assert_equal( obj, Psych::load( yaml ) )
-		assert_equal( obj, Psych::parse( yaml ).transform )
-        assert_equal( obj, Psych::load( obj.to_yaml ) )
-		assert_equal( obj, Psych::parse( obj.to_yaml ).transform )
-        assert_equal( obj, Psych::load(
-			obj.to_yaml( :UseVersion => true, :UseHeader => true, :SortKeys => true )
-		) )
-	end
-
-	#
-	# Test parser only
-	#
-	def assert_parse_only( obj, yaml )
-		assert_equal( obj, Psych::load( yaml ) )
-		assert_equal( obj, Psych::parse( yaml ).transform )
-	end
-
-    def assert_cycle( obj )
-        assert_equal( obj, Psych::load( obj.to_yaml ) )
-    end
-
-    #def assert_path_segments( path, segments )
-    #    Psych::YPath.each_path( path ) { |choice|
-    #        assert_equal( choice.segments, segments.shift )
-    #    }
-    #    assert_equal( segments.length, 0, "Some segments leftover: #{ segments.inspect }" )
-    #end
-
-	#
-	# Make a time with the time zone
-	#
-	def mktime( year, mon, day, hour, min, sec, usec, zone = "Z" )
-        usec = Rational(usec.to_s) * 1000000
-		val = Time::utc( year.to_i, mon.to_i, day.to_i, hour.to_i, min.to_i, sec.to_i, usec )
-		if zone != "Z"
-			hour = zone[0,3].to_i * 3600
-			min = zone[3,2].to_i * 60
-			ofs = (hour + min)
-			val = Time.at( val.tv_sec - ofs, val.tv_nsec / 1000.0 )
-		end
-		return val
-	end
-
-	#
 	# Tests modified from 00basic.t in Psych.pm
 	#
 	def test_basic_map
@@ -1231,7 +1183,7 @@ EOY
     def test_circular_references
         a = []; a[0] = a; a[1] = a
         inspect_str = "[[...], [...]]"
-        assert_equal( inspect_str, Psych::load( a.to_yaml ).inspect )
+        assert_equal( inspect_str, Psych::load(Psych.dump(a)).inspect )
     end
 
     #
@@ -1268,16 +1220,12 @@ EOY
       #
       # empty seq as key
       #
-      o = Psych.load({[]=>""}.to_yaml)
-      assert_equal(Hash, o.class)
-      assert_equal([[]], o.keys)
+      assert_cycle({[]=>""})
 
       #
       # empty map as key
       #
-      o = Psych.load({{}=>""}.to_yaml)
-      assert_equal(Hash, o.class)
-      assert_equal([{}], o.keys)
+      assert_cycle({{}=>""})
     end
 
     #
@@ -1286,7 +1234,7 @@ EOY
     def test_object_id_collision
       omap = Psych::Omap.new
       1000.times { |i| omap["key_#{i}"] = { "value" => i } }
-      raise "id collision in ordered map" if omap.to_yaml =~ /id\d+/
+      raise "id collision in ordered map" if Psych.dump(omap) =~ /id\d+/
     end
 
     def test_date_out_of_range
@@ -1298,12 +1246,3 @@ EOY
       # '[ruby-core:13735]'
     end
 end
-
-#if $0 == __FILE__
-#  suite = Test::Unit::TestSuite.new('Psych')
-#  ObjectSpace.each_object(Class) do |klass|
-#    suite << klass.suite if (Test::Unit::TestCase > klass)
-#  end
-#  require 'test/unit/ui/console/testrunner'
-#  Test::Unit::UI::Console::TestRunner.run(suite).passed?
-#end

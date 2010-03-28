@@ -9,12 +9,12 @@ module Psych
       @set['bar'] = 'baz'
     end
 
-    def test_to_yaml
-      assert_match(/!set/, @set.to_yaml)
+    def test_dump
+      assert_match(/!set/, Psych.dump(@set))
     end
 
     def test_roundtrip
-      assert_equal(@set, Psych.load(Psych.dump(@set)))
+      assert_cycle(@set)
     end
 
     ###
@@ -43,7 +43,7 @@ bar: baz
 
     def test_set_self_reference
       @set['self'] = @set
-      assert_equal(@set, Psych.load(Psych.dump(@set)))
+      assert_cycle(@set)
     end
   end
 end

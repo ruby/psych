@@ -16,15 +16,8 @@ module Psych
       @wups = Wups.new
     end
 
-    def test_to_yaml
-      w = Psych.load(@wups.to_yaml)
-      assert_equal @wups, w
-      assert_equal 1, w.foo
-      assert_equal 2, w.bar
-    end
-
-    def test_dump
-      w = Psych.load(@wups.to_yaml)
+    def test_convert
+      w = Psych.load(Psych.dump(@wups))
       assert_equal @wups, w
       assert_equal 1, w.foo
       assert_equal 2, w.bar
