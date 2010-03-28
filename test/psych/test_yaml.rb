@@ -1010,24 +1010,24 @@ EOY
 
 	def test_ruby_struct
 		# Ruby structures
-		book_struct = Struct::new( "BookStruct", :author, :title, :year, :isbn )
+		book_struct = Struct::new( "MyBookStruct", :author, :title, :year, :isbn )
 		assert_to_yaml(
 			[ book_struct.new( "Yukihiro Matsumoto", "Ruby in a Nutshell", 2002, "0-596-00214-9" ),
 			  book_struct.new( [ 'Dave Thomas', 'Andy Hunt' ], "The Pickaxe", 2002,
 				book_struct.new( "This should be the ISBN", "but I have another struct here", 2002, "None" )
 			  ) ], <<EOY
-- !ruby/struct:BookStruct
+- !ruby/struct:MyBookStruct
   author: Yukihiro Matsumoto
   title: Ruby in a Nutshell
   year: 2002
   isbn: 0-596-00214-9
-- !ruby/struct:BookStruct
+- !ruby/struct:MyBookStruct
   author:
     - Dave Thomas
     - Andy Hunt
   title: The Pickaxe
   year: 2002
-  isbn: !ruby/struct:BookStruct
+  isbn: !ruby/struct:MyBookStruct
     author: This should be the ISBN
     title: but I have another struct here
     year: 2002

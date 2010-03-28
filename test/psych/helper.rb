@@ -53,4 +53,13 @@ module Psych
     end
   end
 end
+
+o = Object.new
+if o.respond_to?(:to_yaml)
+  if o.method(:to_yaml).source_location.first !~ /psych/
+    Object.send :alias_method, :old_to_yaml, :to_yaml
+    Object.send :remove_method, :to_yaml
+  end
+end
+
 require 'psych'
