@@ -30,7 +30,7 @@ static VALUE allocate(VALUE klass)
     yaml_emitter_set_unicode(emitter, 1);
     yaml_emitter_set_indent(emitter, 2);
 
-    return Data_Wrap_Struct(cPsychEmitter, 0, dealloc, emitter);
+    return Data_Wrap_Struct(klass, 0, dealloc, emitter);
 }
 
 /* call-seq: Psych::Emitter.new(io)
@@ -118,7 +118,7 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
 
 	Check_Type(tags, T_ARRAY);
 
-	head  = xcalloc(RARRAY_LEN(tags), sizeof(yaml_tag_directive_t));
+	head  = xcalloc((size_t)RARRAY_LEN(tags), sizeof(yaml_tag_directive_t));
 	tail  = head;
 
 	for(i = 0; i < RARRAY_LEN(tags); i++) {
