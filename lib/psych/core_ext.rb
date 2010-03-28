@@ -3,6 +3,12 @@ class Object
     Psych.add_tag(url, self)
   end
 
+  # FIXME: rename this to "to_yaml" when syck is removed
+
+  ###
+  # call-seq: to_yaml
+  #
+  # Convert an object to YAML
   def psych_to_yaml options = {}
     Psych.dump self, options
   end

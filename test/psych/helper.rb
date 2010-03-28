@@ -54,12 +54,10 @@ module Psych
   end
 end
 
-o = Object.new
-if o.respond_to?(:to_yaml)
-  if o.method(:to_yaml).source_location.first !~ /psych/
-    Object.send :alias_method, :old_to_yaml, :to_yaml
-    Object.send :remove_method, :to_yaml
-  end
-end
-
 require 'psych'
+
+# FIXME: remove this when syck is removed
+o = Object.new
+a = o.method(:psych_to_yaml)
+b = o.method(:to_yaml)
+raise "psych should define to_yaml" unless a == b
