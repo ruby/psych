@@ -4,9 +4,6 @@ require 'mkmf'
 
 RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
 
-$CFLAGS << ' -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion' <<
-           '  -Wmissing-noreturn -Winline'
-
 INCLUDEDIR = Config::CONFIG['includedir']
 LIBDIR     = Config::CONFIG['libdir']
 LIB_DIRS   = ['/opt/local/lib', '/usr/local/lib', LIBDIR, '/usr/lib']
