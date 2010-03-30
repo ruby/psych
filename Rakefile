@@ -41,15 +41,18 @@ namespace :merge do
     [basedir, 'test', 'psych/']  => [rubydir, 'test', 'psych/'],
     [basedir, 'lib', 'psych.rb'] => [rubydir, 'lib', 'psych.rb'],
   }
+
+  rsync = 'rsync -av --exclude extconf.rb --delete'
+
   task :to_ruby do
     mergedirs.each do |from, to|
-      sh "rsync -av --delete #{File.join(*from)} #{File.join(*to)}"
+      sh "#{rsync} #{File.join(*from)} #{File.join(*to)}"
     end
   end
 
   task :from_ruby do
     mergedirs.each do |from, to|
-      sh "rsync -av --delete #{File.join(*to)} #{File.join(*from)}"
+      sh "#{rsync} #{File.join(*to)} #{File.join(*from)}"
     end
   end
 end
