@@ -5,6 +5,7 @@ module Psych
   end
 
   def self.quick_emit thing, opts = {}, &block # :nodoc:
+    warn "#{caller[0]}: YAML.quick_emit is deprecated" if $VERBOSE && !caller[0].start_with?(File.dirname(__FILE__))
     target = eval 'self', block.binding
     target.extend DeprecatedMethods
     metaclass = class << target; self; end
