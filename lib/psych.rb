@@ -1,4 +1,4 @@
-require 'psych/psych'
+require 'psych.so'
 require 'psych/nodes'
 require 'psych/visitors'
 require 'psych/handler'
@@ -153,10 +153,15 @@ module Psych
   # Example:
   #
   #   Psych.dump(['a', 'b'])  # => "---\n- a\n- b\n"
-  def self.dump o, options = {}
+  def self.dump o, io = nil, options = {}
+    if Hash === io
+      options = io
+      io      = nil
+    end
+
     visitor = Psych::Visitors::YAMLTree.new options
     visitor << o
-    visitor.tree.to_yaml
+    visitor.tree.to_yaml io
   end
 
   ###
