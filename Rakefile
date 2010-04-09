@@ -36,13 +36,12 @@ namespace :merge do
   rubydir = File.join ENV['HOME'], 'git', 'ruby'
   mergedirs = {
     # From                          # To
-    [basedir, 'ext', 'psych/']   => [rubydir, 'ext', 'psych/'],
-    [basedir, 'lib', 'psych/']   => [rubydir, 'lib', 'psych/'],
-    [basedir, 'test', 'psych/']  => [rubydir, 'test', 'psych/'],
-    [basedir, 'lib', 'psych.rb'] => [rubydir, 'lib', 'psych.rb'],
+    [basedir, 'ext', 'psych/']  => [rubydir, 'ext', 'psych/'],
+    [basedir, 'lib/']           => [rubydir, 'ext', 'psych', 'lib/'],
+    [basedir, 'test', 'psych/'] => [rubydir, 'test', 'psych/'],
   }
 
-  rsync = 'rsync -av --exclude extconf.rb --delete'
+  rsync = 'rsync -av --exclude extconf.rb --exclude lib --delete'
 
   task :to_ruby do
     mergedirs.each do |from, to|
