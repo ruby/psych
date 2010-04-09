@@ -26,7 +26,7 @@ Hoe.spec 'psych' do
   end
 end
 
-Hoe.add_include_dirs('.')
+Hoe.add_include_dirs('.:lib/psych')
 
 task :test => :compile
 
