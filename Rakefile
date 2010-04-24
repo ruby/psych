@@ -46,7 +46,7 @@ namespace :merge do
     [basedir, 'test', 'psych/'] => [rubydir, 'test', 'psych/'],
   }
 
-  rsync = 'rsync -av --exclude extconf.rb --exclude lib --delete'
+  rsync = 'rsync -av --exclude extconf.rb --exclude lib --exclude ".*" --delete'
 
   task :to_ruby do
     mergedirs.each do |from, to|
