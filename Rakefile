@@ -3,6 +3,11 @@
 require 'rubygems'
 require 'hoe'
 
+class Hoe
+  remove_const :RUBY_FLAGS
+  RUBY_FLAGS = "-I#{%w(lib ext bin test).join(File::PATH_SEPARATOR)}"
+end
+
 gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
