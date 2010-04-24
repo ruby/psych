@@ -163,5 +163,23 @@ module Psych
 
       assert_equal [["tag:ruby.yaml.org,2002:foo", "bar"]], types
     end
+
+    def test_detect_implicit
+      assert_equal '', Psych.detect_implicit(nil)
+      assert_equal '', Psych.detect_implicit(Object.new)
+      assert_equal '', Psych.detect_implicit(1.2)
+      assert_equal 'null', Psych.detect_implicit('')
+      assert_equal 'string', Psych.detect_implicit('foo')
+    end
+
+    def test_private_type
+      types = []
+      Psych.add_private_type('foo') { |*args| types << args }
+      Psych.load <<-eoyml
+- !x-private:foo bar
+      eoyml
+
+      assert_equal [["x-private:foo", "bar"]], types
+    end
   end
 end
