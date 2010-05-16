@@ -1,5 +1,12 @@
 module Psych
   module Visitors
+    ###
+    # YAMLTree builds a YAML ast given a ruby object.  For example:
+    #
+    #   builder = Psych::Visitors::YAMLTree.new
+    #   builder << { :foo => 'bar' }
+    #   builder.tree # => #<Psych::Nodes::Stream .. }
+    #
     class YAMLTree < Psych::Visitors::Visitor
       attr_reader :tree
 
@@ -75,23 +82,22 @@ module Psych
         register(o, map)
 
         @stack.push map
-        dump_ivars(o, map)
+        dump_ivars o
         @stack.pop
       end
 
       def visit_Struct o
         tag = ['!ruby/struct', o.class.name].compact.join(':')
 
-        map = register(o, create_mapping(nil, tag, false))
+        @stack.push append register(o, create_mapping(nil, tag, false))
 
-        @stack.push append map
 
         o.members.each do |member|
-          map.children <<  create_scalar("#{member}")
+          append create_scalar("#{member}")
           accept o[member]
         end
 
-        dump_ivars(o, map)
+        dump_ivars o
 
         @stack.pop
       end
@@ -99,20 +105,19 @@ module Psych
       def visit_Exception o
         tag = ['!ruby/exception', o.class.name].join ':'
 
-        map = append create_mapping(nil, tag, false)
+        @stack.push append create_mapping(nil, tag, false)
 
-        @stack.push map
 
         {
           'message'   => private_iv_get(o, 'mesg'),
           'backtrace' => private_iv_get(o, 'backtrace'),
         }.each do |k,v|
           next unless v
-          map.children << create_scalar(k)
+          append create_scalar(k)
           accept v
         end
 
-        dump_ivars(o, map)
+        dump_ivars o
 
         @stack.pop
       end
@@ -133,21 +138,26 @@ module Psych
       end
 
       def visit_Rational o
-        map = append create_mapping(nil, '!ruby/object:Rational', false)
+        @stack.push append create_mapping(nil, '!ruby/object:Rational', false)
+
         [
           'denominator', o.denominator.to_s,
           'numerator', o.numerator.to_s
         ].each do |m|
-          map.children << create_scalar(m)
+          append create_scalar m
         end
+
+        @stack.pop
       end
 
       def visit_Complex o
-        map = append create_mapping(nil, '!ruby/object:Complex', false)
+        @stack.push append create_mapping(nil, '!ruby/object:Complex', false)
 
         ['real', o.real.to_s, 'image', o.imag.to_s].each do |m|
-          map.children << create_scalar(m)
+          append create_scalar m
         end
+
+        @stack.pop
       end
 
       def visit_Integer o
@@ -191,13 +201,13 @@ module Psych
         if ivars.empty?
           append scalar
         else
-          mapping = append create_mapping(nil, '!str', false)
+          @stack.push append create_mapping(nil, '!str', false)
 
-          mapping.children << create_scalar('str')
-          mapping.children << scalar
+          append create_scalar('str')
+          append scalar
 
-          @stack.push mapping
-          dump_ivars o, mapping
+          dump_ivars o
+
           @stack.pop
         end
       end
@@ -300,18 +310,18 @@ module Psych
           map = append create_mapping(nil, c.tag, c.implicit, c.style)
           @stack.push map
           c.map.each do |k,v|
-            map.children << create_scalar(k)
+            append create_scalar k
             accept v
           end
           @stack.pop
         end
       end
 
-      def dump_ivars target, map
+      def dump_ivars target
         ivars = find_ivars target
 
         ivars.each do |iv|
-          map.children << create_scalar("#{iv.to_s.sub(/^@/, '')}")
+          append create_scalar("#{iv.to_s.sub(/^@/, '')}")
           accept target.instance_variable_get(iv)
         end
       end
