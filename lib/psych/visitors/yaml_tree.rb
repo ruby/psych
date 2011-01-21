@@ -8,8 +8,14 @@ module Psych
     #   builder.tree # => #<Psych::Nodes::Stream .. }
     #
     class YAMLTree < Psych::Visitors::Visitor
+      attr_reader :started, :finished
+      alias :finished? :finished
+      alias :started? :started
+
       def initialize options = {}, emitter = Psych::TreeBuilder.new
         super()
+        @started  = false
+        @finished = false
         @emitter  = emitter
         @st       = {}
         @ss       = ScalarScanner.new
@@ -205,7 +211,7 @@ module Psych
         quote = false
         style = Nodes::Scalar::ANY
 
-        if o.index("\x00") || o.count("^ -~\t\r\n").fdiv(o.length) > 0.3
+        if o.index("\x00") || o.count("\x00-\x7F", "^ -~\t\r\n").fdiv(o.length) > 0.3
           str   = [o].pack('m').chomp
           tag   = '!binary' # FIXME: change to below when syck is removed
           #tag   = 'tag:yaml.org,2002:binary'
@@ -273,7 +279,7 @@ module Psych
       end
 
       def visit_NilClass o
-        @emitter.scalar('', nil, 'tag:yaml.org,2002:null', false, false, Nodes::Scalar::ANY)
+        @emitter.scalar('', nil, 'tag:yaml.org,2002:null', true, false, Nodes::Scalar::ANY)
       end
 
       def visit_Symbol o
@@ -282,14 +288,11 @@ module Psych
 
       private
       def format_time time
-        formatted = time.strftime("%Y-%m-%d %H:%M:%S.%9N")
         if time.utc?
-          formatted += "Z"
+          time.strftime("%Y-%m-%d %H:%M:%S.%9NZ")
         else
-          zone = time.strftime('%z')
-          formatted += " #{zone[0,3]}:#{zone[3,5]}"
+          time.strftime("%Y-%m-%d %H:%M:%S.%9N %:z")
         end
-        formatted
       end
 
       # FIXME: remove this method once "to_yaml_properties" is removed
@@ -339,6 +342,8 @@ module Psych
             accept v
           end
           @emitter.end_mapping
+        when :object
+          accept c.object
         end
       end
 

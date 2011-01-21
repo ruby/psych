@@ -17,6 +17,9 @@ module Psych
         @children = []
       end
 
+      def each
+      end
+
       ###
       # Convert this node to Ruby.
       #
