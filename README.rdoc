@@ -24,7 +24,7 @@ to and from the YAML format.
 == Installation
 
 * sudo port install libyaml +universal
-* sudo gem install psych
+* sudo install_ruby.sh
 
 == License
 
