@@ -34,7 +34,6 @@ lib/psych/nodes/sequence.rb
 lib/psych/nodes/stream.rb
 lib/psych/omap.rb
 lib/psych/parser.rb
-lib/psych/psych.bundle
 lib/psych/scalar_scanner.rb
 lib/psych/set.rb
 lib/psych/stream.rb

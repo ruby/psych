@@ -15,7 +15,6 @@ Hoe.plugin :debugging, :doofus, :git
 
 Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaronp@rubyforge.org'
-  developer 'John Barnette',   'jbarnette@rubyforge.org'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'CHANGELOG.rdoc'
@@ -24,10 +23,13 @@ Hoe.spec 'psych' do
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
 
-  self.spec_extras = { :extensions => ["ext/psych/extconf.rb"] }
+  self.spec_extras = {
+    :extensions            => ["ext/psych/extconf.rb"],
+    :required_ruby_version => '>= 1.9.2'
+  }
 
   Rake::ExtensionTask.new "psych", spec do |ext|
-    ext.lib_dir = File.join(*['lib', 'psych', ENV['FAT_DIR']].compact)
+    ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
   end
 end
 
