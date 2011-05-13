@@ -78,6 +78,7 @@ test/psych/test_stream.rb
 test/psych/test_string.rb
 test/psych/test_struct.rb
 test/psych/test_symbol.rb
+test/psych/test_tainted.rb
 test/psych/test_to_yaml_properties.rb
 test/psych/test_tree_builder.rb
 test/psych/test_yaml.rb
