@@ -5,7 +5,7 @@
 == Description
 
 Psych is a YAML parser and emitter.  Psych leverages libyaml[http://libyaml.org]
-for it's YAML parsing and emitting capabilities.  In addition to wrapping
+for its YAML parsing and emitting capabilities.  In addition to wrapping
 libyaml, Psych also knows how to serialize and de-serialize most Ruby objects
 to and from the YAML format.
 
