@@ -11,10 +11,10 @@ end
 gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
-Hoe.plugin :debugging, :doofus, :git
+Hoe.plugin :debugging, :doofus, :git, :gemspec
 
 Hoe.spec 'psych' do
-  developer 'Aaron Patterson', 'aaronp@rubyforge.org'
+  developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'CHANGELOG.rdoc'
