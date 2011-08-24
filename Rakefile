@@ -13,7 +13,7 @@ require "rake/extensiontask"
 
 Hoe.plugin :debugging, :doofus, :git, :gemspec
 
-Hoe.spec 'psych' do
+$hoe = Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
@@ -36,6 +36,11 @@ end
 Hoe.add_include_dirs('.:lib/psych')
 
 task :test => :compile
+
+task :hack_spec do
+  $hoe.spec.extra_rdoc_files.clear
+end
+task 'core:spec' => [:hack_spec, 'gem:spec']
 
 desc "merge psych in to ruby trunk"
 namespace :merge do
