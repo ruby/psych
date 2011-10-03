@@ -1,4 +1,8 @@
 rvm:
   - 1.9.2
   - 1.9.3
-script: gem install isolate hoe; rake test
+before_script:
+  - gem install isolate
+  - gem install hoe
+  - gem install hoe-isolate
+script: rake test
