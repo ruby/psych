@@ -7,7 +7,6 @@ README.rdoc
 Rakefile
 ext/psych/emitter.c
 ext/psych/emitter.h
-ext/psych/extconf.h
 ext/psych/extconf.rb
 ext/psych/parser.c
 ext/psych/parser.h
