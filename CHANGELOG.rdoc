@@ -1,3 +1,10 @@
+Tue Oct  4 05:47:23 2011  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: Define Regexp::NOENCODING
+	  for 1.9.2 backwards compatibility.
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: Fix Date string
+	  generation for 1.9.2 backwards compatibility.
+
 Fri Sep  2 04:05:25 2011  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/yaml_tree.rb: emit strings tagged as
