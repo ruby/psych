@@ -11,7 +11,7 @@ end
 gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
-Hoe.plugin :debugging, :doofus, :git, :gemspec, :bundler
+Hoe.plugin :debugging, :doofus, :git, :gemspec, :isolate
 
 $hoe = Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
