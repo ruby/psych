@@ -4,4 +4,4 @@ rvm:
 before_script:
   - gem install isolate
   - gem install hoe
-script: rake test
+script: rake isolate test
