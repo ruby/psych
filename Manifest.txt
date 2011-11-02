@@ -1,7 +1,6 @@
 .autotest
 .travis.yml
 CHANGELOG.rdoc
-Gemfile
 Manifest.txt
 README.rdoc
 Rakefile
@@ -40,6 +39,7 @@ lib/psych/scalar_scanner.rb
 lib/psych/set.rb
 lib/psych/stream.rb
 lib/psych/streaming.rb
+lib/psych/syntax_error.rb
 lib/psych/tree_builder.rb
 lib/psych/visitors.rb
 lib/psych/visitors/depth_first.rb
