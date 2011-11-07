@@ -1,15 +1,17 @@
 # -*- coding: UTF-8 -*-
+
+require 'psych/helper'
+require 'tmpdir'
+
 begin
-  require 'test/unit'
   require 'yaml/dbm'
-  require 'tmpdir'
 rescue LoadError
 end
 
 module Psych
   ::Psych::DBM = ::YAML::DBM unless defined?(::Psych::DBM)
 
-  class YAMLDBMTest < Test::Unit::TestCase
+  class YAMLDBMTest < TestCase
     def setup
       @engine, YAML::ENGINE.yamler = YAML::ENGINE.yamler, 'psych'
       @dir = Dir.mktmpdir("rubytest-file")
@@ -191,4 +193,4 @@ module Psych
       assert_equal([], @yamldbm.select {false})
     end
   end
-end if defined?(YAML::DBM)
+end if defined?(YAML::DBM) && defined?(Psych)
