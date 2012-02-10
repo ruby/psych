@@ -55,6 +55,14 @@ module Psych
       assert_equal string, Psych.load(yml)
     end
 
+    def test_utf8_string
+      string = [1055, 1086, 1079, 1086, 1088, 1080, 1097, 1077].pack("U*")
+      string.force_encoding 'utf-8'
+      yml = Psych.dump string
+      assert_equal "--- #{string}\n...\n", yml
+      assert_equal string, Psych.load(yml)
+    end
+
     def test_non_binary_string
       string = binary_string(0.29)
       yml = Psych.dump string
