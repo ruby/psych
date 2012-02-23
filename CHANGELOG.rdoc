@@ -1,3 +1,11 @@
+Fri Feb 24 08:08:38 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/parser.c: set parser encoding based on the YAML input
+	  rather than user configuration.
+	* test/psych/test_encoding.rb: corresponding tests.
+	* test/psych/test_parser.rb: ditto
+	* test/psych/test_tainted.rb: ditto
+
 Fri Feb 10 03:41:31 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/parser.c: removed external encoding setter, allow parser
