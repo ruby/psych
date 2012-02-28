@@ -1,3 +1,9 @@
+Fri Feb 24 13:54:33 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/parser.c: prevent a memory leak by protecting calls to
+	  handler callbacks.
+	* test/psych/test_parser.rb: test to demonstrate leak.
+
 Fri Feb 24 08:08:38 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/parser.c: set parser encoding based on the YAML input
