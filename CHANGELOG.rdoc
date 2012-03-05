@@ -1,3 +1,9 @@
+Tue Feb 28 10:28:51 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych.rb: default open YAML files with utf8 external
+	  encoding. [ruby-core:42967]
+	* test/psych/test_tainted.rb: ditto
+
 Fri Feb 24 13:54:33 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/parser.c: prevent a memory leak by protecting calls to
