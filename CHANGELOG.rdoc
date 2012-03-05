@@ -1,3 +1,8 @@
+Tue Mar  6 02:31:20 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/core_ext.rb: only extend Kernel if IRB is loaded
+	  in order to stop method pollution.
+
 Tue Feb 28 10:28:51 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych.rb: default open YAML files with utf8 external
