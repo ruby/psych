@@ -1,3 +1,14 @@
+Fri Mar  9 06:17:05 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych.rb (parse_stream, load_stream): if a block is
+	  given, documents will be yielded to the block as they are parsed.
+	  [ruby-core:42404] [Bug #5978]
+
+	* ext/psych/lib/psych/handlers/document_stream.rb: add a handler that
+	  yields documents as they are parsed
+
+	* test/psych/test_stream.rb: corresponding tests.
+
 Tue Mar  6 02:31:20 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/core_ext.rb: only extend Kernel if IRB is loaded
