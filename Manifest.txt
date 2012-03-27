@@ -20,7 +20,7 @@ lib/psych/coder.rb
 lib/psych/core_ext.rb
 lib/psych/deprecated.rb
 lib/psych/handler.rb
-lib/psych/json.rb
+lib/psych/handlers/document_stream.rb
 lib/psych/json/ruby_events.rb
 lib/psych/json/stream.rb
 lib/psych/json/tree_builder.rb
@@ -70,6 +70,7 @@ test/psych/test_nil.rb
 test/psych/test_null.rb
 test/psych/test_numeric.rb
 test/psych/test_object.rb
+test/psych/test_object_references.rb
 test/psych/test_omap.rb
 test/psych/test_parser.rb
 test/psych/test_psych.rb
