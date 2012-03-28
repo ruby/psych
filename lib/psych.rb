@@ -200,7 +200,7 @@ module Psych
   def self.parse_stream yaml, filename = nil, &block
     if block_given?
       parser = Psych::Parser.new(Handlers::DocumentStream.new(&block))
-      parser.parse yaml, filename
+      parser.parse yaml
     else
       parser = self.parser
       parser.parse yaml, filename
