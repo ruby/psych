@@ -251,19 +251,19 @@ module Psych
           o.children.each_slice(2) { |k,v|
           key = accept(k)
 
-          if key == '<<'
+          if key == '<<' and av = accept(v)
             case v
             when Nodes::Alias
-              hash.merge! accept(v)
+              hash.merge! av
             when Nodes::Sequence
               accept(v).reverse_each do |value|
                 hash.merge! value
               end
             else
-              hash[key] = accept(v)
+              hash[key] = av
             end
           else
-            hash[key] = accept(v)
+            hash[key] = av
           end
 
         }
