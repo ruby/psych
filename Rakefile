@@ -3,9 +3,15 @@
 require 'rubygems'
 require 'hoe'
 
+def java?
+  RUBY_PLATFORM =~ /java/
+end
+
 class Hoe
   remove_const :RUBY_FLAGS
-  RUBY_FLAGS = "-I#{%w(lib ext bin test).join(File::PATH_SEPARATOR)}"
+  flags = "-I#{%w(lib ext bin test).join(File::PATH_SEPARATOR)}"
+  flags = "--1.9 " + flags if java?
+  RUBY_FLAGS = flags
 end
 
 gem 'rake-compiler', '>= 0.4.1'
@@ -28,8 +34,20 @@ $hoe = Hoe.spec 'psych' do
     :required_ruby_version => '>= 1.9.2'
   }
 
-  Rake::ExtensionTask.new "psych", spec do |ext|
-    ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
+  if java?
+    # TODO: clean this section up.
+    require "rake/javaextensiontask"
+    Rake::JavaExtensionTask.new("psych", spec) do |ext|
+      jruby_home = RbConfig::CONFIG['prefix']
+      ext.ext_dir = 'ext/java'
+      ext.lib_dir = 'lib/psych'
+      jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
+      ext.classpath = jars.map { |x| File.expand_path x }.join ':'
+    end
+  else
+    Rake::ExtensionTask.new "psych", spec do |ext|
+      ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
+    end
   end
 end
 
