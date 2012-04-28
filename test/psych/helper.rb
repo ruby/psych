@@ -2,6 +2,15 @@ require 'minitest/autorun'
 require 'stringio'
 require 'tempfile'
 require 'date'
+
+if RUBY_PLATFORM =~ /java/
+  require './lib/psych.jar'
+  require 'jruby'
+
+  Java::psych.PsychLibrary.new.load(JRuby.runtime, true)
+  $LOADED_FEATURES << "psych.jar"
+end
+
 require 'psych'
 
 module Psych
