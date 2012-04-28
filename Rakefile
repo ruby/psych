@@ -40,7 +40,6 @@ $hoe = Hoe.spec 'psych' do
     Rake::JavaExtensionTask.new("psych", spec) do |ext|
       jruby_home = RbConfig::CONFIG['prefix']
       ext.ext_dir = 'ext/java'
-      ext.lib_dir = 'lib/psych'
       jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
       ext.classpath = jars.map { |x| File.expand_path x }.join ':'
     end

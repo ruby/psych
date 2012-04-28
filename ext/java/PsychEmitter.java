@@ -25,7 +25,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the CPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.ext.psych;
+package psych;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
