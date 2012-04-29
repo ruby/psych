@@ -1,3 +1,8 @@
+Mon Apr 30 04:43:53 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/json/yaml_events.rb: implicit styles should not
+	  be changeable for JSON events.
+
 Sat Apr  7 02:07:00 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/parser.c: fall back to any encoding if the external
