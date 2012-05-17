@@ -1,3 +1,8 @@
+Fri May 18 01:28:21 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/parser.c (transcode_string): fix encoding index names.
+	  Thanks markizko for reporting.
+
 Wed May 16 05:11:29 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/to_ruby.rb: fix a bug with string
