@@ -4,8 +4,8 @@ require 'mkmf'
 
 RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
 
-INCLUDEDIR = Config::CONFIG['includedir']
-LIBDIR     = Config::CONFIG['libdir']
+INCLUDEDIR = RbConfig::CONFIG['includedir']
+LIBDIR     = RbConfig::CONFIG['libdir']
 LIB_DIRS   = ['/opt/local/lib', '/usr/local/lib', LIBDIR, '/usr/lib']
 libyaml    = dir_config 'libyaml', '/opt/local/include', '/opt/local/lib'
 
