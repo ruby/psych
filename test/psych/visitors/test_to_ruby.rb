@@ -129,7 +129,7 @@ description:
       end
 
       def test_time_utc_no_z
-        now = Time.now.utc
+        now = Time.now # local time implicit
         formatted = now.strftime("%Y-%m-%d %H:%M:%S") +
           ".%09d" % [now.nsec]
 

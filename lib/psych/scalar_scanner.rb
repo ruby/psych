@@ -1,4 +1,5 @@
 require 'strscan'
+require 'time'
 
 module Psych
   ###
@@ -101,28 +102,7 @@ module Psych
     ###
     # Parse and return a Time from +string+
     def parse_time string
-      date, time = *(string.split(/[ tT]/, 2))
-      (yy, m, dd) = date.split('-').map { |x| x.to_i }
-      md = time.match(/(\d+:\d+:\d+)(?:\.(\d*))?\s*(Z|[-+]\d+(:\d\d)?)?/)
-
-      (hh, mm, ss) = md[1].split(':').map { |x| x.to_i }
-      us = (md[2] ? Rational("0.#{md[2]}") : 0) * 1000000
-
-      time = Time.utc(yy, m, dd, hh, mm, ss, us)
-
-      return time if 'Z' == md[3]
-      return Time.at(time.to_i, us) unless md[3]
-
-      tz = md[3].match(/^([+\-]?\d{1,2})\:?(\d{1,2})?$/)[1..-1].compact.map { |digit| Integer(digit, 10) }
-      offset = tz.first * 3600
-
-      if offset < 0
-        offset -= ((tz[1] || 0) * 60)
-      else
-        offset += ((tz[1] || 0) * 60)
-      end
-
-      Time.at((time - offset).to_i, us)
+      Time.rfc2822(string) rescue Time.parse(string)
     end
   end
 end
