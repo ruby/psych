@@ -28,7 +28,7 @@ module Psych
       end
 
       def visit_Psych_Nodes_Scalar o
-        @handler.scalar o.value, o.anchor, o.tag, o.plain, o.quoted, o.style
+        @handler.scalar o.value.to_s, o.anchor, o.tag, o.plain, o.quoted, o.style
       end
 
       def visit_Psych_Nodes_Sequence o
