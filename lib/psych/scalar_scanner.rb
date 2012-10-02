@@ -24,7 +24,9 @@ module Psych
       return string if @string_cache.key?(string)
 
       case string
-      when /^[A-Za-z_~]/
+      # Make sure it's not a hex string, a special float (e.g., -.inf), or hash key.  Look for any character that would
+      # immediately qualify it as a String type.
+      when /^[A-Za-z_~]/, /^[^(?:0x)\.:-][A-Za-z\s!@#\$%\^&\*\(\)\{\}\|\/\\]+/
         if string.length > 5
           @string_cache[string] = true
           return string
