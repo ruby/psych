@@ -141,6 +141,12 @@ module Psych
         return revive_hash({}, o) unless o.tag
 
         case o.tag
+        when %r{
+          ^!ruby/object:(?:Complex|Rational)$ |
+          ^!ruby/object
+        }x
+          send METHODS[$&], o, $~
+
         when /^!(?:str|ruby\/string)(?::(.*))?/, 'tag:yaml.org,2002:str'
           klass = resolve_class($1)
           members = Hash[*o.children.map { |c| accept c }]
@@ -206,19 +212,6 @@ module Psych
           end
           set
 
-        when '!ruby/object:Complex'
-          h = Hash[*o.children.map { |c| accept c }]
-          register o, Complex(h['real'], h['image'])
-
-        when '!ruby/object:Rational'
-          h = Hash[*o.children.map { |c| accept c }]
-          register o, Rational(h['numerator'], h['denominator'])
-
-        when /^!ruby\/object:?(.*)?$/
-          name = $1 || 'Object'
-          obj = revive((resolve_class(name) || Object), o)
-          obj
-
         when /^!map:(.*)$/, /^!ruby\/hash:(.*)$/
           revive_hash resolve_class($1).new, o
 
@@ -247,6 +240,28 @@ module Psych
       end
 
       private
+
+      METHODS = {
+        '!ruby/object:Complex'  => :complex,
+        '!ruby/object:Rational' => :rational,
+        '!ruby/object'          => :object,
+      }
+
+      def complex o, match
+        h = Hash[*o.children.map { |c| accept c }]
+        register o, Complex(h['real'], h['image'])
+      end
+
+      def rational o, match
+        h = Hash[*o.children.map { |c| accept c }]
+        register o, Rational(h['numerator'], h['denominator'])
+      end
+
+      def object o, match
+        name = match.string.split(':', 2)[1] || 'Object'
+        revive((resolve_class(name) || Object), o)
+      end
+
       def register node, object
         @st[node.anchor] = object if node.anchor
         object

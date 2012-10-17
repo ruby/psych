@@ -38,9 +38,9 @@ module Psych
           string
         when '~', /^null$/i
           nil
-        when /^(yes|true|on)$/i
+        when /^(?:yes|true|on)$/i
           true
-        when /^(no|false|off)$/i
+        when /^(?:no|false|off)$/i
           false
         else
           @string_cache[string] = true
