@@ -23,6 +23,12 @@ module Psych
      YAML::ENGINE.yamler = 'syck'
      assert_equal ::Syck, YAML
      assert_equal 'syck', YAML::ENGINE.yamler
+   rescue NameError => e
+     if e.name == :Syck then
+       skip 'syck has been removed'
+     else
+       raise
+     end
    end
 
    A = Struct.new(:name)
