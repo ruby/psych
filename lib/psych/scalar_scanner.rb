@@ -86,24 +86,47 @@ module Psych
         end
         i
       when FLOAT
-        begin
-          return Float(string.gsub(/[,_]/, ''))
-        rescue ArgumentError
-        end
+        float = parse_float(string)
+        return float if float
 
         @string_cache[string] = true
         string
       else
         if string.count('.') < 2
-          begin
-            return Integer(string.gsub(/[,_]/, ''))
-          rescue ArgumentError
-          end
+          integer = parse_integer(string)
+          return integer if integer
         end
 
         @string_cache[string] = true
         string
       end
+    end
+
+    ###
+    # Parse a string and attempt to return an integer, or nil if unparsable.
+    def parse_integer(string)
+      subbed_string = string.gsub(/[,_]/, '')
+      integer = subbed_string.to_i
+
+      # if result is zero, confirm there's no non-zero characters
+      return integer if integer != 0 || /^0+$/.match(subbed_string) 
+
+      nil
+    end
+
+    ###
+    # Parse a string and attempt to return an integer, or nil if unparsable.
+    def parse_float(string)
+      # more than one . means it should not be a float
+      return nil if /\..*\./.match(string)
+
+      subbed_string = string.gsub(/[,_]/, '')
+      float = subbed_string.to_f
+
+      # if result is zero, confirm there's no non-zero characters
+      return float if float != 0.0 || /^0*\.0+$/.match(subbed_string) 
+
+      nil
     end
 
     ###
