@@ -1,3 +1,11 @@
+Tue Nov  6 09:37:57 2012  NARUSE, Yui  <naruse@ruby-lang.org>
+
+	* ruby.c (load_file_internal): set default source encoding as
+	  UTF-8 instead of US-ASCII. [ruby-core:46021] [Feature #6679]
+
+	* parse.y (parser_initialize): set default parser encoding as
+	  UTF-8 instead of US-ASCII.
+
 Mon Oct 29 10:22:00 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/handlers/recorder.rb: added a class for
