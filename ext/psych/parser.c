@@ -1,579 +1,1374 @@
-#include <psych.h>
 
-VALUE cPsychParser;
-VALUE ePsychSyntaxError;
+/*
+ * The parser implements the following grammar:
+ *
+ * stream               ::= STREAM-START implicit_document? explicit_document* STREAM-END
+ * implicit_document    ::= block_node DOCUMENT-END*
+ * explicit_document    ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*
+ * block_node_or_indentless_sequence    ::=
+ *                          ALIAS
+ *                          | properties (block_content | indentless_block_sequence)?
+ *                          | block_content
+ *                          | indentless_block_sequence
+ * block_node           ::= ALIAS
+ *                          | properties block_content?
+ *                          | block_content
+ * flow_node            ::= ALIAS
+ *                          | properties flow_content?
+ *                          | flow_content
+ * properties           ::= TAG ANCHOR? | ANCHOR TAG?
+ * block_content        ::= block_collection | flow_collection | SCALAR
+ * flow_content         ::= flow_collection | SCALAR
+ * block_collection     ::= block_sequence | block_mapping
+ * flow_collection      ::= flow_sequence | flow_mapping
+ * block_sequence       ::= BLOCK-SEQUENCE-START (BLOCK-ENTRY block_node?)* BLOCK-END
+ * indentless_sequence  ::= (BLOCK-ENTRY block_node?)+
+ * block_mapping        ::= BLOCK-MAPPING_START
+ *                          ((KEY block_node_or_indentless_sequence?)?
+ *                          (VALUE block_node_or_indentless_sequence?)?)*
+ *                          BLOCK-END
+ * flow_sequence        ::= FLOW-SEQUENCE-START
+ *                          (flow_sequence_entry FLOW-ENTRY)*
+ *                          flow_sequence_entry?
+ *                          FLOW-SEQUENCE-END
+ * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ * flow_mapping         ::= FLOW-MAPPING-START
+ *                          (flow_mapping_entry FLOW-ENTRY)*
+ *                          flow_mapping_entry?
+ *                          FLOW-MAPPING-END
+ * flow_mapping_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ */
 
-static ID id_read;
-static ID id_path;
-static ID id_empty;
-static ID id_start_stream;
-static ID id_end_stream;
-static ID id_start_document;
-static ID id_end_document;
-static ID id_alias;
-static ID id_scalar;
-static ID id_start_sequence;
-static ID id_end_sequence;
-static ID id_start_mapping;
-static ID id_end_mapping;
+#include "yaml_private.h"
 
-#define PSYCH_TRANSCODE(_str, _yaml_enc, _internal_enc) \
-  do { \
-    rb_enc_associate_index((_str), (_yaml_enc)); \
-    if(_internal_enc) \
-      (_str) = rb_str_export_to_enc((_str), (_internal_enc)); \
-  } while (0)
+/*
+ * Peek the next token in the token queue.
+ */
 
-static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
+#define PEEK_TOKEN(parser)                                                      \
+    ((parser->token_available || yaml_parser_fetch_more_tokens(parser)) ?       \
+        parser->tokens.head : NULL)
+
+/*
+ * Remove the next token from the queue (must be called after PEEK_TOKEN).
+ */
+
+#define SKIP_TOKEN(parser)                                                      \
+    (parser->token_available = 0,                                               \
+     parser->tokens_parsed ++,                                                  \
+     parser->stream_end_produced =                                              \
+        (parser->tokens.head->type == YAML_STREAM_END_TOKEN),                   \
+     parser->tokens.head ++)
+
+/*
+ * Public API declarations.
+ */
+
+YAML_DECLARE(int)
+yaml_parser_parse(yaml_parser_t *parser, yaml_event_t *event);
+
+/*
+ * Error handling.
+ */
+
+static int
+yaml_parser_set_parser_error(yaml_parser_t *parser,
+        const char *problem, yaml_mark_t problem_mark);
+
+static int
+yaml_parser_set_parser_error_context(yaml_parser_t *parser,
+        const char *context, yaml_mark_t context_mark,
+        const char *problem, yaml_mark_t problem_mark);
+
+/*
+ * State functions.
+ */
+
+static int
+yaml_parser_state_machine(yaml_parser_t *parser, yaml_event_t *event);
+
+static int
+yaml_parser_parse_stream_start(yaml_parser_t *parser, yaml_event_t *event);
+
+static int
+yaml_parser_parse_document_start(yaml_parser_t *parser, yaml_event_t *event,
+        int implicit);
+
+static int
+yaml_parser_parse_document_content(yaml_parser_t *parser, yaml_event_t *event);
+
+static int
+yaml_parser_parse_document_end(yaml_parser_t *parser, yaml_event_t *event);
+
+static int
+yaml_parser_parse_node(yaml_parser_t *parser, yaml_event_t *event,
+        int block, int indentless_sequence);
+
+static int
+yaml_parser_parse_block_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event, int first);
+
+static int
+yaml_parser_parse_indentless_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event);
+
+static int
+yaml_parser_parse_block_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event, int first);
+
+static int
+yaml_parser_parse_block_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event);
+
+static int
+yaml_parser_parse_flow_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event, int first);
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event);
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event);
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_end(yaml_parser_t *parser,
+        yaml_event_t *event);
+
+static int
+yaml_parser_parse_flow_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event, int first);
+
+static int
+yaml_parser_parse_flow_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event, int empty);
+
+/*
+ * Utility functions.
+ */
+
+static int
+yaml_parser_process_empty_scalar(yaml_parser_t *parser,
+        yaml_event_t *event, yaml_mark_t mark);
+
+static int
+yaml_parser_process_directives(yaml_parser_t *parser,
+        yaml_version_directive_t **version_directive_ref,
+        yaml_tag_directive_t **tag_directives_start_ref,
+        yaml_tag_directive_t **tag_directives_end_ref);
+
+static int
+yaml_parser_append_tag_directive(yaml_parser_t *parser,
+        yaml_tag_directive_t value, int allow_duplicates, yaml_mark_t mark);
+
+/*
+ * Get the next event.
+ */
+
+YAML_DECLARE(int)
+yaml_parser_parse(yaml_parser_t *parser, yaml_event_t *event)
 {
-    VALUE io = (VALUE)data;
-    VALUE string = rb_funcall(io, id_read, 1, INT2NUM(size));
+    assert(parser);     /* Non-NULL parser object is expected. */
+    assert(event);      /* Non-NULL event object is expected. */
 
-    *read = 0;
+    /* Erase the event object. */
 
-    if(! NIL_P(string)) {
-	void * str = (void *)StringValuePtr(string);
-	*read = (size_t)RSTRING_LEN(string);
-	memcpy(buf, str, *read);
+    memset(event, 0, sizeof(yaml_event_t));
+
+    /* No events after the end of the stream or error. */
+
+    if (parser->stream_end_produced || parser->error ||
+            parser->state == YAML_PARSE_END_STATE) {
+        return 1;
     }
+
+    /* Generate the next event. */
+
+    return yaml_parser_state_machine(parser, event);
+}
+
+/*
+ * Set parser error.
+ */
+
+static int
+yaml_parser_set_parser_error(yaml_parser_t *parser,
+        const char *problem, yaml_mark_t problem_mark)
+{
+    parser->error = YAML_PARSER_ERROR;
+    parser->problem = problem;
+    parser->problem_mark = problem_mark;
+
+    return 0;
+}
+
+static int
+yaml_parser_set_parser_error_context(yaml_parser_t *parser,
+        const char *context, yaml_mark_t context_mark,
+        const char *problem, yaml_mark_t problem_mark)
+{
+    parser->error = YAML_PARSER_ERROR;
+    parser->context = context;
+    parser->context_mark = context_mark;
+    parser->problem = problem;
+    parser->problem_mark = problem_mark;
+
+    return 0;
+}
+
+
+/*
+ * State dispatcher.
+ */
+
+static int
+yaml_parser_state_machine(yaml_parser_t *parser, yaml_event_t *event)
+{
+    switch (parser->state)
+    {
+        case YAML_PARSE_STREAM_START_STATE:
+            return yaml_parser_parse_stream_start(parser, event);
+
+        case YAML_PARSE_IMPLICIT_DOCUMENT_START_STATE:
+            return yaml_parser_parse_document_start(parser, event, 1);
+
+        case YAML_PARSE_DOCUMENT_START_STATE:
+            return yaml_parser_parse_document_start(parser, event, 0);
+
+        case YAML_PARSE_DOCUMENT_CONTENT_STATE:
+            return yaml_parser_parse_document_content(parser, event);
+
+        case YAML_PARSE_DOCUMENT_END_STATE:
+            return yaml_parser_parse_document_end(parser, event);
+
+        case YAML_PARSE_BLOCK_NODE_STATE:
+            return yaml_parser_parse_node(parser, event, 1, 0);
+
+        case YAML_PARSE_BLOCK_NODE_OR_INDENTLESS_SEQUENCE_STATE:
+            return yaml_parser_parse_node(parser, event, 1, 1);
+
+        case YAML_PARSE_FLOW_NODE_STATE:
+            return yaml_parser_parse_node(parser, event, 0, 0);
+
+        case YAML_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE:
+            return yaml_parser_parse_block_sequence_entry(parser, event, 1);
+
+        case YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE:
+            return yaml_parser_parse_block_sequence_entry(parser, event, 0);
+
+        case YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE:
+            return yaml_parser_parse_indentless_sequence_entry(parser, event);
+
+        case YAML_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE:
+            return yaml_parser_parse_block_mapping_key(parser, event, 1);
+
+        case YAML_PARSE_BLOCK_MAPPING_KEY_STATE:
+            return yaml_parser_parse_block_mapping_key(parser, event, 0);
+
+        case YAML_PARSE_BLOCK_MAPPING_VALUE_STATE:
+            return yaml_parser_parse_block_mapping_value(parser, event);
+
+        case YAML_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE:
+            return yaml_parser_parse_flow_sequence_entry(parser, event, 1);
+
+        case YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE:
+            return yaml_parser_parse_flow_sequence_entry(parser, event, 0);
+
+        case YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE:
+            return yaml_parser_parse_flow_sequence_entry_mapping_key(parser, event);
+
+        case YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE:
+            return yaml_parser_parse_flow_sequence_entry_mapping_value(parser, event);
+
+        case YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE:
+            return yaml_parser_parse_flow_sequence_entry_mapping_end(parser, event);
+
+        case YAML_PARSE_FLOW_MAPPING_FIRST_KEY_STATE:
+            return yaml_parser_parse_flow_mapping_key(parser, event, 1);
+
+        case YAML_PARSE_FLOW_MAPPING_KEY_STATE:
+            return yaml_parser_parse_flow_mapping_key(parser, event, 0);
+
+        case YAML_PARSE_FLOW_MAPPING_VALUE_STATE:
+            return yaml_parser_parse_flow_mapping_value(parser, event, 0);
+
+        case YAML_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE:
+            return yaml_parser_parse_flow_mapping_value(parser, event, 1);
+
+        default:
+            assert(1);      /* Invalid state. */
+    }
+
+    return 0;
+}
+
+/*
+ * Parse the production:
+ * stream   ::= STREAM-START implicit_document? explicit_document* STREAM-END
+ *              ************
+ */
+
+static int
+yaml_parser_parse_stream_start(yaml_parser_t *parser, yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type != YAML_STREAM_START_TOKEN) {
+        return yaml_parser_set_parser_error(parser,
+                "did not find expected <stream-start>", token->start_mark);
+    }
+
+    parser->state = YAML_PARSE_IMPLICIT_DOCUMENT_START_STATE;
+    STREAM_START_EVENT_INIT(*event, token->data.stream_start.encoding,
+            token->start_mark, token->start_mark);
+    SKIP_TOKEN(parser);
 
     return 1;
 }
 
-static void dealloc(void * ptr)
+/*
+ * Parse the productions:
+ * implicit_document    ::= block_node DOCUMENT-END*
+ *                          *
+ * explicit_document    ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*
+ *                          *************************
+ */
+
+static int
+yaml_parser_parse_document_start(yaml_parser_t *parser, yaml_event_t *event,
+        int implicit)
 {
-    yaml_parser_t * parser;
+    yaml_token_t *token;
+    yaml_version_directive_t *version_directive = NULL;
+    struct {
+        yaml_tag_directive_t *start;
+        yaml_tag_directive_t *end;
+    } tag_directives = { NULL, NULL };
 
-    parser = (yaml_parser_t *)ptr;
-    yaml_parser_delete(parser);
-    xfree(parser);
-}
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
 
-static VALUE allocate(VALUE klass)
-{
-    yaml_parser_t * parser;
+    /* Parse extra document end indicators. */
 
-    parser = xmalloc(sizeof(yaml_parser_t));
-    yaml_parser_initialize(parser);
-
-    return Data_Wrap_Struct(klass, 0, dealloc, parser);
-}
-
-static VALUE make_exception(yaml_parser_t * parser, VALUE path)
-{
-    size_t line, column;
-
-    line = parser->context_mark.line + 1;
-    column = parser->context_mark.column + 1;
-
-    return rb_funcall(ePsychSyntaxError, rb_intern("new"), 6,
-	    path,
-	    INT2NUM(line),
-	    INT2NUM(column),
-	    INT2NUM(parser->problem_offset),
-	    parser->problem ? rb_usascii_str_new2(parser->problem) : Qnil,
-	    parser->context ? rb_usascii_str_new2(parser->context) : Qnil);
-}
-
-#ifdef HAVE_RUBY_ENCODING_H
-static VALUE transcode_string(VALUE src, int * parser_encoding)
-{
-    int utf8    = rb_utf8_encindex();
-    int utf16le = rb_enc_find_index("UTF-16LE");
-    int utf16be = rb_enc_find_index("UTF-16BE");
-    int source_encoding = rb_enc_get_index(src);
-
-    if (source_encoding == utf8) {
-	*parser_encoding = YAML_UTF8_ENCODING;
-	return src;
+    if (!implicit)
+    {
+        while (token->type == YAML_DOCUMENT_END_TOKEN) {
+            SKIP_TOKEN(parser);
+            token = PEEK_TOKEN(parser);
+            if (!token) return 0;
+        }
     }
 
-    if (source_encoding == utf16le) {
-	*parser_encoding = YAML_UTF16LE_ENCODING;
-	return src;
+    /* Parse an implicit document. */
+
+    if (implicit && token->type != YAML_VERSION_DIRECTIVE_TOKEN &&
+            token->type != YAML_TAG_DIRECTIVE_TOKEN &&
+            token->type != YAML_DOCUMENT_START_TOKEN &&
+            token->type != YAML_STREAM_END_TOKEN)
+    {
+        if (!yaml_parser_process_directives(parser, NULL, NULL, NULL))
+            return 0;
+        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE))
+            return 0;
+        parser->state = YAML_PARSE_BLOCK_NODE_STATE;
+        DOCUMENT_START_EVENT_INIT(*event, NULL, NULL, NULL, 1,
+                token->start_mark, token->start_mark);
+        return 1;
     }
 
-    if (source_encoding == utf16be) {
-	*parser_encoding = YAML_UTF16BE_ENCODING;
-	return src;
+    /* Parse an explicit document. */
+
+    else if (token->type != YAML_STREAM_END_TOKEN)
+    {
+        yaml_mark_t start_mark, end_mark;
+        start_mark = token->start_mark;
+        if (!yaml_parser_process_directives(parser, &version_directive,
+                    &tag_directives.start, &tag_directives.end))
+            return 0;
+        token = PEEK_TOKEN(parser);
+        if (!token) goto error;
+        if (token->type != YAML_DOCUMENT_START_TOKEN) {
+            yaml_parser_set_parser_error(parser,
+                    "did not find expected <document start>", token->start_mark);
+            goto error;
+        }
+        if (!PUSH(parser, parser->states, YAML_PARSE_DOCUMENT_END_STATE))
+            goto error;
+        parser->state = YAML_PARSE_DOCUMENT_CONTENT_STATE;
+        end_mark = token->end_mark;
+        DOCUMENT_START_EVENT_INIT(*event, version_directive,
+                tag_directives.start, tag_directives.end, 0,
+                start_mark, end_mark);
+        SKIP_TOKEN(parser);
+        version_directive = NULL;
+        tag_directives.start = tag_directives.end = NULL;
+        return 1;
     }
 
-    src = rb_str_export_to_enc(src, rb_utf8_encoding());
-    RB_GC_GUARD(src);
+    /* Parse the stream end. */
 
-    *parser_encoding = YAML_UTF8_ENCODING;
-    return src;
-}
-
-static VALUE transcode_io(VALUE src, int * parser_encoding)
-{
-    VALUE io_external_encoding;
-    int io_external_enc_index;
-
-    io_external_encoding = rb_funcall(src, rb_intern("external_encoding"), 0);
-
-    /* if no encoding is returned, assume ascii8bit. */
-    if (NIL_P(io_external_encoding)) {
-	io_external_enc_index = rb_ascii8bit_encindex();
-    } else {
-	io_external_enc_index = rb_to_encoding_index(io_external_encoding);
+    else
+    {
+        parser->state = YAML_PARSE_END_STATE;
+        STREAM_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+        SKIP_TOKEN(parser);
+        return 1;
     }
 
-    /* Treat US-ASCII as utf_8 */
-    if (io_external_enc_index == rb_usascii_encindex()) {
-	*parser_encoding = YAML_UTF8_ENCODING;
-	return src;
+error:
+    yaml_free(version_directive);
+    while (tag_directives.start != tag_directives.end) {
+        yaml_free(tag_directives.end[-1].handle);
+        yaml_free(tag_directives.end[-1].prefix);
+        tag_directives.end --;
     }
-
-    if (io_external_enc_index == rb_utf8_encindex()) {
-	*parser_encoding = YAML_UTF8_ENCODING;
-	return src;
-    }
-
-    if (io_external_enc_index == rb_enc_find_index("UTF-16LE")) {
-	*parser_encoding = YAML_UTF16LE_ENCODING;
-	return src;
-    }
-
-    if (io_external_enc_index == rb_enc_find_index("UTF-16BE")) {
-	*parser_encoding = YAML_UTF16BE_ENCODING;
-	return src;
-    }
-
-    /* Just guess on ASCII-8BIT */
-    if (io_external_enc_index == rb_ascii8bit_encindex()) {
-	*parser_encoding = YAML_ANY_ENCODING;
-	return src;
-    }
-
-    /* If the external encoding is something we don't know how to handle,
-     * fall back to YAML_ANY_ENCODING. */
-    *parser_encoding = YAML_ANY_ENCODING;
-
-    return src;
-}
-
-#endif
-
-static VALUE protected_start_stream(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall(args[0], id_start_stream, 1, args[1]);
-}
-
-static VALUE protected_start_document(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall3(args[0], id_start_document, 3, args + 1);
-}
-
-static VALUE protected_end_document(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall(args[0], id_end_document, 1, args[1]);
-}
-
-static VALUE protected_alias(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall(args[0], id_alias, 1, args[1]);
-}
-
-static VALUE protected_scalar(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall3(args[0], id_scalar, 6, args + 1);
-}
-
-static VALUE protected_start_sequence(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall3(args[0], id_start_sequence, 4, args + 1);
-}
-
-static VALUE protected_end_sequence(VALUE handler)
-{
-    return rb_funcall(handler, id_end_sequence, 0);
-}
-
-static VALUE protected_start_mapping(VALUE pointer)
-{
-    VALUE *args = (VALUE *)pointer;
-    return rb_funcall3(args[0], id_start_mapping, 4, args + 1);
-}
-
-static VALUE protected_end_mapping(VALUE handler)
-{
-    return rb_funcall(handler, id_end_mapping, 0);
-}
-
-static VALUE protected_empty(VALUE handler)
-{
-    return rb_funcall(handler, id_empty, 0);
-}
-
-static VALUE protected_end_stream(VALUE handler)
-{
-    return rb_funcall(handler, id_end_stream, 0);
+    yaml_free(tag_directives.start);
+    return 0;
 }
 
 /*
- * call-seq:
- *    parser.parse(yaml)
- *
- * Parse the YAML document contained in +yaml+.  Events will be called on
- * the handler set on the parser instance.
- *
- * See Psych::Parser and Psych::Parser#handler
+ * Parse the productions:
+ * explicit_document    ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*
+ *                                                    ***********
  */
-static VALUE parse(int argc, VALUE *argv, VALUE self)
+
+static int
+yaml_parser_parse_document_content(yaml_parser_t *parser, yaml_event_t *event)
 {
-    VALUE yaml, path;
-    yaml_parser_t * parser;
-    yaml_event_t event;
-    int done = 0;
-    int tainted = 0;
-    int state = 0;
-    int parser_encoding = YAML_ANY_ENCODING;
-#ifdef HAVE_RUBY_ENCODING_H
-    int encoding = rb_utf8_encindex();
-    rb_encoding * internal_enc = rb_default_internal_encoding();
-#endif
-    VALUE handler = rb_iv_get(self, "@handler");
+    yaml_token_t *token;
 
-    if (rb_scan_args(argc, argv, "11", &yaml, &path) == 1) {
-	if(rb_respond_to(yaml, id_path))
-	    path = rb_funcall(yaml, id_path, 0);
-	else
-	    path = rb_str_new2("<unknown>");
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_VERSION_DIRECTIVE_TOKEN ||
+            token->type == YAML_TAG_DIRECTIVE_TOKEN ||
+            token->type == YAML_DOCUMENT_START_TOKEN ||
+            token->type == YAML_DOCUMENT_END_TOKEN ||
+            token->type == YAML_STREAM_END_TOKEN) {
+        parser->state = POP(parser, parser->states);
+        return yaml_parser_process_empty_scalar(parser, event,
+                token->start_mark);
     }
-
-    Data_Get_Struct(self, yaml_parser_t, parser);
-
-    yaml_parser_delete(parser);
-    yaml_parser_initialize(parser);
-
-    if (OBJ_TAINTED(yaml)) tainted = 1;
-
-    if (rb_respond_to(yaml, id_read)) {
-#ifdef HAVE_RUBY_ENCODING_H
-	yaml = transcode_io(yaml, &parser_encoding);
-	yaml_parser_set_encoding(parser, parser_encoding);
-#endif
-	yaml_parser_set_input(parser, io_reader, (void *)yaml);
-	if (RTEST(rb_obj_is_kind_of(yaml, rb_cIO))) tainted = 1;
-    } else {
-	StringValue(yaml);
-#ifdef HAVE_RUBY_ENCODING_H
-	yaml = transcode_string(yaml, &parser_encoding);
-	yaml_parser_set_encoding(parser, parser_encoding);
-#endif
-	yaml_parser_set_input_string(
-		parser,
-		(const unsigned char *)RSTRING_PTR(yaml),
-		(size_t)RSTRING_LEN(yaml)
-		);
+    else {
+        return yaml_parser_parse_node(parser, event, 1, 0);
     }
-
-    while(!done) {
-	if(!yaml_parser_parse(parser, &event)) {
-	    VALUE exception;
-
-	    exception = make_exception(parser, path);
-	    yaml_parser_delete(parser);
-	    yaml_parser_initialize(parser);
-
-	    rb_exc_raise(exception);
-	}
-
-	switch(event.type) {
-	    case YAML_STREAM_START_EVENT:
-	      {
-		  VALUE args[2];
-
-		  args[0] = handler;
-		  args[1] = INT2NUM((long)event.data.stream_start.encoding);
-		  rb_protect(protected_start_stream, (VALUE)args, &state);
-	      }
-	      break;
-	  case YAML_DOCUMENT_START_EVENT:
-	    {
-		VALUE args[4];
-		/* Get a list of tag directives (if any) */
-		VALUE tag_directives = rb_ary_new();
-		/* Grab the document version */
-		VALUE version = event.data.document_start.version_directive ?
-		    rb_ary_new3(
-			(long)2,
-			INT2NUM((long)event.data.document_start.version_directive->major),
-			INT2NUM((long)event.data.document_start.version_directive->minor)
-			) : rb_ary_new();
-
-		if(event.data.document_start.tag_directives.start) {
-		    yaml_tag_directive_t *start =
-			event.data.document_start.tag_directives.start;
-		    yaml_tag_directive_t *end =
-			event.data.document_start.tag_directives.end;
-		    for(; start != end; start++) {
-			VALUE handle = Qnil;
-			VALUE prefix = Qnil;
-			if(start->handle) {
-			    handle = rb_str_new2((const char *)start->handle);
-			    if (tainted) OBJ_TAINT(handle);
-#ifdef HAVE_RUBY_ENCODING_H
-			    PSYCH_TRANSCODE(handle, encoding, internal_enc);
-#endif
-			}
-
-			if(start->prefix) {
-			    prefix = rb_str_new2((const char *)start->prefix);
-			    if (tainted) OBJ_TAINT(prefix);
-#ifdef HAVE_RUBY_ENCODING_H
-			    PSYCH_TRANSCODE(prefix, encoding, internal_enc);
-#endif
-			}
-
-			rb_ary_push(tag_directives, rb_ary_new3((long)2, handle, prefix));
-		    }
-		}
-		args[0] = handler;
-		args[1] = version;
-		args[2] = tag_directives;
-		args[3] = event.data.document_start.implicit == 1 ? Qtrue : Qfalse;
-		rb_protect(protected_start_document, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_DOCUMENT_END_EVENT:
-	    {
-		VALUE args[2];
-
-		args[0] = handler;
-		args[1] = event.data.document_end.implicit == 1 ? Qtrue : Qfalse;
-		rb_protect(protected_end_document, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_ALIAS_EVENT:
-	    {
-		VALUE args[2];
-		VALUE alias = Qnil;
-		if(event.data.alias.anchor) {
-		    alias = rb_str_new2((const char *)event.data.alias.anchor);
-		    if (tainted) OBJ_TAINT(alias);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(alias, encoding, internal_enc);
-#endif
-		}
-
-		args[0] = handler;
-		args[1] = alias;
-		rb_protect(protected_alias, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_SCALAR_EVENT:
-	    {
-		VALUE args[7];
-		VALUE anchor = Qnil;
-		VALUE tag = Qnil;
-		VALUE plain_implicit, quoted_implicit, style;
-		VALUE val = rb_str_new(
-		    (const char *)event.data.scalar.value,
-		    (long)event.data.scalar.length
-		    );
-		if (tainted) OBJ_TAINT(val);
-
-#ifdef HAVE_RUBY_ENCODING_H
-		PSYCH_TRANSCODE(val, encoding, internal_enc);
-#endif
-
-		if(event.data.scalar.anchor) {
-		    anchor = rb_str_new2((const char *)event.data.scalar.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
-#endif
-		}
-
-		if(event.data.scalar.tag) {
-		    tag = rb_str_new2((const char *)event.data.scalar.tag);
-		    if (tainted) OBJ_TAINT(tag);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
-#endif
-		}
-
-		plain_implicit =
-		    event.data.scalar.plain_implicit == 0 ? Qfalse : Qtrue;
-
-		quoted_implicit =
-		    event.data.scalar.quoted_implicit == 0 ? Qfalse : Qtrue;
-
-		style = INT2NUM((long)event.data.scalar.style);
-
-		args[0] = handler;
-		args[1] = val;
-		args[2] = anchor;
-		args[3] = tag;
-		args[4] = plain_implicit;
-		args[5] = quoted_implicit;
-		args[6] = style;
-		rb_protect(protected_scalar, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_SEQUENCE_START_EVENT:
-	    {
-		VALUE args[5];
-		VALUE anchor = Qnil;
-		VALUE tag = Qnil;
-		VALUE implicit, style;
-		if(event.data.sequence_start.anchor) {
-		    anchor = rb_str_new2((const char *)event.data.sequence_start.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
-#endif
-		}
-
-		tag = Qnil;
-		if(event.data.sequence_start.tag) {
-		    tag = rb_str_new2((const char *)event.data.sequence_start.tag);
-		    if (tainted) OBJ_TAINT(tag);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
-#endif
-		}
-
-		implicit =
-		    event.data.sequence_start.implicit == 0 ? Qfalse : Qtrue;
-
-		style = INT2NUM((long)event.data.sequence_start.style);
-
-		args[0] = handler;
-		args[1] = anchor;
-		args[2] = tag;
-		args[3] = implicit;
-		args[4] = style;
-
-		rb_protect(protected_start_sequence, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_SEQUENCE_END_EVENT:
-	    rb_protect(protected_end_sequence, handler, &state);
-	    break;
-	  case YAML_MAPPING_START_EVENT:
-	    {
-		VALUE args[5];
-		VALUE anchor = Qnil;
-		VALUE tag = Qnil;
-		VALUE implicit, style;
-		if(event.data.mapping_start.anchor) {
-		    anchor = rb_str_new2((const char *)event.data.mapping_start.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
-#endif
-		}
-
-		if(event.data.mapping_start.tag) {
-		    tag = rb_str_new2((const char *)event.data.mapping_start.tag);
-		    if (tainted) OBJ_TAINT(tag);
-#ifdef HAVE_RUBY_ENCODING_H
-		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
-#endif
-		}
-
-		implicit =
-		    event.data.mapping_start.implicit == 0 ? Qfalse : Qtrue;
-
-		style = INT2NUM((long)event.data.mapping_start.style);
-
-		args[0] = handler;
-		args[1] = anchor;
-		args[2] = tag;
-		args[3] = implicit;
-		args[4] = style;
-
-		rb_protect(protected_start_mapping, (VALUE)args, &state);
-	    }
-	    break;
-	  case YAML_MAPPING_END_EVENT:
-	    rb_protect(protected_end_mapping, handler, &state);
-	    break;
-	  case YAML_NO_EVENT:
-	    rb_protect(protected_empty, handler, &state);
-	    break;
-	  case YAML_STREAM_END_EVENT:
-	    rb_protect(protected_end_stream, handler, &state);
-	    done = 1;
-	    break;
-	}
-	yaml_event_delete(&event);
-	if (state) rb_jump_tag(state);
-    }
-
-    return self;
 }
 
 /*
- * call-seq:
- *    parser.mark # => #<Psych::Parser::Mark>
- *
- * Returns a Psych::Parser::Mark object that contains line, column, and index
- * information.
+ * Parse the productions:
+ * implicit_document    ::= block_node DOCUMENT-END*
+ *                                     *************
+ * explicit_document    ::= DIRECTIVE* DOCUMENT-START block_node? DOCUMENT-END*
+ *                                                                *************
  */
-static VALUE mark(VALUE self)
+
+static int
+yaml_parser_parse_document_end(yaml_parser_t *parser, yaml_event_t *event)
 {
-    VALUE mark_klass;
-    VALUE args[3];
-    yaml_parser_t * parser;
+    yaml_token_t *token;
+    yaml_mark_t start_mark, end_mark;
+    int implicit = 1;
 
-    Data_Get_Struct(self, yaml_parser_t, parser);
-    mark_klass = rb_const_get_at(cPsychParser, rb_intern("Mark"));
-    args[0] = INT2NUM(parser->mark.index);
-    args[1] = INT2NUM(parser->mark.line);
-    args[2] = INT2NUM(parser->mark.column);
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
 
-    return rb_class_new_instance(3, args, mark_klass);
+    start_mark = end_mark = token->start_mark;
+
+    if (token->type == YAML_DOCUMENT_END_TOKEN) {
+        end_mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        implicit = 0;
+    }
+
+    while (!STACK_EMPTY(parser, parser->tag_directives)) {
+        yaml_tag_directive_t tag_directive = POP(parser, parser->tag_directives);
+        yaml_free(tag_directive.handle);
+        yaml_free(tag_directive.prefix);
+    }
+
+    parser->state = YAML_PARSE_DOCUMENT_START_STATE;
+    DOCUMENT_END_EVENT_INIT(*event, implicit, start_mark, end_mark);
+
+    return 1;
 }
 
-void Init_psych_parser()
+/*
+ * Parse the productions:
+ * block_node_or_indentless_sequence    ::=
+ *                          ALIAS
+ *                          *****
+ *                          | properties (block_content | indentless_block_sequence)?
+ *                            **********  *
+ *                          | block_content | indentless_block_sequence
+ *                            *
+ * block_node           ::= ALIAS
+ *                          *****
+ *                          | properties block_content?
+ *                            ********** *
+ *                          | block_content
+ *                            *
+ * flow_node            ::= ALIAS
+ *                          *****
+ *                          | properties flow_content?
+ *                            ********** *
+ *                          | flow_content
+ *                            *
+ * properties           ::= TAG ANCHOR? | ANCHOR TAG?
+ *                          *************************
+ * block_content        ::= block_collection | flow_collection | SCALAR
+ *                                                               ******
+ * flow_content         ::= flow_collection | SCALAR
+ *                                            ******
+ */
+
+static int
+yaml_parser_parse_node(yaml_parser_t *parser, yaml_event_t *event,
+        int block, int indentless_sequence)
 {
-#if 0
-    mPsych = rb_define_module("Psych");
-#endif
+    yaml_token_t *token;
+    yaml_char_t *anchor = NULL;
+    yaml_char_t *tag_handle = NULL;
+    yaml_char_t *tag_suffix = NULL;
+    yaml_char_t *tag = NULL;
+    yaml_mark_t start_mark, end_mark, tag_mark;
+    int implicit;
 
-    cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
-    rb_define_alloc_func(cPsychParser, allocate);
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
 
-    /* Any encoding: Let the parser choose the encoding */
-    rb_define_const(cPsychParser, "ANY", INT2NUM(YAML_ANY_ENCODING));
+    if (token->type == YAML_ALIAS_TOKEN)
+    {
+        parser->state = POP(parser, parser->states);
+        ALIAS_EVENT_INIT(*event, token->data.alias.value,
+                token->start_mark, token->end_mark);
+        SKIP_TOKEN(parser);
+        return 1;
+    }
 
-    /* UTF-8 Encoding */
-    rb_define_const(cPsychParser, "UTF8", INT2NUM(YAML_UTF8_ENCODING));
+    else
+    {
+        start_mark = end_mark = token->start_mark;
 
-    /* UTF-16-LE Encoding with BOM */
-    rb_define_const(cPsychParser, "UTF16LE", INT2NUM(YAML_UTF16LE_ENCODING));
+        if (token->type == YAML_ANCHOR_TOKEN)
+        {
+            anchor = token->data.anchor.value;
+            start_mark = token->start_mark;
+            end_mark = token->end_mark;
+            SKIP_TOKEN(parser);
+            token = PEEK_TOKEN(parser);
+            if (!token) goto error;
+            if (token->type == YAML_TAG_TOKEN)
+            {
+                tag_handle = token->data.tag.handle;
+                tag_suffix = token->data.tag.suffix;
+                tag_mark = token->start_mark;
+                end_mark = token->end_mark;
+                SKIP_TOKEN(parser);
+                token = PEEK_TOKEN(parser);
+                if (!token) goto error;
+            }
+        }
+        else if (token->type == YAML_TAG_TOKEN)
+        {
+            tag_handle = token->data.tag.handle;
+            tag_suffix = token->data.tag.suffix;
+            start_mark = tag_mark = token->start_mark;
+            end_mark = token->end_mark;
+            SKIP_TOKEN(parser);
+            token = PEEK_TOKEN(parser);
+            if (!token) goto error;
+            if (token->type == YAML_ANCHOR_TOKEN)
+            {
+                anchor = token->data.anchor.value;
+                end_mark = token->end_mark;
+                SKIP_TOKEN(parser);
+                token = PEEK_TOKEN(parser);
+                if (!token) goto error;
+            }
+        }
 
-    /* UTF-16-BE Encoding with BOM */
-    rb_define_const(cPsychParser, "UTF16BE", INT2NUM(YAML_UTF16BE_ENCODING));
+        if (tag_handle) {
+            if (!*tag_handle) {
+                tag = tag_suffix;
+                yaml_free(tag_handle);
+                tag_handle = tag_suffix = NULL;
+            }
+            else {
+                yaml_tag_directive_t *tag_directive;
+                for (tag_directive = parser->tag_directives.start;
+                        tag_directive != parser->tag_directives.top;
+                        tag_directive ++) {
+                    if (strcmp((char *)tag_directive->handle, (char *)tag_handle) == 0) {
+                        size_t prefix_len = strlen((char *)tag_directive->prefix);
+                        size_t suffix_len = strlen((char *)tag_suffix);
+                        tag = yaml_malloc(prefix_len+suffix_len+1);
+                        if (!tag) {
+                            parser->error = YAML_MEMORY_ERROR;
+                            goto error;
+                        }
+                        memcpy(tag, tag_directive->prefix, prefix_len);
+                        memcpy(tag+prefix_len, tag_suffix, suffix_len);
+                        tag[prefix_len+suffix_len] = '\0';
+                        yaml_free(tag_handle);
+                        yaml_free(tag_suffix);
+                        tag_handle = tag_suffix = NULL;
+                        break;
+                    }
+                }
+                if (!tag) {
+                    yaml_parser_set_parser_error_context(parser,
+                            "while parsing a node", start_mark,
+                            "found undefined tag handle", tag_mark);
+                    goto error;
+                }
+            }
+        }
 
-    rb_require("psych/syntax_error");
-    ePsychSyntaxError = rb_const_get(mPsych, rb_intern("SyntaxError"));
+        implicit = (!tag || !*tag);
+        if (indentless_sequence && token->type == YAML_BLOCK_ENTRY_TOKEN) {
+            end_mark = token->end_mark;
+            parser->state = YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE;
+            SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
+                    YAML_BLOCK_SEQUENCE_STYLE, start_mark, end_mark);
+            return 1;
+        }
+        else {
+            if (token->type == YAML_SCALAR_TOKEN) {
+                int plain_implicit = 0;
+                int quoted_implicit = 0;
+                end_mark = token->end_mark;
+                if ((token->data.scalar.style == YAML_PLAIN_SCALAR_STYLE && !tag)
+                        || (tag && strcmp((char *)tag, "!") == 0)) {
+                    plain_implicit = 1;
+                }
+                else if (!tag) {
+                    quoted_implicit = 1;
+                }
+                parser->state = POP(parser, parser->states);
+                SCALAR_EVENT_INIT(*event, anchor, tag,
+                        token->data.scalar.value, token->data.scalar.length,
+                        plain_implicit, quoted_implicit,
+                        token->data.scalar.style, start_mark, end_mark);
+                SKIP_TOKEN(parser);
+                return 1;
+            }
+            else if (token->type == YAML_FLOW_SEQUENCE_START_TOKEN) {
+                end_mark = token->end_mark;
+                parser->state = YAML_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE;
+                SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
+                        YAML_FLOW_SEQUENCE_STYLE, start_mark, end_mark);
+                return 1;
+            }
+            else if (token->type == YAML_FLOW_MAPPING_START_TOKEN) {
+                end_mark = token->end_mark;
+                parser->state = YAML_PARSE_FLOW_MAPPING_FIRST_KEY_STATE;
+                MAPPING_START_EVENT_INIT(*event, anchor, tag, implicit,
+                        YAML_FLOW_MAPPING_STYLE, start_mark, end_mark);
+                return 1;
+            }
+            else if (block && token->type == YAML_BLOCK_SEQUENCE_START_TOKEN) {
+                end_mark = token->end_mark;
+                parser->state = YAML_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE;
+                SEQUENCE_START_EVENT_INIT(*event, anchor, tag, implicit,
+                        YAML_BLOCK_SEQUENCE_STYLE, start_mark, end_mark);
+                return 1;
+            }
+            else if (block && token->type == YAML_BLOCK_MAPPING_START_TOKEN) {
+                end_mark = token->end_mark;
+                parser->state = YAML_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE;
+                MAPPING_START_EVENT_INIT(*event, anchor, tag, implicit,
+                        YAML_BLOCK_MAPPING_STYLE, start_mark, end_mark);
+                return 1;
+            }
+            else if (anchor || tag) {
+                yaml_char_t *value = yaml_malloc(1);
+                if (!value) {
+                    parser->error = YAML_MEMORY_ERROR;
+                    goto error;
+                }
+                value[0] = '\0';
+                parser->state = POP(parser, parser->states);
+                SCALAR_EVENT_INIT(*event, anchor, tag, value, 0,
+                        implicit, 0, YAML_PLAIN_SCALAR_STYLE,
+                        start_mark, end_mark);
+                return 1;
+            }
+            else {
+                yaml_parser_set_parser_error_context(parser,
+                        (block ? "while parsing a block node"
+                         : "while parsing a flow node"), start_mark,
+                        "did not find expected node content", token->start_mark);
+                goto error;
+            }
+        }
+    }
 
-    rb_define_method(cPsychParser, "parse", parse, -1);
-    rb_define_method(cPsychParser, "mark", mark, 0);
+error:
+    yaml_free(anchor);
+    yaml_free(tag_handle);
+    yaml_free(tag_suffix);
+    yaml_free(tag);
 
-    id_read           = rb_intern("read");
-    id_path           = rb_intern("path");
-    id_empty          = rb_intern("empty");
-    id_start_stream   = rb_intern("start_stream");
-    id_end_stream     = rb_intern("end_stream");
-    id_start_document = rb_intern("start_document");
-    id_end_document   = rb_intern("end_document");
-    id_alias          = rb_intern("alias");
-    id_scalar         = rb_intern("scalar");
-    id_start_sequence = rb_intern("start_sequence");
-    id_end_sequence   = rb_intern("end_sequence");
-    id_start_mapping  = rb_intern("start_mapping");
-    id_end_mapping    = rb_intern("end_mapping");
+    return 0;
 }
-/* vim: set noet sws=4 sw=4: */
+
+/*
+ * Parse the productions:
+ * block_sequence ::= BLOCK-SEQUENCE-START (BLOCK-ENTRY block_node?)* BLOCK-END
+ *                    ********************  *********** *             *********
+ */
+
+static int
+yaml_parser_parse_block_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event, int first)
+{
+    yaml_token_t *token;
+
+    if (first) {
+        token = PEEK_TOKEN(parser);
+        if (!PUSH(parser, parser->marks, token->start_mark))
+            return 0;
+        SKIP_TOKEN(parser);
+    }
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_BLOCK_ENTRY_TOKEN)
+    {
+        yaml_mark_t mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_BLOCK_ENTRY_TOKEN &&
+                token->type != YAML_BLOCK_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 1, 0);
+        }
+        else {
+            parser->state = YAML_PARSE_BLOCK_SEQUENCE_ENTRY_STATE;
+            return yaml_parser_process_empty_scalar(parser, event, mark);
+        }
+    }
+
+    else if (token->type == YAML_BLOCK_END_TOKEN)
+    {
+        yaml_mark_t dummy_mark;     /* Used to eliminate a compiler warning. */
+        parser->state = POP(parser, parser->states);
+        dummy_mark = POP(parser, parser->marks);
+        SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+        SKIP_TOKEN(parser);
+        return 1;
+    }
+
+    else
+    {
+        return yaml_parser_set_parser_error_context(parser,
+                "while parsing a block collection", POP(parser, parser->marks),
+                "did not find expected '-' indicator", token->start_mark);
+    }
+}
+
+/*
+ * Parse the productions:
+ * indentless_sequence  ::= (BLOCK-ENTRY block_node?)+
+ *                           *********** *
+ */
+
+static int
+yaml_parser_parse_indentless_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_BLOCK_ENTRY_TOKEN)
+    {
+        yaml_mark_t mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_BLOCK_ENTRY_TOKEN &&
+                token->type != YAML_KEY_TOKEN &&
+                token->type != YAML_VALUE_TOKEN &&
+                token->type != YAML_BLOCK_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 1, 0);
+        }
+        else {
+            parser->state = YAML_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE;
+            return yaml_parser_process_empty_scalar(parser, event, mark);
+        }
+    }
+
+    else
+    {
+        parser->state = POP(parser, parser->states);
+        SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->start_mark);
+        return 1;
+    }
+}
+
+/*
+ * Parse the productions:
+ * block_mapping        ::= BLOCK-MAPPING_START
+ *                          *******************
+ *                          ((KEY block_node_or_indentless_sequence?)?
+ *                            *** *
+ *                          (VALUE block_node_or_indentless_sequence?)?)*
+ *
+ *                          BLOCK-END
+ *                          *********
+ */
+
+static int
+yaml_parser_parse_block_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event, int first)
+{
+    yaml_token_t *token;
+
+    if (first) {
+        token = PEEK_TOKEN(parser);
+        if (!PUSH(parser, parser->marks, token->start_mark))
+            return 0;
+        SKIP_TOKEN(parser);
+    }
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_KEY_TOKEN)
+    {
+        yaml_mark_t mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_KEY_TOKEN &&
+                token->type != YAML_VALUE_TOKEN &&
+                token->type != YAML_BLOCK_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_BLOCK_MAPPING_VALUE_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 1, 1);
+        }
+        else {
+            parser->state = YAML_PARSE_BLOCK_MAPPING_VALUE_STATE;
+            return yaml_parser_process_empty_scalar(parser, event, mark);
+        }
+    }
+
+    else if (token->type == YAML_BLOCK_END_TOKEN)
+    {
+        yaml_mark_t dummy_mark;     /* Used to eliminate a compiler warning. */
+        parser->state = POP(parser, parser->states);
+        dummy_mark = POP(parser, parser->marks);
+        MAPPING_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+        SKIP_TOKEN(parser);
+        return 1;
+    }
+
+    else
+    {
+        return yaml_parser_set_parser_error_context(parser,
+                "while parsing a block mapping", POP(parser, parser->marks),
+                "did not find expected key", token->start_mark);
+    }
+}
+
+/*
+ * Parse the productions:
+ * block_mapping        ::= BLOCK-MAPPING_START
+ *
+ *                          ((KEY block_node_or_indentless_sequence?)?
+ *
+ *                          (VALUE block_node_or_indentless_sequence?)?)*
+ *                           ***** *
+ *                          BLOCK-END
+ *
+ */
+
+static int
+yaml_parser_parse_block_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_VALUE_TOKEN)
+    {
+        yaml_mark_t mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_KEY_TOKEN &&
+                token->type != YAML_VALUE_TOKEN &&
+                token->type != YAML_BLOCK_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_BLOCK_MAPPING_KEY_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 1, 1);
+        }
+        else {
+            parser->state = YAML_PARSE_BLOCK_MAPPING_KEY_STATE;
+            return yaml_parser_process_empty_scalar(parser, event, mark);
+        }
+    }
+
+    else
+    {
+        parser->state = YAML_PARSE_BLOCK_MAPPING_KEY_STATE;
+        return yaml_parser_process_empty_scalar(parser, event, token->start_mark);
+    }
+}
+
+/*
+ * Parse the productions:
+ * flow_sequence        ::= FLOW-SEQUENCE-START
+ *                          *******************
+ *                          (flow_sequence_entry FLOW-ENTRY)*
+ *                           *                   **********
+ *                          flow_sequence_entry?
+ *                          *
+ *                          FLOW-SEQUENCE-END
+ *                          *****************
+ * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                          *
+ */
+
+static int
+yaml_parser_parse_flow_sequence_entry(yaml_parser_t *parser,
+        yaml_event_t *event, int first)
+{
+    yaml_token_t *token;
+    yaml_mark_t dummy_mark;     /* Used to eliminate a compiler warning. */
+
+    if (first) {
+        token = PEEK_TOKEN(parser);
+        if (!PUSH(parser, parser->marks, token->start_mark))
+            return 0;
+        SKIP_TOKEN(parser);
+    }
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type != YAML_FLOW_SEQUENCE_END_TOKEN)
+    {
+        if (!first) {
+            if (token->type == YAML_FLOW_ENTRY_TOKEN) {
+                SKIP_TOKEN(parser);
+                token = PEEK_TOKEN(parser);
+                if (!token) return 0;
+            }
+            else {
+                return yaml_parser_set_parser_error_context(parser,
+                        "while parsing a flow sequence", POP(parser, parser->marks),
+                        "did not find expected ',' or ']'", token->start_mark);
+            }
+        }
+
+        if (token->type == YAML_KEY_TOKEN) {
+            parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE;
+            MAPPING_START_EVENT_INIT(*event, NULL, NULL,
+                    1, YAML_FLOW_MAPPING_STYLE,
+                    token->start_mark, token->end_mark);
+            SKIP_TOKEN(parser);
+            return 1;
+        }
+
+        else if (token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 0, 0);
+        }
+    }
+
+    parser->state = POP(parser, parser->states);
+    dummy_mark = POP(parser, parser->marks);
+    SEQUENCE_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+    SKIP_TOKEN(parser);
+    return 1;
+}
+
+/*
+ * Parse the productions:
+ * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                                      *** *
+ */
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type != YAML_VALUE_TOKEN && token->type != YAML_FLOW_ENTRY_TOKEN
+            && token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
+        if (!PUSH(parser, parser->states,
+                    YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE))
+            return 0;
+        return yaml_parser_parse_node(parser, event, 0, 0);
+    }
+    else {
+        yaml_mark_t mark = token->end_mark;
+        SKIP_TOKEN(parser);
+        parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE;
+        return yaml_parser_process_empty_scalar(parser, event, mark);
+    }
+}
+
+/*
+ * Parse the productions:
+ * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                                                      ***** *
+ */
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type == YAML_VALUE_TOKEN) {
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_FLOW_ENTRY_TOKEN
+                && token->type != YAML_FLOW_SEQUENCE_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 0, 0);
+        }
+    }
+    parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE;
+    return yaml_parser_process_empty_scalar(parser, event, token->start_mark);
+}
+
+/*
+ * Parse the productions:
+ * flow_sequence_entry  ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                                                                      *
+ */
+
+static int
+yaml_parser_parse_flow_sequence_entry_mapping_end(yaml_parser_t *parser,
+        yaml_event_t *event)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    parser->state = YAML_PARSE_FLOW_SEQUENCE_ENTRY_STATE;
+
+    MAPPING_END_EVENT_INIT(*event, token->start_mark, token->start_mark);
+    return 1;
+}
+
+/*
+ * Parse the productions:
+ * flow_mapping         ::= FLOW-MAPPING-START
+ *                          ******************
+ *                          (flow_mapping_entry FLOW-ENTRY)*
+ *                           *                  **********
+ *                          flow_mapping_entry?
+ *                          ******************
+ *                          FLOW-MAPPING-END
+ *                          ****************
+ * flow_mapping_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                          *           *** *
+ */
+
+static int
+yaml_parser_parse_flow_mapping_key(yaml_parser_t *parser,
+        yaml_event_t *event, int first)
+{
+    yaml_token_t *token;
+    yaml_mark_t dummy_mark;     /* Used to eliminate a compiler warning. */
+
+    if (first) {
+        token = PEEK_TOKEN(parser);
+        if (!PUSH(parser, parser->marks, token->start_mark))
+            return 0;
+        SKIP_TOKEN(parser);
+    }
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (token->type != YAML_FLOW_MAPPING_END_TOKEN)
+    {
+        if (!first) {
+            if (token->type == YAML_FLOW_ENTRY_TOKEN) {
+                SKIP_TOKEN(parser);
+                token = PEEK_TOKEN(parser);
+                if (!token) return 0;
+            }
+            else {
+                return yaml_parser_set_parser_error_context(parser,
+                        "while parsing a flow mapping", POP(parser, parser->marks),
+                        "did not find expected ',' or '}'", token->start_mark);
+            }
+        }
+
+        if (token->type == YAML_KEY_TOKEN) {
+            SKIP_TOKEN(parser);
+            token = PEEK_TOKEN(parser);
+            if (!token) return 0;
+            if (token->type != YAML_VALUE_TOKEN
+                    && token->type != YAML_FLOW_ENTRY_TOKEN
+                    && token->type != YAML_FLOW_MAPPING_END_TOKEN) {
+                if (!PUSH(parser, parser->states,
+                            YAML_PARSE_FLOW_MAPPING_VALUE_STATE))
+                    return 0;
+                return yaml_parser_parse_node(parser, event, 0, 0);
+            }
+            else {
+                parser->state = YAML_PARSE_FLOW_MAPPING_VALUE_STATE;
+                return yaml_parser_process_empty_scalar(parser, event,
+                        token->start_mark);
+            }
+        }
+        else if (token->type != YAML_FLOW_MAPPING_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 0, 0);
+        }
+    }
+
+    parser->state = POP(parser, parser->states);
+    dummy_mark = POP(parser, parser->marks);
+    MAPPING_END_EVENT_INIT(*event, token->start_mark, token->end_mark);
+    SKIP_TOKEN(parser);
+    return 1;
+}
+
+/*
+ * Parse the productions:
+ * flow_mapping_entry   ::= flow_node | KEY flow_node? (VALUE flow_node?)?
+ *                                   *                  ***** *
+ */
+
+static int
+yaml_parser_parse_flow_mapping_value(yaml_parser_t *parser,
+        yaml_event_t *event, int empty)
+{
+    yaml_token_t *token;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) return 0;
+
+    if (empty) {
+        parser->state = YAML_PARSE_FLOW_MAPPING_KEY_STATE;
+        return yaml_parser_process_empty_scalar(parser, event,
+                token->start_mark);
+    }
+
+    if (token->type == YAML_VALUE_TOKEN) {
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) return 0;
+        if (token->type != YAML_FLOW_ENTRY_TOKEN
+                && token->type != YAML_FLOW_MAPPING_END_TOKEN) {
+            if (!PUSH(parser, parser->states,
+                        YAML_PARSE_FLOW_MAPPING_KEY_STATE))
+                return 0;
+            return yaml_parser_parse_node(parser, event, 0, 0);
+        }
+    }
+
+    parser->state = YAML_PARSE_FLOW_MAPPING_KEY_STATE;
+    return yaml_parser_process_empty_scalar(parser, event, token->start_mark);
+}
+
+/*
+ * Generate an empty scalar event.
+ */
+
+static int
+yaml_parser_process_empty_scalar(yaml_parser_t *parser, yaml_event_t *event,
+        yaml_mark_t mark)
+{
+    yaml_char_t *value;
+
+    value = yaml_malloc(1);
+    if (!value) {
+        parser->error = YAML_MEMORY_ERROR;
+        return 0;
+    }
+    value[0] = '\0';
+
+    SCALAR_EVENT_INIT(*event, NULL, NULL, value, 0,
+            1, 0, YAML_PLAIN_SCALAR_STYLE, mark, mark);
+
+    return 1;
+}
+
+/*
+ * Parse directives.
+ */
+
+static int
+yaml_parser_process_directives(yaml_parser_t *parser,
+        yaml_version_directive_t **version_directive_ref,
+        yaml_tag_directive_t **tag_directives_start_ref,
+        yaml_tag_directive_t **tag_directives_end_ref)
+{
+    yaml_tag_directive_t default_tag_directives[] = {
+        {(yaml_char_t *)"!", (yaml_char_t *)"!"},
+        {(yaml_char_t *)"!!", (yaml_char_t *)"tag:yaml.org,2002:"},
+        {NULL, NULL}
+    };
+    yaml_tag_directive_t *default_tag_directive;
+    yaml_version_directive_t *version_directive = NULL;
+    struct {
+        yaml_tag_directive_t *start;
+        yaml_tag_directive_t *end;
+        yaml_tag_directive_t *top;
+    } tag_directives = { NULL, NULL, NULL };
+    yaml_token_t *token;
+
+    if (!STACK_INIT(parser, tag_directives, INITIAL_STACK_SIZE))
+        goto error;
+
+    token = PEEK_TOKEN(parser);
+    if (!token) goto error;
+
+    while (token->type == YAML_VERSION_DIRECTIVE_TOKEN ||
+            token->type == YAML_TAG_DIRECTIVE_TOKEN)
+    {
+        if (token->type == YAML_VERSION_DIRECTIVE_TOKEN) {
+            if (version_directive) {
+                yaml_parser_set_parser_error(parser,
+                        "found duplicate %YAML directive", token->start_mark);
+                goto error;
+            }
+            if (token->data.version_directive.major != 1
+                    || token->data.version_directive.minor != 1) {
+                yaml_parser_set_parser_error(parser,
+                        "found incompatible YAML document", token->start_mark);
+                goto error;
+            }
+            version_directive = yaml_malloc(sizeof(yaml_version_directive_t));
+            if (!version_directive) {
+                parser->error = YAML_MEMORY_ERROR;
+                goto error;
+            }
+            version_directive->major = token->data.version_directive.major;
+            version_directive->minor = token->data.version_directive.minor;
+        }
+
+        else if (token->type == YAML_TAG_DIRECTIVE_TOKEN) {
+            yaml_tag_directive_t value;
+            value.handle = token->data.tag_directive.handle;
+            value.prefix = token->data.tag_directive.prefix;
+
+            if (!yaml_parser_append_tag_directive(parser, value, 0,
+                        token->start_mark))
+                goto error;
+            if (!PUSH(parser, tag_directives, value))
+                goto error;
+        }
+
+        SKIP_TOKEN(parser);
+        token = PEEK_TOKEN(parser);
+        if (!token) goto error;
+    }
+    
+    for (default_tag_directive = default_tag_directives;
+            default_tag_directive->handle; default_tag_directive++) {
+        if (!yaml_parser_append_tag_directive(parser, *default_tag_directive, 1,
+                    token->start_mark))
+            goto error;
+    }
+
+    if (version_directive_ref) {
+        *version_directive_ref = version_directive;
+    }
+    if (tag_directives_start_ref) {
+        if (STACK_EMPTY(parser, tag_directives)) {
+            *tag_directives_start_ref = *tag_directives_end_ref = NULL;
+            STACK_DEL(parser, tag_directives);
+        }
+        else {
+            *tag_directives_start_ref = tag_directives.start;
+            *tag_directives_end_ref = tag_directives.top;
+        }
+    }
+    else {
+        STACK_DEL(parser, tag_directives);
+    }
+
+    return 1;
+
+error:
+    yaml_free(version_directive);
+    while (!STACK_EMPTY(parser, tag_directives)) {
+        yaml_tag_directive_t tag_directive = POP(parser, tag_directives);
+        yaml_free(tag_directive.handle);
+        yaml_free(tag_directive.prefix);
+    }
+    STACK_DEL(parser, tag_directives);
+    return 0;
+}
+
+/*
+ * Append a tag directive to the directives stack.
+ */
+
+static int
+yaml_parser_append_tag_directive(yaml_parser_t *parser,
+        yaml_tag_directive_t value, int allow_duplicates, yaml_mark_t mark)
+{
+    yaml_tag_directive_t *tag_directive;
+    yaml_tag_directive_t copy = { NULL, NULL };
+
+    for (tag_directive = parser->tag_directives.start;
+            tag_directive != parser->tag_directives.top; tag_directive ++) {
+        if (strcmp((char *)value.handle, (char *)tag_directive->handle) == 0) {
+            if (allow_duplicates)
+                return 1;
+            return yaml_parser_set_parser_error(parser,
+                    "found duplicate %TAG directive", mark);
+        }
+    }
+
+    copy.handle = yaml_strdup(value.handle);
+    copy.prefix = yaml_strdup(value.prefix);
+    if (!copy.handle || !copy.prefix) {
+        parser->error = YAML_MEMORY_ERROR;
+        goto error;
+    }
+
+    if (!PUSH(parser, parser->tag_directives, copy))
+        goto error;
+
+    return 1;
+
+error:
+    yaml_free(copy.handle);
+    yaml_free(copy.prefix);
+    return 0;
+}
+
