@@ -1,3 +1,16 @@
+Sat Nov 17 12:03:41 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/scalar_scanner.rb: avoid raising exceptions when
+	  parsing Floats and Integers. Thanks riffraff [ruby-core:44426]
+	* test/psych/test_numeric.rb: associated test
+
+Sat Nov 17 11:26:36 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/core_ext.rb: move Kernel#y so that it can
+	  manually be required as 'psych/y'.
+
+	* ext/psych/lib/psych/y.rb: ditto
+
 Tue Nov  6 09:37:57 2012  NARUSE, Yui  <naruse@ruby-lang.org>
 
 	* ruby.c (load_file_internal): set default source encoding as
