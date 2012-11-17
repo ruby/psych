@@ -17,8 +17,7 @@ have_header 'sys/types.h'
 have_header 'unistd.h'
 
 unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
-  case RUBY_PLATFORM
-  when /mswin/
+  if $mswin
     $CFLAGS += " -DYAML_DECLARE_STATIC -DHAVE_CONFIG_H"
   end
 
