@@ -1,3 +1,9 @@
+Sat Nov 17 12:03:41 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/scalar_scanner.rb: avoid raising exceptions when
+	  parsing Floats and Integers. Thanks riffraff [ruby-core:44426]
+	* test/psych/test_numeric.rb: associated test
+
 Sat Nov 17 11:26:36 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/core_ext.rb: move Kernel#y so that it can
