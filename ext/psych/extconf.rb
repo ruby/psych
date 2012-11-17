@@ -17,6 +17,11 @@ have_header 'sys/types.h'
 have_header 'unistd.h'
 
 unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
+  case RUBY_PLATFORM
+  when /mswin/
+    $CFLAGS += " -DYAML_DECLARE_STATIC -DHAVE_CONFIG_H"
+  end
+
   srcdir = File.expand_path File.dirname __FILE__
   files = Dir.chdir File.join(srcdir, 'yaml') do
     Dir.entries(Dir.pwd).find_all { |f|
@@ -28,11 +33,6 @@ unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
 
   find_header 'yaml.h'
   have_header 'config.h'
-end
-
-case RUBY_PLATFORM
-when /mswin/
-  $CFLAGS += " -DYAML_DECLARE_STATIC -DHAVE_CONFIG_H"
 end
 
 create_makefile 'psych'
