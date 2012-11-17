@@ -14,6 +14,11 @@ have_header 'sys/types.h'
 have_header 'unistd.h'
 have_header 'config.h'
 
+case RUBY_PLATFORM
+when /mswin/
+  $CFLAGS += " -DYAML_DECLARE_STATIC -DHAVE_CONFIG_H"
+end
+
 create_makefile 'psych'
 
 # :startdoc:
