@@ -11,7 +11,7 @@ unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
   srcdir = File.expand_path File.dirname __FILE__
   files = Dir.chdir File.join(srcdir, 'yaml') do
     Dir.entries(Dir.pwd).find_all { |f|
-      File.file? f
+      File.file?(f) && File.extname(f) =~ /^\.[hc]/
     }.map { |f| File.expand_path f }
   end
 
