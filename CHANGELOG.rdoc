@@ -1,3 +1,48 @@
+Sat Nov 17 12:03:41 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/scalar_scanner.rb: avoid raising exceptions when
+	  parsing Floats and Integers. Thanks riffraff [ruby-core:44426]
+	* test/psych/test_numeric.rb: associated test
+
+Sat Nov 17 11:26:36 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/core_ext.rb: move Kernel#y so that it can
+	  manually be required as 'psych/y'.
+
+	* ext/psych/lib/psych/y.rb: ditto
+
+Tue Nov  6 09:37:57 2012  NARUSE, Yui  <naruse@ruby-lang.org>
+
+	* ruby.c (load_file_internal): set default source encoding as
+	  UTF-8 instead of US-ASCII. [ruby-core:46021] [Feature #6679]
+
+	* parse.y (parser_initialize): set default parser encoding as
+	  UTF-8 instead of US-ASCII.
+
+Mon Oct 29 10:22:00 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/handlers/recorder.rb: added a class for
+	  recording YAML parse and emit events.
+
+	* ext/psych/lib/psych/handler.rb: adding a list of events so that
+	  handler classes can more easily be meta-programmed.
+
+	* test/psych/handlers/test_recorder.rb: tests for the change.
+
+Sun Oct 28 10:12:15 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: `tree` should return the
+	  same thing on every call.
+
+	* test/psych/visitors/test_yaml_tree.rb: related test.
+
+Sun Oct 28 10:05:03 2012  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: YAML Tree object should
+	  be able to take an emitter object as it's output.
+
+	* test/psych/visitors/test_yaml_tree.rb: related test.
+
 Thu Jul 19 09:33:46 2012  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/emitter.c (initialize): allow a configuration object to be

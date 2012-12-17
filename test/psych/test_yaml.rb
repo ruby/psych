@@ -1,4 +1,4 @@
-# -*- mode: ruby; ruby-indent-level: 4; tab-width: 4 -*-
+# -*- coding: us-ascii; mode: ruby; ruby-indent-level: 4; tab-width: 4 -*-
 #												vim:sw=4:ts=4
 # $Id$
 #
@@ -1265,5 +1265,16 @@ EOY
     def test_normal_exit
       Psych.load("2000-01-01 00:00:00.#{"0"*1000} +00:00\n")
       # '[ruby-core:13735]'
+    end
+
+    def test_multiline_string_uses_literal_style
+      yaml = Psych.dump("multi\nline\nstring")
+      assert_match("|", yaml)
+    end
+
+    def test_string_starting_with_non_word_character_uses_double_quotes_without_exclamation_mark
+      yaml = Psych.dump("@123'abc")
+      assert_match("\"", yaml)
+      refute_match("!", yaml)
     end
 end
