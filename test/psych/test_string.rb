@@ -9,6 +9,12 @@ module Psych
       attr_accessor :val
     end
 
+    class Z < String
+      def initialize
+        force_encoding Encoding::US_ASCII
+      end
+    end
+
     def test_another_subclass_with_attributes
       y = Psych.load Psych.dump Y.new("foo").tap {|y| y.val = 1}
       assert_equal "foo", y
@@ -26,6 +32,12 @@ module Psych
       assert_match "!ruby/string:#{X}", Psych.dump(X.new)
       x = Psych.load Psych.dump X.new
       assert_equal X, x.class
+    end
+
+    def test_empty_character_subclass
+      assert_match "!ruby/string:#{Z}", Psych.dump(Z.new)
+      x = Psych.load Psych.dump Z.new
+      assert_equal Z, x.class
     end
 
     def test_subclass_with_attributes
