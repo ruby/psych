@@ -52,8 +52,8 @@ module Psych
       assert_equal '01:03:05', Psych.load(yaml)
     end
 
-    def test_tagged_binary_should_be_dumped_as_binary
-      string = "hello world!"
+    def test_nonascii_string_as_binary
+      string = "hello \x80 world!"
       string.force_encoding 'ascii-8bit'
       yml = Psych.dump string
       assert_match(/binary/, yml)
@@ -76,6 +76,13 @@ module Psych
 
     def test_non_binary_string
       string = binary_string(0.29)
+      yml = Psych.dump string
+      refute_match(/binary/, yml)
+      assert_equal string, Psych.load(yml)
+    end
+
+    def test_ascii_only_8bit_string
+      string = "abc".encode(Encoding::ASCII_8BIT)
       yml = Psych.dump string
       refute_match(/binary/, yml)
       assert_equal string, Psych.load(yml)
