@@ -73,6 +73,14 @@ module Psych
       assert ss.tokenize('.nan').nan?
     end
 
+    def test_scan_num_dot
+      assert_equal("1.", ss.tokenize("1."))
+    end
+
+    def test_scan_negative_dot
+      assert_equal("-.", ss.tokenize("-."))
+    end
+
     def test_scan_null
       assert_equal nil, ss.tokenize('null')
       assert_equal nil, ss.tokenize('~')

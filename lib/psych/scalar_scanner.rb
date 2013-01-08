@@ -92,7 +92,7 @@ module Psych
         end
         i
       when FLOAT
-        if string == '.'
+        if string.end_with?('.')
           @string_cache[string] = true
           string
         else
