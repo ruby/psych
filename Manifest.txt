@@ -1,6 +1,6 @@
 .autotest
 .travis.yml
-CHANGELOG.rdoc
+ChangeLog.txt
 Manifest.txt
 README.rdoc
 Rakefile
