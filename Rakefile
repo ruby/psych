@@ -17,7 +17,7 @@ $hoe = Hoe.spec 'psych' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
-  self.history_file      = 'CHANGELOG.txt'
+  self.history_file      = 'ChangeLog.txt'
   self.readme_file       = 'README.rdoc'
   self.testlib           = :minitest
 
