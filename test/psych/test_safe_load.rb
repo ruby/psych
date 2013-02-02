@@ -21,7 +21,15 @@ module Psych
     def test_explicit_recursion
       x = []
       x << x
-      assert_equal(x, Psych.safe_load(Psych.dump(x), [], true))
+      assert_equal(x, Psych.safe_load(Psych.dump(x), [], [], true))
+    end
+
+    def test_symbol_whitelist
+      yml = Psych.dump :foo
+      assert_raises(Psych::DisallowedClass) do
+        Psych.safe_load yml
+      end
+      assert_equal(:foo, Psych.safe_load(yml, [Symbol], [:foo]))
     end
 
     def test_symbol

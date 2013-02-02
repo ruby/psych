@@ -77,11 +77,10 @@ module Psych
       when /^\.nan$/i
         Float::NAN
       when /^:./
-        class_loader.symbol
         if string =~ /^:(["'])(.*)\1/
-          @symbol_cache[string] = $2.sub(/^:/, '').to_sym
+          @symbol_cache[string] = class_loader.to_sym($2.sub(/^:/, ''))
         else
-          @symbol_cache[string] = string.sub(/^:/, '').to_sym
+          @symbol_cache[string] = class_loader.to_sym(string.sub(/^:/, ''))
         end
       when /^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0

@@ -162,19 +162,20 @@ module Psych
   #   x = []
   #   x << x
   #   yaml = Psych.dump x
-  #   Psych.safe_load yaml           # => raises an exception
-  #   Psych.safe_load yaml, [], true # => loads the aliases
+  #   Psych.safe_load yaml               # => raises an exception
+  #   Psych.safe_load yaml, [], [], true # => loads the aliases
   #
   # A Psych::DisallowedClass exception will be raised if the yaml contains a
   # class that isn't in the whitelist.
   #
   # A Psych::BadAlias exception will be raised if the yaml contains aliases
   # but the +aliases+ parameter is set to false.
-  def self.safe_load yaml, whitelist = [], aliases = false, filename = nil
+  def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil
     result = parse(yaml, filename)
     return unless result
 
-    class_loader = ClassLoader::Restricted.new whitelist.map(&:to_s)
+    class_loader = ClassLoader::Restricted.new(whitelist_classes.map(&:to_s),
+                                               whitelist_symbols.map(&:to_s))
     scanner      = ScalarScanner.new class_loader
     if aliases
       visitor = Visitors::ToRuby.new scanner, class_loader

@@ -27,6 +27,11 @@ module Psych
       find klassname
     end
 
+    def to_sym sym
+      symbol
+      sym.to_sym
+    end
+
     private
 
     def find klassname
@@ -66,15 +71,26 @@ module Psych
     }.compact]
 
     class Restricted < ClassLoader
-      def initialize whitelist
-        @whitelist = whitelist
+      def initialize classes, symbols
+        @classes = classes
+        @symbols = symbols
         super()
+      end
+
+      def to_sym sym
+        return super if @symbols.empty?
+
+        if @symbols.include? sym
+          super
+        else
+          raise DisallowedClass, 'Symbol'
+        end
       end
 
       private
 
       def find klassname
-        if @whitelist.include? klassname
+        if @classes.include? klassname
           super
         else
           raise DisallowedClass, klassname

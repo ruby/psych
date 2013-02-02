@@ -108,8 +108,7 @@ module Psych
           args.push(args.delete_at(1) == '...')
           klass.new(*args)
         when /^!ruby\/sym(bol)?:?(.*)?$/
-          class_loader.symbol
-          o.value.to_sym
+          class_loader.to_sym o.value
         else
           @ss.tokenize o.value
         end
@@ -161,17 +160,16 @@ module Psych
         case o.tag
         when /^!ruby\/struct:?(.*)?$/
           klass = resolve_class($1) if $1
-          class_loader.symbol
 
           if klass
             s = register(o, klass.allocate)
 
             members = {}
-            struct_members = s.members.map { |x| x.to_sym }
+            struct_members = s.members.map { |x| class_loader.to_sym x }
             o.children.each_slice(2) do |k,v|
               member = accept(k)
               value  = accept(v)
-              if struct_members.include?(member.to_sym)
+              if struct_members.include?(class_loader.to_sym(member))
                 s.send("#{member}=", value)
               else
                 members[member.to_s.sub(/^@/, '')] = value
@@ -182,7 +180,9 @@ module Psych
             klass = class_loader.struct
             members = o.children.map { |c| accept c }
             h = Hash[*members]
-            klass.new(*h.map { |k,v| k.to_sym }).new(*h.map { |k,v| v })
+            klass.new(*h.map { |k,v|
+              class_loader.to_sym k
+            }).new(*h.map { |k,v| v })
           end
 
         when /^!ruby\/object:?(.*)?$/
