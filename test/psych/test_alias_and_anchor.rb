@@ -92,5 +92,18 @@ EOYAML
       assert_equal('test', el.var1)
     end
    end
+
+   def test_anchor_order_is_numerically_ascending
+     a = []
+     b = [a, a]
+     c = [b, b]
+     assert_equal(Psych.dump(c), <<EOYAML)
+---
+- &1
+  - &2 []
+  - *2
+- *1
+EOYAML
+   end
  end
 end
