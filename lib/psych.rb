@@ -131,6 +131,13 @@ module Psych
   end
 
   ###
+  # Load the document contained in +filename+.  Returns the yaml contained in
+  # +filename+ as a ruby object
+  def self.load_file filename
+    File.open(filename, 'r:bom|utf-8') { |f| self.load f, filename }
+  end
+
+  ###
   # Parse a YAML string in +yaml+.  Returns the first object of a YAML AST.
   # +filename+ is used in the exception message if a Psych::SyntaxError is
   # raised.
@@ -290,13 +297,6 @@ module Psych
     else
       parse_stream(yaml, filename).children.map { |child| child.to_ruby }
     end
-  end
-
-  ###
-  # Load the document contained in +filename+.  Returns the yaml contained in
-  # +filename+ as a ruby object
-  def self.load_file filename
-    File.open(filename, 'r:bom|utf-8') { |f| self.load f, filename }
   end
 
   # :stopdoc:
