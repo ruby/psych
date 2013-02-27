@@ -237,6 +237,12 @@ module Psych
   end
 
   ###
+  # Returns a default parser
+  def self.parser
+    Psych::Parser.new(TreeBuilder.new)
+  end
+
+  ###
   # call-seq:
   #   Psych.dump(o)               -> string of yaml
   #   Psych.dump(o, options)      -> string of yaml
@@ -291,12 +297,6 @@ module Psych
     visitor = Psych::Visitors::JSONTree.new
     visitor << o
     visitor.tree.yaml
-  end
-
-  ###
-  # Returns a default parser
-  def self.parser
-    Psych::Parser.new(TreeBuilder.new)
   end
 
   # :stopdoc:
