@@ -138,6 +138,31 @@ module Psych
   end
 
   ###
+  # Load multiple documents given in +yaml+.  Returns the parsed documents
+  # as a list.  If a block is given, each document will be converted to ruby
+  # and passed to the block during parsing
+  #
+  # Example:
+  #
+  #   Psych.load_stream("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
+  #
+  #   list = []
+  #   Psych.load_stream("--- foo\n...\n--- bar\n...") do |ruby|
+  #     list << ruby
+  #   end
+  #   list # => ['foo', 'bar']
+  #
+  def self.load_stream yaml, filename = nil
+    if block_given?
+      parse_stream(yaml, filename) do |node|
+        yield node.to_ruby
+      end
+    else
+      parse_stream(yaml, filename).children.map { |child| child.to_ruby }
+    end
+  end
+
+  ###
   # Parse a YAML string in +yaml+.  Returns the first object of a YAML AST.
   # +filename+ is used in the exception message if a Psych::SyntaxError is
   # raised.
@@ -171,12 +196,6 @@ module Psych
     File.open filename, 'r:bom|utf-8' do |f|
       parse f, filename
     end
-  end
-
-  ###
-  # Returns a default parser
-  def self.parser
-    Psych::Parser.new(TreeBuilder.new)
   end
 
   ###
@@ -275,28 +294,9 @@ module Psych
   end
 
   ###
-  # Load multiple documents given in +yaml+.  Returns the parsed documents
-  # as a list.  If a block is given, each document will be converted to ruby
-  # and passed to the block during parsing
-  #
-  # Example:
-  #
-  #   Psych.load_stream("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
-  #
-  #   list = []
-  #   Psych.load_stream("--- foo\n...\n--- bar\n...") do |ruby|
-  #     list << ruby
-  #   end
-  #   list # => ['foo', 'bar']
-  #
-  def self.load_stream yaml, filename = nil
-    if block_given?
-      parse_stream(yaml, filename) do |node|
-        yield node.to_ruby
-      end
-    else
-      parse_stream(yaml, filename).children.map { |child| child.to_ruby }
-    end
+  # Returns a default parser
+  def self.parser
+    Psych::Parser.new(TreeBuilder.new)
   end
 
   # :stopdoc:
