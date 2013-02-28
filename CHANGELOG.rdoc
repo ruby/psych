@@ -1,3 +1,8 @@
+Fri Mar  1 03:22:00 2013  Zachary Scott <zachary@zacharyscott.net>
+
+        * lib/psych.rb: rdoc for Psych overview by Adam Stankiewicz
+          [Github Fixes #134]
+
 Sun Feb  17 01:13:00 2013  Zachary Scott <zachary@zacharyscott.net>
 
         * lib/psych/y.rb: Document Kernel#y by Adam Stankiewicz
