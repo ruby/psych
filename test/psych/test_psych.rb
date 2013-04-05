@@ -1,4 +1,4 @@
-require 'psych/helper'
+require_relative 'helper'
 
 require 'stringio'
 require 'tempfile'
@@ -68,6 +68,7 @@ class TestPsych < Psych::TestCase
       assert_equal io, Psych.dump(hash, io)
       io.rewind
       assert_equal Psych.dump(hash), io.read
+      io.close(true)
     end
   end
 
