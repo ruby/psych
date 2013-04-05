@@ -1,3 +1,10 @@
+Sat Apr  6 02:06:04 2013  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: correctly register
+	  self-referential strings. Fixes tenderlove/psych #135
+
+	* test/psych/test_string.rb: appropriate test.
+
 Fri Mar  1 09:15:00 2013  Zachary Scott <zachary@zacharyscott.net>
 
         * lib/psych.rb: specify in rdoc what object is returned in parser
