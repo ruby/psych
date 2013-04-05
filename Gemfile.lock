@@ -1,0 +1,16 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    hoe (3.5.1)
+      rake (>= 0.8, < 11.0)
+    rake (10.0.3)
+    rake-compiler (0.8.3)
+      rake
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hoe
+  rake
+  rake-compiler
