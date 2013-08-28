@@ -28,7 +28,7 @@ module Psych
       @class_loader = class_loader
     end
 
-    # Tokenize +string+ returning the ruby object
+    # Tokenize +string+ returning the Ruby object
     def tokenize string
       return nil if string.empty?
       return string if @string_cache.key?(string)
@@ -95,7 +95,7 @@ module Psych
         end
         i
       when FLOAT
-        if string == '.'
+        if string =~ /\A[-+]?\.\Z/
           @string_cache[string] = true
           string
         else

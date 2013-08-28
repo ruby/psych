@@ -5,7 +5,7 @@ require 'psych/class_loader'
 module Psych
   module Visitors
     ###
-    # YAMLTree builds a YAML ast given a ruby object.  For example:
+    # YAMLTree builds a YAML ast given a Ruby object.  For example:
     #
     #   builder = Psych::Visitors::YAMLTree.new
     #   builder << { :foo => 'bar' }
@@ -45,6 +45,15 @@ module Psych
         class_loader = ClassLoader.new
         ss           = ScalarScanner.new class_loader
         new(emitter, ss, options)
+      end
+
+      def self.new emitter = nil, ss = nil, options = nil
+        return super if emitter && ss && options
+
+        if $VERBOSE
+          warn "This API is deprecated, please pass an emitter, scalar scanner, and options or call #{self}.create() (#{caller.first})"
+        end
+        create emitter, ss
       end
 
       def initialize emitter, ss, options
@@ -207,7 +216,7 @@ module Psych
 
       def visit_Time o
         formatted = format_time o
-        @emitter.scalar formatted, nil, nil, true, false, Nodes::Scalar::ANY
+        register o, @emitter.scalar(formatted, nil, nil, true, false, Nodes::Scalar::ANY)
       end
 
       def visit_Rational o

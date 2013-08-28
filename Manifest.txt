@@ -4,6 +4,7 @@ CHANGELOG.rdoc
 Manifest.txt
 README.rdoc
 Rakefile
+ext/psych/depend
 ext/psych/extconf.rb
 ext/psych/psych.c
 ext/psych/psych.h
@@ -28,9 +29,11 @@ ext/psych/yaml/writer.c
 ext/psych/yaml/yaml.h
 ext/psych/yaml/yaml_private.h
 lib/psych.rb
+lib/psych/class_loader.rb
 lib/psych/coder.rb
 lib/psych/core_ext.rb
 lib/psych/deprecated.rb
+lib/psych/exception.rb
 lib/psych/handler.rb
 lib/psych/handlers/document_stream.rb
 lib/psych/handlers/recorder.rb
@@ -89,6 +92,7 @@ test/psych/test_object_references.rb
 test/psych/test_omap.rb
 test/psych/test_parser.rb
 test/psych/test_psych.rb
+test/psych/test_safe_load.rb
 test/psych/test_scalar.rb
 test/psych/test_scalar_scanner.rb
 test/psych/test_serialize_subclasses.rb
