@@ -55,7 +55,7 @@ import org.jruby.util.ByteList;
 import org.jruby.util.IOInputStream;
 import org.jruby.util.log.Logger;
 import org.jruby.util.log.LoggerFactory;
-import org.jruby.util.unsafe.UnsafeFactory;
+import org.jruby.util.unsafe.UnsafeHolder;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.error.MarkedYAMLException;
@@ -220,7 +220,7 @@ public class PsychParser extends RubyObject {
             raiseParserException(context, yaml, re, path);
 
         } catch (Throwable t) {
-            UnsafeFactory.getUnsafe().throwException(t);
+            UnsafeHolder.U.throwException(t);
             return this;
         }
 
