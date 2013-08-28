@@ -36,11 +36,16 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF16BEEncoding;
+import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
 import org.jruby.RubyEncoding;
+import org.jruby.RubyFixnum;
 import org.jruby.RubyIO;
 import org.jruby.RubyKernel;
 import org.jruby.RubyModule;
@@ -53,6 +58,7 @@ import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.ByteList;
 import org.jruby.util.IOInputStream;
+import org.jruby.util.io.EncodingUtils;
 import org.jruby.util.log.Logger;
 import org.jruby.util.log.LoggerFactory;
 import org.jruby.util.unsafe.UnsafeHolder;
@@ -133,35 +139,84 @@ public class PsychParser extends RubyObject {
     }
 
     private StreamReader readerFor(ThreadContext context, IRubyObject yaml) {
-        Ruby runtime = context.runtime;
-
-        if (yaml instanceof RubyString) {
-            ByteList byteList = ((RubyString) yaml).getByteList();
+        if (yaml.respondsTo("read")) {
+            Encoding encoding = transcodeIO(context, yaml);
+            Charset charset = encoding.getCharset();
+            
+            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), charset));
+        } else {
+            RubyString str = yaml.convertToString();
+            
+            Encoding encoding = transcodeString(context, str);
+            Charset charset = encoding.getCharset();
+            
+            ByteList byteList = str.getByteList();
             ByteArrayInputStream bais = new ByteArrayInputStream(byteList.getUnsafeBytes(), byteList.getBegin(),
                     byteList.getRealSize());
-
-            Charset charset = byteList.getEncoding().getCharset();
-            if (charset == null)
-                charset = Charset.defaultCharset();
 
             InputStreamReader isr = new InputStreamReader(bais, charset);
 
             return new StreamReader(isr);
         }
-
-        if (yaml instanceof RubyIO) {
-            RubyIO io = (RubyIO)yaml;
-
-            InputStreamReader isr = new InputStreamReader(new IOInputStream(io), io.getReadEncoding().getCharset());
-            return new StreamReader(isr);
-        }    
-
-        // fall back on IOInputStream, using default charset
-        if (yaml.respondsTo("read")) {
-            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), Charset.defaultCharset()));
-        } else {
-            throw runtime.newTypeError(yaml, runtime.getIO());
+    }
+    
+    private Encoding transcodeString(ThreadContext context, RubyString src) {
+        Encoding sourceEncoding = src.getEncoding();
+        
+        if (sourceEncoding == UTF8Encoding.INSTANCE) {
+            return UTF8Encoding.INSTANCE;
         }
+        
+        if (sourceEncoding == UTF16LEEncoding.INSTANCE) {
+            return UTF16LEEncoding.INSTANCE;
+        }
+        
+        if (sourceEncoding == UTF16BEEncoding.INSTANCE) {
+            return UTF16BEEncoding.INSTANCE;
+        }
+        
+        src.replace(src.encode(context, context.runtime.getEncodingService().convertEncodingToRubyEncoding(UTF8Encoding.INSTANCE)));
+        return UTF8Encoding.INSTANCE;
+    }
+    
+    private Encoding transcodeIO(ThreadContext context, IRubyObject src) {
+        IRubyObject _externalEncoding;
+        Encoding externalEncoding;
+        
+        _externalEncoding = src.callMethod(context, "external_encoding");
+        
+        if (_externalEncoding.isNil()) {
+            externalEncoding = ASCIIEncoding.INSTANCE;
+        } else {
+            externalEncoding = context.runtime.getEncodingService().getEncodingFromObject(_externalEncoding);
+        }
+        
+        if (externalEncoding == USASCIIEncoding.INSTANCE) {
+            externalEncoding = UTF8Encoding.INSTANCE;
+        }
+        
+        if (externalEncoding == UTF8Encoding.INSTANCE) {
+            return UTF8Encoding.INSTANCE;
+        }
+        
+        if (externalEncoding == UTF16LEEncoding.INSTANCE) {
+            return UTF16LEEncoding.INSTANCE;
+        }
+        
+        if (externalEncoding == UTF16BEEncoding.INSTANCE) {
+            return UTF16BEEncoding.INSTANCE;
+        }
+        
+        if (externalEncoding == ASCIIEncoding.INSTANCE) {
+            // we have no way to auto-detect the stream's encoding, so use UTF-8
+            return UTF8Encoding.INSTANCE;
+        }
+        
+        // we have no way to auto-detect the stream's encoding, so raise error
+        raiseParserException(context, "unsupported YAML encoding: " + externalEncoding.toString());
+        
+        // not reached
+        throw null;
     }
 
     @JRubyMethod
@@ -288,6 +343,28 @@ public class PsychParser extends RubyObject {
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
         invoke(context, handler, "start_sequence", anchor, tag, implicit, style);
+    }
+    
+    private static void raiseParserException(ThreadContext context, String error) {
+        Ruby runtime;
+        RubyClass se;
+        IRubyObject exception;
+
+        runtime = context.runtime;
+        se = (RubyClass) runtime.getModule("Psych").getConstant("SyntaxError");
+        
+        exception = se.newInstance(context,
+                new IRubyObject[] {
+                        context.nil,
+                        RubyFixnum.zero(runtime),
+                        RubyFixnum.zero(runtime),
+                        RubyFixnum.zero(runtime),
+                        context.nil,
+                        runtime.newString(error)
+                        },
+                Block.NULL_BLOCK);
+
+        RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
     private static void raiseParserException(ThreadContext context, IRubyObject yaml, ReaderException re,
