@@ -1,3 +1,8 @@
+Fri Sep 20 23:44:07 2013  Zachary Scott  <e@zzak.io>
+
+        * ext/psych/yaml/yaml.h: [DOC] fix typo by @GreenGeorge [Fixes GH-161]
+          https://github.com/tenderlove/psych/pull/161
+
 Fri Sep  6 02:37:22 2013  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/yaml_tree.rb: use double quotes when
