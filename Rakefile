@@ -14,6 +14,7 @@ require "rake/extensiontask"
 Hoe.plugin :doofus, :git, :gemspec, :isolate
 
 $hoe = Hoe.spec 'psych' do
+  license   'MIT'
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
