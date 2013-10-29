@@ -25,6 +25,11 @@ module Psych
       assert_cycle '+.'
     end
 
+    def test_string_subclass
+      y = Psych.load Psych.dump X.new("foo")
+      assert_equal "foo", y
+    end
+
     def test_string_subclass_with_anchor
       y = Psych.load <<-eoyml
 ---
