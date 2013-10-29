@@ -1,3 +1,11 @@
+Wed Oct 30 03:08:24 2013  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: string subclasses should
+	  not be considered to be binary.  Fixes Psych / GH 166
+	  https://github.com/tenderlove/psych/issues/166
+
+	* test/psych/test_string.rb: test for fix
+
 Fri Sep 20 23:44:07 2013  Zachary Scott  <e@zzak.io>
 
         * ext/psych/yaml/yaml.h: [DOC] fix typo by @GreenGeorge [Fixes GH-161]
