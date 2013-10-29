@@ -298,10 +298,7 @@ module Psych
 
         ivars = find_ivars o
 
-        if ivars.empty?
-          unless o.class == ::String
-            tag = "!ruby/string:#{o.class}"
-          end
+        if ivars.empty? && o.class == ::String
           @emitter.scalar str, nil, tag, plain, quote, style
         else
           maptag = '!ruby/string'
@@ -311,7 +308,7 @@ module Psych
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
           @emitter.scalar str, nil, tag, plain, quote, style
 
-          dump_ivars o
+          dump_ivars o unless ivars.empty?
 
           @emitter.end_mapping
         end
