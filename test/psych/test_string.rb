@@ -85,9 +85,11 @@ string: &70121654388580 !ruby/string
     end
 
     def test_subclass_with_attributes
-      y = Psych.load Psych.dump Y.new.tap {|y| y.val = 1}
-      assert_equal Y, y.class
-      assert_equal 1, y.val
+      y = Y.new.tap {|y| y.val = 1}
+      desarialized_y = Psych.load Psych.dump y
+      assert_equal Y, desarialized_y.class
+      assert_equal 1, desarialized_y.val
+      assert_equal desarialized_y.encoding, y.encoding
     end
 
     def test_string_with_base_60
