@@ -1,3 +1,6 @@
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -239,9 +242,9 @@ yaml_string_join(
         (string).pointer[offset] <= (yaml_char_t) 'f') ?                        \
        ((string).pointer[offset] - (yaml_char_t) 'a' + 10) :                    \
        ((string).pointer[offset] - (yaml_char_t) '0'))
- 
+
 #define AS_HEX(string)  AS_HEX_AT((string),0)
- 
+
 /*
  * Check if the character is ASCII.
  */
