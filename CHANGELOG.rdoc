@@ -1,3 +1,8 @@
+2014-03-27  SHIBATA Hiroshi  <shibata.hiroshi@gmail.com>
+
+	* ext/psych/yaml/scanner.c: merge libyaml 0.1.6
+	* ext/psych/yaml/yaml_private.h: ditto
+
 Sat Mar  1 11:08:00 2014  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/yaml_tree.rb: support dumping Encoding
