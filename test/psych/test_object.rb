@@ -19,6 +19,14 @@ module Psych
     end
   end
 
+  class WithNull
+    attr_accessor :null
+
+    def initialize
+      @null = true
+    end
+  end
+
   class TestObject < TestCase
     def test_dump_with_tag
       tag = Tagged.new
@@ -39,6 +47,13 @@ module Psych
 
       assert_instance_of(Foo, loaded)
       assert_equal loaded, loaded.parent
+    end
+
+    def test_null_named_ivar
+      original = WithNull.new
+      loaded = Psych.load(Psych.dump(original))
+
+      assert_equal(original.null, loaded.null)
     end
   end
 end
