@@ -226,7 +226,8 @@ module Psych
   # Load +yaml+ in to a Ruby data structure.  If multiple documents are
   # provided, the object contained in the first document will be returned.
   # +filename+ will be used in the exception message if any exception is raised
-  # while parsing.
+  # while parsing. If a block is provided, it will be called with each object 
+  # as it is created; it may return a substitute object.
   #
   # Raises a Psych::SyntaxError when a YAML syntax error is detected.
   #
@@ -241,9 +242,9 @@ module Psych
   #     ex.file    # => 'file.txt'
   #     ex.message # => "(file.txt): found character that cannot start any token"
   #   end
-  def self.load yaml, filename = nil
+  def self.load yaml, filename = nil, &substitute_block
     result = parse(yaml, filename)
-    result ? result.to_ruby : result
+    result ? result.to_ruby(&substitute_block) : result
   end
 
   ###
@@ -280,7 +281,10 @@ module Psych
   #
   # A Psych::BadAlias exception will be raised if the yaml contains aliases
   # but the +aliases+ parameter is set to false.
-  def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil
+  # 
+  # If a block is provided, it will be called with each object as it is 
+  # created; it may return a substitute object.
+  def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil, &substitute_block
     result = parse(yaml, filename)
     return unless result
 
@@ -288,9 +292,9 @@ module Psych
                                                whitelist_symbols.map(&:to_s))
     scanner      = ScalarScanner.new class_loader
     if aliases
-      visitor = Visitors::ToRuby.new scanner, class_loader
+      visitor = Visitors::ToRuby.new scanner, class_loader, &substitute_block
     else
-      visitor = Visitors::NoAliasRuby.new scanner, class_loader
+      visitor = Visitors::NoAliasRuby.new scanner, class_loader, &substitute_block
     end
     visitor.accept result
   end
@@ -435,7 +439,9 @@ module Psych
   ###
   # Load multiple documents given in +yaml+.  Returns the parsed documents
   # as a list.  If a block is given, each document will be converted to Ruby
-  # and passed to the block during parsing
+  # and passed to the block during parsing.  If a proc is provided as the third
+  # parameter, it will be called with each object as it is created; it may 
+  # return a substitute object.
   #
   # Example:
   #
@@ -447,21 +453,22 @@ module Psych
   #   end
   #   list # => ['foo', 'bar']
   #
-  def self.load_stream yaml, filename = nil
+  def self.load_stream yaml, filename = nil, substitute_proc = nil
     if block_given?
       parse_stream(yaml, filename) do |node|
-        yield node.to_ruby
+        yield node.to_ruby(&substitute_proc)
       end
     else
-      parse_stream(yaml, filename).children.map { |child| child.to_ruby }
+      parse_stream(yaml, filename).children.map { |child| child.to_ruby(&substitute_proc) }
     end
   end
 
   ###
   # Load the document contained in +filename+.  Returns the yaml contained in
-  # +filename+ as a Ruby object
-  def self.load_file filename
-    File.open(filename, 'r:bom|utf-8') { |f| self.load f, filename }
+  # +filename+ as a Ruby object.  If a block is provided, it will be called 
+  # with each object as it is created; it may return a substitute object.
+  def self.load_file filename, &substitute_block
+    File.open(filename, 'r:bom|utf-8') { |f| self.load f, filename, &substitute_block }
   end
 
   # :stopdoc:

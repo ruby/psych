@@ -1285,4 +1285,22 @@ EOY
       yaml = Psych.dump '*foo'
       refute_match '!', yaml
     end
+    
+  	def test_load_substitutions
+  		# Based on test_simple_map
+      yaml = <<EOY
+  one: foo
+  two: bar
+  three: baz
+EOY
+      specimen = { 'ONE' => 'FOO', 'THREE' => 'BAZ', 'TWO' => 'BAR' }
+      result = Psych.load(yaml) do |obj|
+        if obj.is_a?(String) 
+          obj.upcase
+        else
+          obj
+        end
+      end
+      assert_equal(result, specimen)
+  	end
 end

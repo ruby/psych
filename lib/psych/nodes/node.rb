@@ -30,11 +30,12 @@ module Psych
       end
 
       ###
-      # Convert this node to Ruby.
+      # Convert this node to Ruby.  If a block is provided, it will be called 
+      # with each object as it is created; it may return a substitute object.
       #
       # See also Psych::Visitors::ToRuby
-      def to_ruby
-        Visitors::ToRuby.create.accept(self)
+      def to_ruby(&substitute_block)
+        Visitors::ToRuby.create(&substitute_block).accept(self)
       end
       alias :transform :to_ruby
 

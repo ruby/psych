@@ -11,20 +11,21 @@ module Psych
     ###
     # This class walks a YAML AST, converting each node to Ruby
     class ToRuby < Psych::Visitors::Visitor
-      def self.create
+      def self.create(&substitute_block)
         class_loader = ClassLoader.new
         scanner      = ScalarScanner.new class_loader
-        new(scanner, class_loader)
+        new(scanner, class_loader, &substitute_block)
       end
 
       attr_reader :class_loader
 
-      def initialize ss, class_loader
+      def initialize ss, class_loader, &substitute_block
         super()
         @st = {}
         @ss = ss
         @domain_types = Psych.domain_types
         @class_loader = class_loader
+        @substitute_block = substitute_block
       end
 
       def accept target
@@ -41,8 +42,14 @@ module Psych
 
         result
       end
-
+      
       def deserialize o
+        instance = deserialize_without_substitution o
+        instance = @substitute_block.call(instance) unless @substitute_block.nil?
+        instance
+      end
+      
+      def deserialize_without_substitution o
         if klass = resolve_class(Psych.load_tags[o.tag])
           instance = klass.allocate
 
