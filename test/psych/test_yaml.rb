@@ -1288,7 +1288,7 @@ EOY
     
   	def test_load_substitutions
   		# Based on test_simple_map
-      yaml = <<EOY
+      input = <<EOY
   one: foo
   two: bar
   three: 
@@ -1297,7 +1297,7 @@ EOY
     - c
 EOY
       specimen = { 'ONE' => 'FOO', 'THREE' => ['A', 'B', 'C', 'C', 'B', 'A'], 'TWO' => 'BAR', 'natural_size' => 3 }
-      result = Psych.load(yaml) do |obj|
+      result = Psych.load(input) do |obj|
         case obj
         when String
           obj.upcase
@@ -1309,6 +1309,6 @@ EOY
           obj
         end
       end
-      assert_equal(result, specimen)
+      assert_equal(specimen, result)
   	end
 end
