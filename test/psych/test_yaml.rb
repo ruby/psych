@@ -1293,10 +1293,13 @@ EOY
   two: bar
   three: baz
 EOY
-      specimen = { 'ONE' => 'FOO', 'THREE' => 'BAZ', 'TWO' => 'BAR' }
+      specimen = { 'ONE' => 'FOO', 'THREE' => 'BAZ', 'TWO' => 'BAR', 'natural_size' => 3 }
       result = Psych.load(yaml) do |obj|
-        if obj.is_a?(String) 
+        case obj
+        when String
           obj.upcase
+        when Hash
+          obj.merge({ 'natural_size' => obj.size })
         else
           obj
         end
