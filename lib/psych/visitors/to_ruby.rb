@@ -137,10 +137,10 @@ module Psych
             instance.init_with coder
           end
 
-          return instance
+          return substitute instance
         end
 
-        case o.tag
+        substitute case o.tag
         when nil
           register_empty(o)
         when '!omap', 'tag:yaml.org,2002:omap'
@@ -284,7 +284,7 @@ module Psych
       end
 
       def visit_Psych_Nodes_Stream o
-        o.children.map { |c| accept c }
+        substitute o.children.map { |c| accept c }
       end
 
       def visit_Psych_Nodes_Alias o
