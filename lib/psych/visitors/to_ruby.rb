@@ -27,7 +27,7 @@ module Psych
         @class_loader = class_loader
         @substitute_block = substitute_block || proc { |o| o }
       end
-
+      
       def accept target
         result = super
         return result if @domain_types.empty? || !target.tag
@@ -45,6 +45,11 @@ module Psych
       
       def substitute o
         @substitute_block.call(o)
+      end
+      
+      def visit target
+        o = super(target)
+        target.is_a?(Psych::Nodes::Document) ? o : substitute(o)
       end
       
       def deserialize o
@@ -124,7 +129,7 @@ module Psych
       private :deserialize, :substitute
 
       def visit_Psych_Nodes_Scalar o
-        register o, substitute(deserialize o)
+        register o, deserialize(o)
       end
 
       def visit_Psych_Nodes_Sequence o
@@ -137,10 +142,10 @@ module Psych
             instance.init_with coder
           end
 
-          return substitute instance
+          return instance
         end
 
-        substitute case o.tag
+        case o.tag
         when nil
           register_empty(o)
         when '!omap', 'tag:yaml.org,2002:omap'
@@ -161,11 +166,11 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         if Psych.load_tags[o.tag]
-          return substitute revive(resolve_class(Psych.load_tags[o.tag]), o)
+          return revive(resolve_class(Psych.load_tags[o.tag]), o)
         end
-        return substitute revive_hash(register(o, {}), o) unless o.tag
+        return revive_hash(register(o, {}), o) unless o.tag
 
-        substitute case o.tag
+        case o.tag
         when /^!ruby\/struct:?(.*)?$/
           klass = resolve_class($1) if $1
 
@@ -284,7 +289,7 @@ module Psych
       end
 
       def visit_Psych_Nodes_Stream o
-        substitute o.children.map { |c| accept c }
+        o.children.map { |c| accept c }
       end
 
       def visit_Psych_Nodes_Alias o
