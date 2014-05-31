@@ -25,7 +25,7 @@ module Psych
         @ss = ss
         @domain_types = Psych.domain_types
         @class_loader = class_loader
-        @substitute_block = substitute_block
+        @substitute_block = substitute_block || proc { |o| o }
       end
 
       def accept target
@@ -43,13 +43,11 @@ module Psych
         result
       end
       
-      def deserialize o
-        instance = deserialize_without_substitution o
-        instance = @substitute_block.call(instance) unless @substitute_block.nil?
-        instance
+      def substitute o
+        @substitute_block.call(o)
       end
       
-      def deserialize_without_substitution o
+      def deserialize o
         if klass = resolve_class(Psych.load_tags[o.tag])
           instance = klass.allocate
 
@@ -123,10 +121,10 @@ module Psych
           @ss.tokenize o.value
         end
       end
-      private :deserialize
+      private :deserialize, :substitute
 
       def visit_Psych_Nodes_Scalar o
-        register o, deserialize(o)
+        register o, substitute(deserialize o)
       end
 
       def visit_Psych_Nodes_Sequence o
