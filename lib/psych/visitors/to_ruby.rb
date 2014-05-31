@@ -161,11 +161,11 @@ module Psych
 
       def visit_Psych_Nodes_Mapping o
         if Psych.load_tags[o.tag]
-          return revive(resolve_class(Psych.load_tags[o.tag]), o)
+          return substitute revive(resolve_class(Psych.load_tags[o.tag]), o)
         end
-        return revive_hash(register(o, {}), o) unless o.tag
+        return substitute revive_hash(register(o, {}), o) unless o.tag
 
-        case o.tag
+        substitute case o.tag
         when /^!ruby\/struct:?(.*)?$/
           klass = resolve_class($1) if $1
 
