@@ -1291,15 +1291,20 @@ EOY
       yaml = <<EOY
   one: foo
   two: bar
-  three: baz
+  three: 
+    - a
+    - b
+    - c
 EOY
-      specimen = { 'ONE' => 'FOO', 'THREE' => 'BAZ', 'TWO' => 'BAR', 'natural_size' => 3 }
+      specimen = { 'ONE' => 'FOO', 'THREE' => ['A', 'B', 'C', 'C', 'B', 'A'], 'TWO' => 'BAR', 'natural_size' => 3 }
       result = Psych.load(yaml) do |obj|
         case obj
         when String
           obj.upcase
         when Hash
           obj.merge({ 'natural_size' => obj.size })
+        when Array
+          obj + obj.reverse
         else
           obj
         end
