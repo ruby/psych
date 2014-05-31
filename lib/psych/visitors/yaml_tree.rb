@@ -40,23 +40,23 @@ module Psych
       alias :finished? :finished
       alias :started? :started
 
-      def self.create options = {}, emitter = nil
+      def self.create options = {}, emitter = nil, &substitute_block
         emitter      ||= TreeBuilder.new
         class_loader = ClassLoader.new
         ss           = ScalarScanner.new class_loader
-        new(emitter, ss, options)
+        new(emitter, ss, options, &substitute_block)
       end
 
-      def self.new emitter = nil, ss = nil, options = nil
+      def self.new emitter = nil, ss = nil, options = nil, &substitute_block
         return super if emitter && ss && options
 
         if $VERBOSE
           warn "This API is deprecated, please pass an emitter, scalar scanner, and options or call #{self}.create() (#{caller.first})"
         end
-        create emitter, ss
+        create emitter, ss, &substitute_block
       end
 
-      def initialize emitter, ss, options
+      def initialize emitter, ss, options, &substitute_block
         super()
         @started  = false
         @finished = false
@@ -65,6 +65,7 @@ module Psych
         @ss       = ss
         @options  = options
         @coders   = []
+        @substitute_block = substitute_block || proc { |o| o }
 
         @dispatch_cache = Hash.new do |h,klass|
           method = "visit_#{(klass.name || '').split('::').join('_')}"
@@ -113,8 +114,14 @@ module Psych
         @emitter.end_document !@emitter.streaming?
       end
       alias :<< :push
-
+      
+      def substitute o
+        @substitute_block.call(o)
+      end
+      
       def accept target
+        target = substitute target
+        
         # return any aliases we find
         if @st.key? target
           oid         = @st.id_for target

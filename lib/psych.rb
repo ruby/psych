@@ -388,7 +388,8 @@ module Psych
   #
   # Dump Ruby object +o+ to a YAML string.  Optional +options+ may be passed in
   # to control the output format.  If an IO object is passed in, the YAML will
-  # be dumped to that IO object.
+  # be dumped to that IO object. If a block is provided, it will be passed each
+  # object before it's encoded; the block can return a substitute object in its place.
   #
   # Example:
   #
@@ -403,25 +404,27 @@ module Psych
   #
   #   # Dump an array to an IO with indentation set
   #   Psych.dump(['a', ['b']], StringIO.new, :indentation => 3)
-  def self.dump o, io = nil, options = {}
+  def self.dump o, io = nil, options = {}, &substitute_block
     if Hash === io
       options = io
       io      = nil
     end
 
-    visitor = Psych::Visitors::YAMLTree.create options
+    visitor = Psych::Visitors::YAMLTree.create(options, &substitute_block)
     visitor << o
     visitor.tree.yaml io, options
   end
 
   ###
-  # Dump a list of objects as separate documents to a document stream.
+  # Dump a list of objects as separate documents to a document stream. If a 
+  # block is provided, it will be passed each object before it's encoded; the 
+  # block can return a substitute object in its place.
   #
   # Example:
   #
   #   Psych.dump_stream("foo\n  ", {}) # => "--- ! \"foo\\n  \"\n--- {}\n"
-  def self.dump_stream *objects
-    visitor = Psych::Visitors::YAMLTree.create({})
+  def self.dump_stream *objects, &substitute_block
+    visitor = Psych::Visitors::YAMLTree.create({}, &substitute_block)
     objects.each do |o|
       visitor << o
     end

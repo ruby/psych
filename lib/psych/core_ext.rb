@@ -9,9 +9,9 @@ class Object
   # call-seq: to_yaml(options = {})
   #
   # Convert an object to YAML.  See Psych.dump for more information on the
-  # available +options+.
-  def psych_to_yaml options = {}
-    Psych.dump self, options
+  # available +options+ and the substitute block.
+  def psych_to_yaml options = {}, &substitute_block
+    Psych.dump self, options, &substitute_block
   end
   remove_method :to_yaml rescue nil
   alias :to_yaml :psych_to_yaml

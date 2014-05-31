@@ -1311,4 +1311,31 @@ EOY
       end
       assert_equal(specimen, result)
   	end
+
+  	def test_dump_substitutions
+  		# Based on test_simple_map
+      specimen = <<EOY
+---
+one: foo
+three:
+- a
+- b
+- c
+two: bar
+EOY
+      input = { 'ONE' => 'FOO', 'THREE' => ['A', 'B', 'C', 'C', 'B', 'A'], 'TWO' => 'BAR', 'natural_size' => 3 }
+      result = Psych.dump(input) do |obj|
+        case obj
+        when String
+          obj.downcase
+        when Hash
+          obj.delete_if { |k, v| k == 'natural_size' }
+        when Array
+          obj.uniq
+        else
+          obj
+        end
+      end
+      assert_equal(specimen, result)
+  	end
 end
