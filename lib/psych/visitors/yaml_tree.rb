@@ -278,7 +278,7 @@ module Psych
         quote = true
         style = Nodes::Scalar::PLAIN
         tag   = nil
-        str   = o
+        str   = o.strip
 
         if binary?(o)
           str   = [o].pack('m').chomp
@@ -287,8 +287,12 @@ module Psych
           style = Nodes::Scalar::LITERAL
           plain = false
           quote = false
-        elsif o =~ /\n/
+        elsif str =~ /\n/
+          str << $/
           style = Nodes::Scalar::LITERAL
+        elsif @options[:line_width] && @options[:line_width] < str.length
+          str << $/
+          style = Nodes::Scalar::FOLDED
         elsif o =~ /^\W[^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
         else
