@@ -4,6 +4,10 @@ Fri Jun  6 07:41:41 2014  Aaron Patterson <aaron@tenderlovemaking.com>
 	  tag so that they can be parsed on input. [Bug #9873] [ruby-core:62825]
 	* test/psych/test_symbol.rb: test for change
 
+Sun May 25 11:35:41 2014  Zachary Scott  <e@zzak.io>
+
+	* test/psych/*: YAML::ENGINE was removed in [Bug #8344]
+
 2014-03-27  SHIBATA Hiroshi  <shibata.hiroshi@gmail.com>
 
 	* ext/psych/yaml/scanner.c: merge libyaml 0.1.6
