@@ -1,3 +1,9 @@
+Wed Aug  6 03:41:21 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: backwards compatibility for
+	  hashes emitted by Syck. Github #198
+	* test/psych/test_hash.rb: test for change.
+
 Fri Jun  6 07:41:41 2014  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/yaml_tree.rb: dump empty symbols with a
