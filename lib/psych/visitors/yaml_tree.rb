@@ -16,10 +16,12 @@ module Psych
         def initialize
           @obj_to_id   = {}
           @obj_to_node = {}
+          @targets     = []
           @counter     = 0
         end
 
         def register target, node
+          @targets << target
           @obj_to_node[target.object_id] = node
         end
 
