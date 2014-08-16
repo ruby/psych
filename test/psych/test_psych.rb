@@ -57,7 +57,7 @@ class TestPsych < Psych::TestCase
   end
 
   def test_dump_stream
-    things = [22, "foo \n", {}]
+    things = [22, "foo", {}]
     stream = Psych.dump_stream(*things)
     assert_equal things, Psych.load_stream(stream)
   end
