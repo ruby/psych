@@ -291,7 +291,7 @@ module Psych
           quote = false
         elsif o =~ /\n/
           style = Nodes::Scalar::LITERAL
-        elsif o =~ /^\W[^"]*$/
+        elsif o =~ /^[^[:word:]][^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
         else
           unless String === @ss.tokenize(o)
