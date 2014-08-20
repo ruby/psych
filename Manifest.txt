@@ -79,7 +79,6 @@ test/psych/test_deprecated.rb
 test/psych/test_document.rb
 test/psych/test_emitter.rb
 test/psych/test_encoding.rb
-test/psych/test_engine_manager.rb
 test/psych/test_exception.rb
 test/psych/test_hash.rb
 test/psych/test_json_tree.rb
