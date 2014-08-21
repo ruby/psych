@@ -24,6 +24,30 @@ module Psych
       assert_match(/---\s*"/, yaml)
     end
 
+    def test_plain_when_shorten_than_line_width
+      str = "Lorem ipsum"
+      yaml = Psych.dump str, {line_width: 12}
+      assert_match /---\s*[^>|]+\n/, yaml
+    end
+
+    def test_folded_when_longer_than_line_width_and_no_newlines
+      str = "Lorem ipsum dolor sit amet, consectetur"
+      yaml = Psych.dump str, {line_width: 12}
+      assert_match /---\s*>\n(.*\n){3}\Z/, yaml
+    end
+
+    def test_folded_when_longer_than_line_width_and_trailing_newline
+      str = "Lorem ipsum dolor sit\n"
+      yaml = Psych.dump str, {line_width: 12}
+      assert_match /---\s*>\n(.*\n){2}\Z/, yaml
+    end
+
+    def test_literal_when_inner_newline
+      str = "Lorem ipsum\ndolor\n"
+      yaml = Psych.dump str, {line_width: 12}
+      assert_match /---\s*|\n(.*\n){2}\Z/, yaml
+    end
+
     def test_cycle_x
       str = X.new 'abc'
       assert_cycle str
