@@ -291,6 +291,11 @@ module Psych
           quote = false
         elsif o =~ /\n/
           style = Nodes::Scalar::LITERAL
+        elsif o == '<<'
+          style = Nodes::Scalar::SINGLE_QUOTED
+          tag   = 'tag:yaml.org,2002:str'
+          plain = false
+          quote = false
         elsif o =~ /^\W[^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
         else

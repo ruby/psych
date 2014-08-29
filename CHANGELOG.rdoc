@@ -1,3 +1,11 @@
+Sat Aug 30 06:00:26 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: quoted "<<" strings
+	  should not be treated as merge keys.
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: hashes with keys
+	  containing "<<" should roundtrip.
+	* test/psych/test_merge_keys.rb: test for change. Fixes GH #203
+
 Wed Aug  6 03:41:21 2014  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/to_ruby.rb: backwards compatibility for
