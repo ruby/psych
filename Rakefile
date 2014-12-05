@@ -11,7 +11,7 @@ end
 gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
-Hoe.plugin :doofus, :git, :gemspec, :isolate
+Hoe.plugin :minitest, :doofus, :git, :gemspec, :isolate
 
 $hoe = Hoe.spec 'psych' do
   license   'MIT'
@@ -33,6 +33,8 @@ $hoe = Hoe.spec 'psych' do
     ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
   end
 end
+
+$hoe.test_prelude = 'gem "minitest", "~> 5.0"'
 
 Hoe.add_include_dirs('.:lib/psych')
 
