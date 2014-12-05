@@ -1,7 +1,7 @@
 require_relative 'helper'
 
 module Psych
-  class TestToYamlProperties < MiniTest::Unit::TestCase
+  class TestToYamlProperties < MiniTest::Test
     class Foo
       attr_accessor :a, :b, :c
       def initialize

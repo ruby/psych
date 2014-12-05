@@ -5,7 +5,7 @@ require 'date'
 require 'psych'
 
 module Psych
-  class TestCase < MiniTest::Unit::TestCase
+  class TestCase < MiniTest::Test
     def self.suppress_warning
       verbose, $VERBOSE = $VERBOSE, nil
       yield
