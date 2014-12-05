@@ -23,6 +23,7 @@ $hoe = Hoe.spec 'psych' do
   self.testlib           = :minitest
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+  extra_dev_deps << ['minitest', '~> 5.0']
 
   self.spec_extras = {
     :extensions            => ["ext/psych/extconf.rb"],
