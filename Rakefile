@@ -12,7 +12,7 @@ gem 'rake-compiler', '>= 0.4.1'
 gem 'minitest', '~> 4.0'
 require "rake/extensiontask"
 
-Hoe.plugin :doofus, :git, :gemspec, :isolate
+Hoe.plugin :doofus, :git, :gemspec
 
 $hoe = Hoe.spec 'psych' do
   license   'MIT'

@@ -5,7 +5,6 @@ rvm:
   - 2.1.0
   - ruby-head
 before_script:
-  - gem install isolate
   - gem install hoe
   - gem install rake-compiler
   - gem install minitest -v '~> 4.0'
