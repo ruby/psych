@@ -8,4 +8,4 @@ before_script:
   - gem install hoe
   - gem install rake-compiler
   - gem install minitest -v '~> 4.0'
-script: rake isolate test
+script: rake test
