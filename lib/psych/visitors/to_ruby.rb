@@ -261,8 +261,22 @@ module Psych
           end
           set
 
+        when /^!ruby\/hash-with-ivars(?::(.*))?$/
+          hash = $1 ? resolve_class($1).allocate : {}
+          o.children.each_slice(2) do |key, value|
+            case key.value
+            when 'elements'
+              revive_hash hash, value
+            when 'ivars'
+              value.children.each_slice(2) do |k,v|
+                hash.instance_variable_set accept(k), accept(v)
+              end
+            end
+          end
+          hash
+
         when /^!map:(.*)$/, /^!ruby\/hash:(.*)$/
-          revive_hash register(o, resolve_class($1).new), o
+          revive_hash register(o, resolve_class($1).allocate), o
 
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, class_loader.psych_omap.new)
@@ -270,6 +284,21 @@ module Psych
             map[accept(l)] = accept r
           end
           map
+
+        when /^!ruby\/marshalable:(.*)$/
+          name = $1
+          klass = resolve_class(name)
+          obj = register(o, klass.allocate)
+
+          if obj.respond_to?(:init_with)
+            init_with(obj, revive_hash({}, o), o)
+          elsif obj.respond_to?(:marshal_load)
+            marshal_data = o.children.map(&method(:accept))
+            obj.marshal_load(marshal_data)
+            obj
+          else
+            raise ArgumentError, "Cannot deserialize #{name}"
+          end
 
         else
           revive_hash(register(o, {}), o)
@@ -305,9 +334,9 @@ module Psych
           key = accept(k)
           val = accept(v)
 
-          if key == '<<'
+          if key == '<<' && k.tag != "tag:yaml.org,2002:str"
             case v
-            when Nodes::Alias
+            when Nodes::Alias, Nodes::Mapping
               begin
                 hash.merge! val
               rescue TypeError

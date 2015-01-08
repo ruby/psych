@@ -27,6 +27,8 @@ module Psych
 
         def key? target
           @obj_to_node.key? target.object_id
+        rescue NoMethodError
+          false
         end
 
         def id_for target
@@ -211,6 +213,25 @@ module Psych
         @emitter.end_mapping
       end
 
+      def visit_NameError o
+        tag = ['!ruby/exception', o.class.name].join ':'
+
+        @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
+
+        {
+          'message'   => o.message.to_s,
+          'backtrace' => private_iv_get(o, 'backtrace'),
+        }.each do |k,v|
+          next unless v
+          @emitter.scalar k, nil, nil, true, false, Nodes::Scalar::ANY
+          accept v
+        end
+
+        dump_ivars o
+
+        @emitter.end_mapping
+      end
+
       def visit_Regexp o
         register o, @emitter.scalar(o.inspect, nil, '!ruby/regexp', false, false, Nodes::Scalar::ANY)
       end
@@ -291,6 +312,11 @@ module Psych
           quote = false
         elsif o =~ /\n/
           style = Nodes::Scalar::LITERAL
+        elsif o == '<<'
+          style = Nodes::Scalar::SINGLE_QUOTED
+          tag   = 'tag:yaml.org,2002:str'
+          plain = false
+          quote = false
         elsif o =~ /^[^[:word:]][^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
         else
@@ -341,17 +367,46 @@ module Psych
       end
 
       def visit_Hash o
-        tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
-        implicit = !tag
+        ivars    = o.instance_variables
 
-        register(o, @emitter.start_mapping(nil, tag, implicit, Psych::Nodes::Mapping::BLOCK))
+        if ivars.any?
+          tag = "!ruby/hash-with-ivars"
+          tag << ":#{o.class}" unless o.class == ::Hash
 
-        o.each do |k,v|
-          accept k
-          accept v
+          register(o, @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK))
+
+          @emitter.scalar 'elements', nil, nil, true, false, Nodes::Scalar::ANY
+
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+          o.each do |k,v|
+            accept k
+            accept v
+          end
+          @emitter.end_mapping
+
+          @emitter.scalar 'ivars', nil, nil, true, false, Nodes::Scalar::ANY
+
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+          o.instance_variables.each do |ivar|
+            accept ivar
+            accept o.instance_variable_get ivar
+          end
+          @emitter.end_mapping
+
+          @emitter.end_mapping
+        else
+          tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
+          implicit = !tag
+
+          register(o, @emitter.start_mapping(nil, tag, implicit, Psych::Nodes::Mapping::BLOCK))
+
+          o.each do |k,v|
+            accept k
+            accept v
+          end
+
+          @emitter.end_mapping
         end
-
-        @emitter.end_mapping
       end
 
       def visit_Psych_Set o
@@ -385,6 +440,18 @@ module Psych
         else
           @emitter.scalar ":#{o}", nil, nil, true, false, Nodes::Scalar::ANY
         end
+      end
+
+      def visit_BasicObject o
+        tag = Psych.dump_tags[o.class]
+        tag ||= "!ruby/marshalable:#{o.class.name}"
+
+        map = @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
+        register(o, map)
+
+        o.marshal_dump.each(&method(:accept))
+
+        @emitter.end_mapping
       end
 
       private

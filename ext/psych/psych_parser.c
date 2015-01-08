@@ -49,6 +49,24 @@ static void dealloc(void * ptr)
     xfree(parser);
 }
 
+#if 0
+static size_t memsize(const void *ptr)
+{
+    const yaml_parser_t *parser = ptr;
+    /* TODO: calculate parser's size */
+    return 0;
+}
+#endif
+
+static const rb_data_type_t psych_parser_type = {
+    "Psych/parser",
+    {0, dealloc, 0,},
+    0, 0,
+#ifdef RUBY_TYPED_FREE_IMMEDIATELY
+    RUBY_TYPED_FREE_IMMEDIATELY,
+#endif
+};
+
 static VALUE allocate(VALUE klass)
 {
     yaml_parser_t * parser;
@@ -56,7 +74,7 @@ static VALUE allocate(VALUE klass)
     parser = xmalloc(sizeof(yaml_parser_t));
     yaml_parser_initialize(parser);
 
-    return Data_Wrap_Struct(klass, 0, dealloc, parser);
+    return TypedData_Wrap_Struct(klass, &psych_parser_type, parser);
 }
 
 static VALUE make_exception(yaml_parser_t * parser, VALUE path)
@@ -248,7 +266,7 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 	    path = rb_str_new2("<unknown>");
     }
 
-    Data_Get_Struct(self, yaml_parser_t, parser);
+    TypedData_Get_Struct(self, yaml_parser_t, &psych_parser_type, parser);
 
     yaml_parser_delete(parser);
     yaml_parser_initialize(parser);
@@ -526,7 +544,7 @@ static VALUE mark(VALUE self)
     VALUE args[3];
     yaml_parser_t * parser;
 
-    Data_Get_Struct(self, yaml_parser_t, parser);
+    TypedData_Get_Struct(self, yaml_parser_t, &psych_parser_type, parser);
     mark_klass = rb_const_get_at(cPsychParser, rb_intern("Mark"));
     args[0] = INT2NUM(parser->mark.index);
     args[1] = INT2NUM(parser->mark.line);
@@ -535,7 +553,7 @@ static VALUE mark(VALUE self)
     return rb_class_new_instance(3, args, mark_klass);
 }
 
-void Init_psych_parser()
+void Init_psych_parser(void)
 {
 #if 0
     mPsych = rb_define_module("Psych");

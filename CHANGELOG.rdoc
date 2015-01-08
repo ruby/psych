@@ -1,3 +1,52 @@
+Fri Jan  9 07:13:55 2015  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: call `allocate` on hash
+	subclasses.  Fixes github.com/tenderlove/psych/issues/196
+
+	* test/psych/test_hash.rb: test for change
+
+Fri Jan  9 06:58:43 2015  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: revive hashes with ivars
+
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: dump hashes with ivars.
+	  Fixes github.com/psych/issues/43
+
+	* test/psych/test_hash.rb: test for change
+
+Sun Nov 23 13:11:24 2014  Sean Griffin  <sean@thoughtbot.com>
+
+        * lib/psych/visitors/to_ruby.rb: Allow loading any BasicObject that
+          defines #marshal_load, fixes #100
+        * lib/psych/visitors/yaml_tree.rb: Allow dumping any BasicObject that
+          defines #marshal_dump
+
+Sat Aug 30 06:39:48 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: fix NameError dumping and
+	  loading. Fixes GH #85. Thanks @brentdax for the patch!
+	* test/psych/test_exception.rb: test for fix
+
+Sat Aug 30 06:23:40 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/scalar_scanner.rb: fix loading strings that
+	  look like integers but have a newline. Fixes GH #189
+	* test/psych/test_string.rb: test for fix
+
+Sat Aug 30 06:10:39 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: merge keys with a hash
+	  should merge the hash in to the parent.
+	* test/psych/test_merge_keys.rb: test for change. Fixes GH #202
+
+Sat Aug 30 06:00:26 2014  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: quoted "<<" strings
+	  should not be treated as merge keys.
+	* ext/psych/lib/psych/visitors/yaml_tree.rb: hashes with keys
+	  containing "<<" should roundtrip.
+	* test/psych/test_merge_keys.rb: test for change. Fixes GH #203
+
 Wed Aug  6 03:41:21 2014  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/to_ruby.rb: backwards compatibility for
