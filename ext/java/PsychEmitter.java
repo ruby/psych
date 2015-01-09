@@ -1,10 +1,10 @@
 /***** BEGIN LICENSE BLOCK *****
- * Version: CPL 1.0/GPL 2.0/LGPL 2.1
+ * Version: EPL 1.0/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Common Public
+ * The contents of this file are subject to the Eclipse Public
  * License Version 1.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
- * the License at http://www.eclipse.org/legal/cpl-v10.html
+ * the License at http://www.eclipse.org/legal/epl-v10.html
  *
  * Software distributed under the License is distributed on an "AS
  * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
@@ -19,19 +19,21 @@
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the CPL, indicate your
+ * use your version of this file under the terms of the EPL, indicate your
  * decision by deleting the provisions above and replace them with the notice
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the CPL, the GPL or the LGPL.
+ * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package psych;
+package org.jruby.ext.psych;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Collections;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jcodings.Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
@@ -44,7 +46,6 @@ import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IOOutputStream;
-import org.jruby.util.TypeConverter;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.emitter.Emitter;
 import org.yaml.snakeyaml.emitter.EmitterException;
@@ -61,11 +62,13 @@ import org.yaml.snakeyaml.events.SequenceEndEvent;
 import org.yaml.snakeyaml.events.SequenceStartEvent;
 import org.yaml.snakeyaml.events.StreamEndEvent;
 import org.yaml.snakeyaml.events.StreamStartEvent;
+
 import static org.jruby.runtime.Visibility.*;
 
 public class PsychEmitter extends RubyObject {
     public static void initPsychEmitter(Ruby runtime, RubyModule psych) {
-        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", runtime.getObject(), new ObjectAllocator() {
+        RubyClass psychHandler = runtime.defineClassUnder("Handler", runtime.getObject(), runtime.getObject().getAllocator(), psych);
+        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", psychHandler, new ObjectAllocator() {
             public IRubyObject allocate(Ruby runtime, RubyClass klazz) {
                 return new PsychEmitter(runtime, klazz);
             }
@@ -82,7 +85,25 @@ public class PsychEmitter extends RubyObject {
     public IRubyObject initialize(ThreadContext context, IRubyObject io) {
         options = new DumperOptions();
         options.setIndent(2);
-        emitter = new Emitter(new OutputStreamWriter(new IOOutputStream(io)), options);
+
+        this.io = io;
+
+        return context.nil;
+    }
+
+    @JRubyMethod(visibility = PRIVATE)
+    public IRubyObject initialize(ThreadContext context, IRubyObject io, IRubyObject rbOptions) {
+        IRubyObject width     = rbOptions.callMethod(context, "line_width");
+        IRubyObject canonical = rbOptions.callMethod(context, "canonical");
+        IRubyObject level     = rbOptions.callMethod(context, "indentation");
+
+        options = new DumperOptions();
+
+        options.setCanonical(canonical.isTrue());
+        options.setIndent((int)level.convertToInteger().getLongValue());
+        options.setWidth((int)width.convertToInteger().getLongValue());
+
+        this.io = io;
 
         return context.nil;
     }
@@ -92,10 +113,13 @@ public class PsychEmitter extends RubyObject {
         if (!(encoding instanceof RubyFixnum)) {
             throw context.runtime.newTypeError(encoding, context.runtime.getFixnum());
         }
-        
-        // TODO: do something with encoding? perhaps at the stream level?
+
+        initEmitter(context, encoding);
+
         StreamStartEvent event = new StreamStartEvent(NULL_MARK, NULL_MARK);
+
         emit(context, event);
+
         return this;
     }
 
@@ -107,16 +131,26 @@ public class PsychEmitter extends RubyObject {
     }
 
     @JRubyMethod
-    public IRubyObject start_document(ThreadContext context, IRubyObject version, IRubyObject tags, IRubyObject implicit) {
-        Integer[] versionInts = null;
+    public IRubyObject start_document(ThreadContext context, IRubyObject _version, IRubyObject tags, IRubyObject implicit) {
+        DumperOptions.Version version = null;
         boolean implicitBool = implicit.isTrue();
-        Map<String, String> tagsMap = Collections.EMPTY_MAP;
+        Map<String, String> tagsMap = null;
 
-        RubyArray versionAry = version.convertToArray();
+        RubyArray versionAry = _version.convertToArray();
         if (versionAry.size() == 2) {
-            versionInts = new Integer[] {1, 1};
-            versionInts[0] = (int)versionAry.eltInternal(0).convertToInteger().getLongValue();
-            versionInts[1] = (int)versionAry.eltInternal(1).convertToInteger().getLongValue();
+            int versionInt0 = (int)versionAry.eltInternal(0).convertToInteger().getLongValue();
+            int versionInt1 = (int)versionAry.eltInternal(1).convertToInteger().getLongValue();
+
+            if (versionInt0 == 1) {
+                if (versionInt1 == 0) {
+                    version = DumperOptions.Version.V1_0;
+                } else if (versionInt1 == 1) {
+                    version = DumperOptions.Version.V1_1;
+                }
+            }
+            if (version == null) {
+                throw context.runtime.newArgumentError("invalid YAML version: " + versionAry);
+            }
         }
 
         RubyArray tagsAry = tags.convertToArray();
@@ -135,14 +169,14 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        DocumentStartEvent event = new DocumentStartEvent(NULL_MARK, NULL_MARK, implicitBool, versionInts, tagsMap);
+        DocumentStartEvent event = new DocumentStartEvent(NULL_MARK, NULL_MARK, !implicitBool, version, tagsMap);
         emit(context, event);
         return this;
     }
 
     @JRubyMethod
     public IRubyObject end_document(ThreadContext context, IRubyObject implicit) {
-        DocumentEndEvent event = new DocumentEndEvent(NULL_MARK, NULL_MARK, implicit.isTrue());
+        DocumentEndEvent event = new DocumentEndEvent(NULL_MARK, NULL_MARK, !implicit.isTrue());
         emit(context, event);
         return this;
     }
@@ -273,6 +307,8 @@ public class PsychEmitter extends RubyObject {
 
     private void emit(ThreadContext context, Event event) {
         try {
+            if (emitter == null) throw context.runtime.newRuntimeError("uninitialized emitter");
+
             emitter.emit(event);
         } catch (IOException ioe) {
             throw context.runtime.newIOErrorFromException(ioe);
@@ -281,8 +317,18 @@ public class PsychEmitter extends RubyObject {
         }
     }
 
+    private void initEmitter(ThreadContext context, IRubyObject _encoding) {
+        if (emitter != null) throw context.runtime.newRuntimeError("already initialized emitter");
+
+        Encoding encoding = PsychLibrary.YAMLEncoding.values()[(int)_encoding.convertToInteger().getLongValue()].encoding;
+        Charset charset = context.runtime.getEncodingService().charsetForEncoding(encoding);
+
+        emitter = new Emitter(new OutputStreamWriter(new IOOutputStream(io, encoding), charset), options);
+    }
+
     Emitter emitter;
     DumperOptions options = new DumperOptions();
+    IRubyObject io;
 
     private static final Mark NULL_MARK = new Mark(null, 0, 0, 0, null, 0);
 

@@ -1,4 +1,10 @@
-require 'psych.so'
+case RUBY_ENGINE
+when 'jruby'
+  require 'psych.jar'
+  org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
+else
+  require 'psych.so'
+end
 require 'psych/nodes'
 require 'psych/streaming'
 require 'psych/visitors'
