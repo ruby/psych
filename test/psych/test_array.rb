@@ -1,4 +1,4 @@
-require 'psych/helper'
+require_relative 'helper'
 
 module Psych
   class TestArray < TestCase
@@ -12,6 +12,16 @@ module Psych
     def setup
       super
       @list = [{ :a => 'b' }, 'foo']
+    end
+
+    def test_another_subclass_with_attributes
+      y = Y.new.tap {|y| y.val = 1}
+      y << "foo" << "bar"
+      y = Psych.load Psych.dump y
+
+      assert_equal %w{foo bar}, y
+      assert_equal Y, y.class
+      assert_equal 1, y.val
     end
 
     def test_subclass

@@ -1,8 +1,8 @@
-# -*- mode: ruby; ruby-indent-level: 4; tab-width: 4 -*-
+# -*- coding: us-ascii; mode: ruby; ruby-indent-level: 4; tab-width: 4 -*-
 #												vim:sw=4:ts=4
 # $Id$
 #
-require 'psych/helper'
+require_relative 'helper'
 require 'ostruct'
 
 # [ruby-core:01946]
@@ -250,7 +250,6 @@ EOY
 
 	def test_spec_mapping_between_sequences
 		# Complex key #1
-		dj = Date.new( 2001, 7, 23 )
 		assert_parse_only(
 			{ [ 'Detroit Tigers', 'Chicago Cubs' ] => [ Date.new( 2001, 7, 23 ) ],
 			  [ 'New York Yankees', 'Atlanta Braves' ] => [ Date.new( 2001, 7, 2 ), Date.new( 2001, 8, 12 ), Date.new( 2001, 8, 14 ) ] }, <<EOY
@@ -606,7 +605,7 @@ EOY
 	def test_spec_domain_prefix
         customer_proc = proc { |type, val|
             if Hash === val
-                scheme, domain, type = type.split( ':', 3 )
+                _, _, type = type.split( ':', 3 )
                 val['type'] = "domain #{type}"
                 val
             else
@@ -1265,5 +1264,25 @@ EOY
     def test_normal_exit
       Psych.load("2000-01-01 00:00:00.#{"0"*1000} +00:00\n")
       # '[ruby-core:13735]'
+    end
+
+    def test_multiline_string_uses_literal_style
+      yaml = Psych.dump("multi\nline\nstring")
+      assert_match("|", yaml)
+    end
+
+    def test_string_starting_with_non_word_character_uses_double_quotes_without_exclamation_mark
+      yaml = Psych.dump("@123'abc")
+      refute_match("!", yaml)
+    end
+
+    def test_string_dump_with_colon
+      yaml = Psych.dump 'x: foo'
+      refute_match '!', yaml
+    end
+
+    def test_string_dump_starting_with_star
+      yaml = Psych.dump '*foo'
+      refute_match '!', yaml
     end
 end

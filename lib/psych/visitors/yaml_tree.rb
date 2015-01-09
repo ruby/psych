@@ -1,25 +1,74 @@
+require 'psych/tree_builder'
+require 'psych/scalar_scanner'
+require 'psych/class_loader'
+
 module Psych
   module Visitors
     ###
-    # YAMLTree builds a YAML ast given a ruby object.  For example:
+    # YAMLTree builds a YAML ast given a Ruby object.  For example:
     #
     #   builder = Psych::Visitors::YAMLTree.new
     #   builder << { :foo => 'bar' }
     #   builder.tree # => #<Psych::Nodes::Stream .. }
     #
     class YAMLTree < Psych::Visitors::Visitor
+      class Registrar # :nodoc:
+        def initialize
+          @obj_to_id   = {}
+          @obj_to_node = {}
+          @targets     = []
+          @counter     = 0
+        end
+
+        def register target, node
+          @targets << target
+          @obj_to_node[target.object_id] = node
+        end
+
+        def key? target
+          @obj_to_node.key? target.object_id
+        rescue NoMethodError
+          false
+        end
+
+        def id_for target
+          @obj_to_id[target.object_id] ||= (@counter += 1)
+        end
+
+        def node_for target
+          @obj_to_node[target.object_id]
+        end
+      end
+
       attr_reader :started, :finished
       alias :finished? :finished
       alias :started? :started
 
-      def initialize options = {}, emitter = TreeBuilder.new, ss = ScalarScanner.new
+      def self.create options = {}, emitter = nil
+        emitter      ||= TreeBuilder.new
+        class_loader = ClassLoader.new
+        ss           = ScalarScanner.new class_loader
+        new(emitter, ss, options)
+      end
+
+      def self.new emitter = nil, ss = nil, options = nil
+        return super if emitter && ss && options
+
+        if $VERBOSE
+          warn "This API is deprecated, please pass an emitter, scalar scanner, and options or call #{self}.create() (#{caller.first})"
+        end
+        create emitter, ss
+      end
+
+      def initialize emitter, ss, options
         super()
         @started  = false
         @finished = false
         @emitter  = emitter
-        @st       = {}
+        @st       = Registrar.new
         @ss       = ss
         @options  = options
+        @coders   = []
 
         @dispatch_cache = Hash.new do |h,klass|
           method = "visit_#{(klass.name || '').split('::').join('_')}"
@@ -46,6 +95,7 @@ module Psych
 
       def tree
         finish unless finished?
+        @emitter.root
       end
 
       def push object
@@ -64,15 +114,15 @@ module Psych
 
         @emitter.start_document version, [], false
         accept object
-        @emitter.end_document
+        @emitter.end_document !@emitter.streaming?
       end
       alias :<< :push
 
       def accept target
         # return any aliases we find
-        if @st.key? target.object_id
-          oid         = target.object_id
-          node        = @st[oid]
+        if @st.key? target
+          oid         = @st.id_for target
+          node        = @st.node_for target
           anchor      = oid.to_s
           node.anchor = anchor
           return @emitter.alias anchor
@@ -109,6 +159,11 @@ module Psych
 
         o.each { |k,v| visit_Hash k => v }
         @emitter.end_sequence
+      end
+
+      def visit_Encoding o
+        tag = "!ruby/encoding"
+        @emitter.scalar o.name, nil, tag, false, false, Nodes::Scalar::ANY
       end
 
       def visit_Object o
@@ -158,19 +213,42 @@ module Psych
         @emitter.end_mapping
       end
 
+      def visit_NameError o
+        tag = ['!ruby/exception', o.class.name].join ':'
+
+        @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
+
+        {
+          'message'   => o.message.to_s,
+          'backtrace' => private_iv_get(o, 'backtrace'),
+        }.each do |k,v|
+          next unless v
+          @emitter.scalar k, nil, nil, true, false, Nodes::Scalar::ANY
+          accept v
+        end
+
+        dump_ivars o
+
+        @emitter.end_mapping
+      end
+
       def visit_Regexp o
         register o, @emitter.scalar(o.inspect, nil, '!ruby/regexp', false, false, Nodes::Scalar::ANY)
       end
 
       def visit_DateTime o
-        formatted = format_time o.to_time
+        formatted = if o.offset.zero?
+                      o.strftime("%Y-%m-%d %H:%M:%S.%9N Z".freeze)
+                    else
+                      o.strftime("%Y-%m-%d %H:%M:%S.%9N %:z".freeze)
+                    end
         tag = '!ruby/object:DateTime'
         register o, @emitter.scalar(formatted, nil, tag, false, false, Nodes::Scalar::ANY)
       end
 
       def visit_Time o
         formatted = format_time o
-        @emitter.scalar formatted, nil, nil, true, false, Nodes::Scalar::ANY
+        register o, @emitter.scalar(formatted, nil, nil, true, false, Nodes::Scalar::ANY)
       end
 
       def visit_Rational o
@@ -218,28 +296,33 @@ module Psych
         @emitter.scalar o._dump, nil, '!ruby/object:BigDecimal', false, false, Nodes::Scalar::ANY
       end
 
-      def binary? string
-        string.encoding == Encoding::ASCII_8BIT ||
-          string.index("\x00") ||
-          string.count("\x00-\x7F", "^ -~\t\r\n").fdiv(string.length) > 0.3
-      end
-      private :binary?
-
       def visit_String o
-        plain = false
-        quote = false
-        style = Nodes::Scalar::ANY
+        plain = true
+        quote = true
+        style = Nodes::Scalar::PLAIN
+        tag   = nil
+        str   = o
 
         if binary?(o)
           str   = [o].pack('m').chomp
           tag   = '!binary' # FIXME: change to below when syck is removed
           #tag   = 'tag:yaml.org,2002:binary'
           style = Nodes::Scalar::LITERAL
+          plain = false
+          quote = false
+        elsif o =~ /\n/
+          style = Nodes::Scalar::LITERAL
+        elsif o == '<<'
+          style = Nodes::Scalar::SINGLE_QUOTED
+          tag   = 'tag:yaml.org,2002:str'
+          plain = false
+          quote = false
+        elsif o =~ /^[^[:word:]][^"]*$/
+          style = Nodes::Scalar::DOUBLE_QUOTED
         else
-          str   = o
-          tag   = nil
-          quote = !(String === @ss.tokenize(o))
-          plain = !quote
+          unless String === @ss.tokenize(o)
+            style = Nodes::Scalar::SINGLE_QUOTED
+          end
         end
 
         ivars = find_ivars o
@@ -247,13 +330,15 @@ module Psych
         if ivars.empty?
           unless o.class == ::String
             tag = "!ruby/string:#{o.class}"
+            plain = false
+            quote = false
           end
           @emitter.scalar str, nil, tag, plain, quote, style
         else
           maptag = '!ruby/string'
           maptag << ":#{o.class}" unless o.class == ::String
 
-          @emitter.start_mapping nil, maptag, false, Nodes::Mapping::BLOCK
+          register o, @emitter.start_mapping(nil, maptag, false, Nodes::Mapping::BLOCK)
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
           @emitter.scalar str, nil, tag, plain, quote, style
 
@@ -282,17 +367,46 @@ module Psych
       end
 
       def visit_Hash o
-        tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
-        implicit = !tag
+        ivars    = o.instance_variables
 
-        register(o, @emitter.start_mapping(nil, tag, implicit, Psych::Nodes::Mapping::BLOCK))
+        if ivars.any?
+          tag = "!ruby/hash-with-ivars"
+          tag << ":#{o.class}" unless o.class == ::Hash
 
-        o.each do |k,v|
-          accept k
-          accept v
+          register(o, @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK))
+
+          @emitter.scalar 'elements', nil, nil, true, false, Nodes::Scalar::ANY
+
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+          o.each do |k,v|
+            accept k
+            accept v
+          end
+          @emitter.end_mapping
+
+          @emitter.scalar 'ivars', nil, nil, true, false, Nodes::Scalar::ANY
+
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+          o.instance_variables.each do |ivar|
+            accept ivar
+            accept o.instance_variable_get ivar
+          end
+          @emitter.end_mapping
+
+          @emitter.end_mapping
+        else
+          tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
+          implicit = !tag
+
+          register(o, @emitter.start_mapping(nil, tag, implicit, Psych::Nodes::Mapping::BLOCK))
+
+          o.each do |k,v|
+            accept k
+            accept v
+          end
+
+          @emitter.end_mapping
         end
-
-        @emitter.end_mapping
       end
 
       def visit_Psych_Set o
@@ -321,10 +435,37 @@ module Psych
       end
 
       def visit_Symbol o
-        @emitter.scalar ":#{o}", nil, nil, true, false, Nodes::Scalar::ANY
+        if o.empty?
+          @emitter.scalar "", nil, '!ruby/symbol', false, false, Nodes::Scalar::ANY
+        else
+          @emitter.scalar ":#{o}", nil, nil, true, false, Nodes::Scalar::ANY
+        end
+      end
+
+      def visit_BasicObject o
+        tag = Psych.dump_tags[o.class]
+        tag ||= "!ruby/marshalable:#{o.class.name}"
+
+        map = @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
+        register(o, map)
+
+        o.marshal_dump.each(&method(:accept))
+
+        @emitter.end_mapping
       end
 
       private
+      # FIXME: Remove the index and count checks in Psych 3.0
+      NULL         = "\x00"
+      BINARY_RANGE = "\x00-\x7F"
+      WS_RANGE     = "^ -~\t\r\n"
+
+      def binary? string
+        (string.encoding == Encoding::ASCII_8BIT && !string.ascii_only?) ||
+          string.index(NULL) ||
+          string.count(BINARY_RANGE, WS_RANGE).fdiv(string.length) > 0.3
+      end
+
       def visit_array_subclass o
         tag = "!ruby/array:#{o.class}"
         if o.instance_variables.empty?
@@ -401,11 +542,12 @@ module Psych
       end
 
       def register target, yaml_obj
-        @st[target.object_id] = yaml_obj
+        @st.register target, yaml_obj
         yaml_obj
       end
 
       def dump_coder o
+        @coders << o
         tag = Psych.dump_tags[o.class]
         unless tag
           klass = o.class == Object ? nil : o.class.name
@@ -430,7 +572,7 @@ module Psych
         when :map
           @emitter.start_mapping nil, c.tag, c.implicit, c.style
           c.map.each do |k,v|
-            @emitter.scalar k, nil, nil, true, false, Nodes::Scalar::ANY
+            accept k
             accept v
           end
           @emitter.end_mapping

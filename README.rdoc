@@ -23,8 +23,29 @@ to and from the YAML format.
 
 == Installation
 
-* sudo port install libyaml +universal
-* sudo install_ruby.sh
+Psych has been included with MRI since 1.9.2,
+and is the default YAML parser in 1.9.3.
+
+If you want a newer gem release of Psych, you can use rubygems:
+
+  gem install psych
+
+In order to use the gem release in your app,
+and not the stdlib version, you'll need the following:
+
+  gem 'psych'
+  require 'psych'
+
+Or if you use Bundler add this to your +Gemfile+:
+
+  gem 'psych'
+
+JRuby ships with a pure Java implementation of Psych.
+
+If you're on Rubinius, Psych is available in 1.9 mode, please refer to the
+Language Modes section of the {Rubinius
+README}[https://github.com/rubinius/rubinius#readme] for more information on
+building and 1.9 mode.
 
 == License
 

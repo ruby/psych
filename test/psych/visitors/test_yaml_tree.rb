@@ -5,7 +5,25 @@ module Psych
     class TestYAMLTree < TestCase
       def setup
         super
-        @v = Visitors::YAMLTree.new
+        @v = Visitors::YAMLTree.create
+      end
+
+      def test_tree_can_be_called_twice
+        @v.start
+        @v << Object.new
+        t = @v.tree
+        assert_equal t, @v.tree
+      end
+
+      def test_yaml_tree_can_take_an_emitter
+        io = StringIO.new
+        e  = Psych::Emitter.new io
+        v = Visitors::YAMLTree.create({}, e)
+        v.start
+        v << "hello world"
+        v.finish
+
+        assert_match "hello world", io.string
       end
 
       def test_binary_formatting

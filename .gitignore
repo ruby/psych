@@ -1,4 +1,6 @@
-lib/psych/psych.bundle
-lib/psych/psych.jar
-tmp
-pkg
+*.swp
+*.bundle
+*.jar
+*.class
+/pkg
+/tmp

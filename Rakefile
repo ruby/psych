@@ -16,11 +16,13 @@ class Hoe
 end
 
 gem 'rake-compiler', '>= 0.4.1'
+gem 'minitest', '~> 4.0'
 require "rake/extensiontask"
 
-Hoe.plugin :doofus, :git, :gemspec, :isolate
+Hoe.plugin :doofus, :git, :gemspec
 
 $hoe = Hoe.spec 'psych' do
+  license   'MIT'
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
@@ -29,6 +31,7 @@ $hoe = Hoe.spec 'psych' do
   self.testlib           = :minitest
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+  extra_dev_deps << ['minitest', '~> 4.0']
 
   self.spec_extras = {
     :extensions            => ["ext/psych/extconf.rb"],
@@ -71,7 +74,7 @@ namespace :merge do
     [basedir, 'test', 'psych/'] => [rubydir, 'test', 'psych/'],
   }
 
-  rsync = 'rsync -av --exclude extconf.rb --exclude lib --exclude ".*" --exclude "*.o" --exclude Makefile --exclude mkmf.log --delete'
+  rsync = 'rsync -av --exclude lib --exclude ".*" --exclude "*.o" --exclude Makefile --exclude mkmf.log --delete'
 
   task :to_ruby do
     mergedirs.each do |from, to|
