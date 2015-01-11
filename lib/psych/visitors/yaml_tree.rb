@@ -309,19 +309,20 @@ module Psych
           style = Nodes::Scalar::LITERAL
           plain = false
           quote = false
-        elsif o =~ /\n/
+        elsif o =~ /\n[^\Z]/  # match \n except blank line at the end of string
           style = Nodes::Scalar::LITERAL
         elsif o == '<<'
           style = Nodes::Scalar::SINGLE_QUOTED
           tag   = 'tag:yaml.org,2002:str'
           plain = false
           quote = false
+        elsif line_width != 0 && o.length > line_width
+          style = Nodes::Scalar::FOLDED
+          o += "\n" unless o =~ /\n\Z/  # to avoid non-default chomping indicator
         elsif o =~ /^[^[:word:]][^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
-        else
-          unless String === @ss.tokenize(o)
-            style = Nodes::Scalar::SINGLE_QUOTED
-          end
+        elsif not String === @ss.tokenize(o)
+          style = Nodes::Scalar::SINGLE_QUOTED
         end
 
         ivars = find_ivars o
@@ -587,6 +588,10 @@ module Psych
           @emitter.scalar("#{iv.to_s.sub(/^@/, '')}", nil, nil, true, false, Nodes::Scalar::ANY)
           accept target.instance_variable_get(iv)
         end
+      end
+
+      def line_width
+        @line_width ||= (@options[:line_width] || 0)
       end
     end
   end
