@@ -62,13 +62,14 @@ module Psych
 
       def initialize emitter, ss, options
         super()
-        @started  = false
-        @finished = false
-        @emitter  = emitter
-        @st       = Registrar.new
-        @ss       = ss
-        @options  = options
-        @coders   = []
+        @started    = false
+        @finished   = false
+        @emitter    = emitter
+        @st         = Registrar.new
+        @ss         = ss
+        @options    = options
+        @line_width = options[:line_width]
+        @coders     = []
 
         @dispatch_cache = Hash.new do |h,klass|
           method = "visit_#{(klass.name || '').split('::').join('_')}"
@@ -316,7 +317,7 @@ module Psych
           tag   = 'tag:yaml.org,2002:str'
           plain = false
           quote = false
-        elsif line_width != 0 && o.length > line_width
+        elsif @line_width && o.length > @line_width
           style = Nodes::Scalar::FOLDED
           o += "\n" unless o =~ /\n\Z/  # to avoid non-default chomping indicator
         elsif o =~ /^[^[:word:]][^"]*$/
@@ -588,10 +589,6 @@ module Psych
           @emitter.scalar("#{iv.to_s.sub(/^@/, '')}", nil, nil, true, false, Nodes::Scalar::ANY)
           accept target.instance_variable_get(iv)
         end
-      end
-
-      def line_width
-        @line_width ||= (@options[:line_width] || 0)
       end
     end
   end
