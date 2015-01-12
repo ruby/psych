@@ -301,10 +301,9 @@ module Psych
         quote = true
         style = Nodes::Scalar::PLAIN
         tag   = nil
-        str   = o
 
         if binary?(o)
-          str   = [o].pack('m').chomp
+          o     = [o].pack('m').chomp
           tag   = '!binary' # FIXME: change to below when syck is removed
           #tag   = 'tag:yaml.org,2002:binary'
           style = Nodes::Scalar::LITERAL
@@ -333,14 +332,14 @@ module Psych
             plain = false
             quote = false
           end
-          @emitter.scalar str, nil, tag, plain, quote, style
+          @emitter.scalar o, nil, tag, plain, quote, style
         else
           maptag = '!ruby/string'
           maptag << ":#{o.class}" unless o.class == ::String
 
           register o, @emitter.start_mapping(nil, maptag, false, Nodes::Mapping::BLOCK)
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
-          @emitter.scalar str, nil, tag, plain, quote, style
+          @emitter.scalar o, nil, tag, plain, quote, style
 
           dump_ivars o
 
