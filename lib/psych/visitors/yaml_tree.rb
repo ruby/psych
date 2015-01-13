@@ -319,7 +319,6 @@ module Psych
           quote = false
         elsif @line_width && o.length > @line_width
           style = Nodes::Scalar::FOLDED
-          o += "\n" unless o =~ /\n\Z/  # to avoid non-default chomping indicator
         elsif o =~ /^[^[:word:]][^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
         elsif not String === @ss.tokenize(o)
