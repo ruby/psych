@@ -367,45 +367,15 @@ module Psych
       end
 
       def visit_Hash o
-        ivars    = o.instance_variables
-
-        if ivars.any?
-          tag = "!ruby/hash-with-ivars"
-          tag << ":#{o.class}" unless o.class == ::Hash
-
-          register(o, @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK))
-
-          @emitter.scalar 'elements', nil, nil, true, false, Nodes::Scalar::ANY
-
-          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+        if o.class == ::Hash
+          register(o, @emitter.start_mapping(nil, nil, true, Psych::Nodes::Mapping::BLOCK))
           o.each do |k,v|
             accept k
             accept v
           end
-          @emitter.end_mapping
-
-          @emitter.scalar 'ivars', nil, nil, true, false, Nodes::Scalar::ANY
-
-          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
-          o.instance_variables.each do |ivar|
-            accept ivar
-            accept o.instance_variable_get ivar
-          end
-          @emitter.end_mapping
-
           @emitter.end_mapping
         else
-          tag      = o.class == ::Hash ? nil : "!ruby/hash:#{o.class}"
-          implicit = !tag
-
-          register(o, @emitter.start_mapping(nil, tag, implicit, Psych::Nodes::Mapping::BLOCK))
-
-          o.each do |k,v|
-            accept k
-            accept v
-          end
-
-          @emitter.end_mapping
+          visit_hash_subclass o
         end
       end
 
@@ -468,7 +438,8 @@ module Psych
 
       def visit_array_subclass o
         tag = "!ruby/array:#{o.class}"
-        if o.instance_variables.empty?
+        ivars = o.instance_variables
+        if ivars.empty?
           node = @emitter.start_sequence(nil, tag, false, Nodes::Sequence::BLOCK)
           register o, node
           o.each { |c| accept c }
@@ -486,12 +457,50 @@ module Psych
           # Dump the ivars
           accept 'ivars'
           @emitter.start_mapping(nil, nil, true, Nodes::Sequence::BLOCK)
+          ivars.each do |ivar|
+            accept ivar
+            accept o.instance_variable_get ivar
+          end
+          @emitter.end_mapping
+
+          @emitter.end_mapping
+        end
+      end
+
+      def visit_hash_subclass o
+        ivars = o.instance_variables
+        if ivars.any?
+          tag = "!ruby/hash-with-ivars:#{o.class}"
+          node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
+          register(o, node)
+
+          # Dump the elements
+          accept 'elements'
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
+          o.each do |k,v|
+            accept k
+            accept v
+          end
+          @emitter.end_mapping
+
+          # Dump the ivars
+          accept 'ivars'
+          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
           o.instance_variables.each do |ivar|
             accept ivar
             accept o.instance_variable_get ivar
           end
           @emitter.end_mapping
 
+          @emitter.end_mapping
+        else
+          tag = "!ruby/hash:#{o.class}"
+          node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
+          register(o, node)
+          o.each do |k,v|
+            accept k
+            accept v
+          end
           @emitter.end_mapping
         end
       end
