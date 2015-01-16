@@ -325,10 +325,11 @@ module Psych
           style = Nodes::Scalar::SINGLE_QUOTED
         end
 
-        ivars = find_ivars o
+        is_primitive = o.class == ::String
+        ivars = find_ivars o, is_primitive
 
         if ivars.empty?
-          unless o.class == ::String
+          unless is_primitive
             tag = "!ruby/string:#{o.class}"
             plain = false
             quote = false
@@ -533,7 +534,7 @@ module Psych
       end
 
       # FIXME: remove this method once "to_yaml_properties" is removed
-      def find_ivars target
+      def find_ivars target, is_primitive=false
         begin
           loc = target.method(:to_yaml_properties).source_location.first
           unless loc.start_with?(Psych::DEPRECATED) || loc.end_with?('rubytypes.rb')
@@ -547,7 +548,7 @@ module Psych
           # and it's OK to skip it since it's only to emit a warning.
         end
 
-        target.instance_variables
+        is_primitive ? [] : target.instance_variables
       end
 
       def register target, yaml_obj
