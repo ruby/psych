@@ -68,7 +68,7 @@ module Psych
     def test_literal_when_inner_and_final_line_break
       str = "Lorem ipsum\ndolor\n"
       yaml = Psych.dump str, line_width: 12
-      assert_match /---\s*|\n(.*\n){2}\Z/, yaml
+      assert_match /---\s*\|\n(.*\n){2}\Z/, yaml
       assert_equal str, Psych.load(yaml)
     end
 
@@ -76,7 +76,7 @@ module Psych
     def test_literal_strip_when_inner_line_break_and_no_final_line_break
       str = "Lorem ipsum\ndolor"
       yaml = Psych.dump str, line_width: 12
-      assert_match /---\s*|-\n(.*\n){2}\Z/, yaml
+      assert_match /---\s*\|-\n(.*\n){2}\Z/, yaml
       assert_equal str, Psych.load(yaml)
     end
 
