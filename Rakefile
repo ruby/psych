@@ -34,25 +34,37 @@ $hoe = Hoe.spec 'psych' do
   extra_dev_deps << ['minitest', '~> 4.0']
 
   self.spec_extras = {
-    :extensions            => ["ext/psych/extconf.rb"],
     :required_ruby_version => '>= 1.9.2'
   }
 
   if java?
+    require './lib/psych/versions.rb'
+    extra_deps << ['jar-dependencies', '>= 0.1.7']
+
+    # the jar declaration for jar-dependencies
+    self.spec_extras[ 'requirements' ] = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
+    self.spec_extras[ 'platform' ] = 'java'
     # TODO: clean this section up.
     require "rake/javaextensiontask"
     Rake::JavaExtensionTask.new("psych", spec) do |ext|
-      jruby_home = RbConfig::CONFIG['prefix']
+      require 'maven/ruby/maven'
+      # tell maven via system properties the snakeyaml version
+      ENV_JAVA['snakeyaml.version'] = Psych::DEFAULT_SNAKEYAML_VERSION
+      # uses Mavenfile to write classpath into pkg/classpath
+      Maven::Ruby::Maven.new.exec( 'dependency:build-classpath')#, '--quiet' )
+      ext.source_version = '1.7'
+      ext.target_version = '1.7'
+      ext.classpath = File.read('pkg/classpath')
       ext.ext_dir = 'ext/java'
-      jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
-      ext.classpath = jars.map { |x| File.expand_path x }.join ':'
     end
   else
+    self.spec_extras[:extensions] = ["ext/psych/extconf.rb"]
     Rake::ExtensionTask.new "psych", spec do |ext|
       ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
     end
   end
 end
+$hoe.spec.files << 'lib/psych.jar'
 
 Hoe.add_include_dirs('.:lib/psych')
 

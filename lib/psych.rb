@@ -1,6 +1,6 @@
 case RUBY_ENGINE
 when 'jruby'
-  require 'psych.jar'
+  require 'psych_jars'
   org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
 else
   require 'psych.so'

@@ -57,6 +57,7 @@ lib/psych/stream.rb
 lib/psych/streaming.rb
 lib/psych/syntax_error.rb
 lib/psych/tree_builder.rb
+lib/psych/versions.rb
 lib/psych/visitors.rb
 lib/psych/visitors/depth_first.rb
 lib/psych/visitors/emitter.rb
@@ -65,6 +66,8 @@ lib/psych/visitors/to_ruby.rb
 lib/psych/visitors/visitor.rb
 lib/psych/visitors/yaml_tree.rb
 lib/psych/y.rb
+lib/psych_jars.rb
+lib/psych.jar
 test/psych/handlers/test_recorder.rb
 test/psych/helper.rb
 test/psych/json/test_stream.rb
