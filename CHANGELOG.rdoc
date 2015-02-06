@@ -1,3 +1,10 @@
+Fri Feb  6 16:58:31 2015  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* ext/psych/lib/psych/visitors/to_ruby.rb: fix support for regular
+	  expressions with newlines. tenderlove/psych#222
+
+	* test/psych/test_yaml.rb: test for change.
+
 Thu Jan 29 02:34:27 2015  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/to_ruby.rb: fix parsing hashes with
