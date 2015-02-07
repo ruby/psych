@@ -1,4 +1,5 @@
 *.swp
 *.bundle
+lib/psych.jar
 /pkg
 /tmp

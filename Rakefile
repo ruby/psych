@@ -26,13 +26,25 @@ $hoe = Hoe.spec 'psych' do
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
   extra_dev_deps << ['minitest', '~> 4.0']
 
-  self.spec_extras = {
-    :extensions            => ["ext/psych/extconf.rb"],
-    :required_ruby_version => '>= 1.9.2'
-  }
+  if RUBY_PLATFORM =~ /java/
+    self.spec_extras = { :platform => 'java' }
 
-  Rake::ExtensionTask.new "psych", spec do |ext|
-    ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
+    require "rake/javaextensiontask"
+    Rake::JavaExtensionTask.new("psych", spec) do |ext|
+      jruby_home = RbConfig::CONFIG['prefix']
+      ext.ext_dir = 'ext/java'
+      jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
+      ext.classpath = jars.map { |x| File.expand_path x }.join ':'
+    end
+  else
+    self.spec_extras = {
+      :extensions            => ["ext/psych/extconf.rb"],
+      :required_ruby_version => '>= 1.9.2'
+    }
+
+    Rake::ExtensionTask.new "psych", spec do |ext|
+      ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
+    end
   end
 end
 

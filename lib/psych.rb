@@ -1,4 +1,11 @@
-require 'psych.so'
+if RUBY_PLATFORM =~ /java/
+  require 'jruby'
+  require './psych.jar'
+  org.psych.PsychLibrary.new.load(JRuby.runtime)
+else
+  require 'psych.so'
+end
+
 require 'psych/nodes'
 require 'psych/streaming'
 require 'psych/visitors'
@@ -220,7 +227,7 @@ module Psych
   VERSION         = '2.0.12'
 
   # The version of libyaml Psych is using
-  LIBYAML_VERSION = Psych.libyaml_version.join '.'
+  LIBYAML_VERSION = Psych.libyaml_version.join '.' unless RUBY_PLATFORM =~ /java/
 
   ###
   # Load +yaml+ in to a Ruby data structure.  If multiple documents are
