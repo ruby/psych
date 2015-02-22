@@ -10,3 +10,6 @@ before_script:
   - gem install rake-compiler
   - gem install minitest -v '~> 4.0'
 script: rake test
+matrix:
+  allow_failures:
+    - rvm: rbx-2
