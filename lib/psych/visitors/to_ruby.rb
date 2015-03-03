@@ -32,7 +32,7 @@ module Psych
         return result if @domain_types.empty? || !target.tag
 
         key = target.tag.sub(/^[!\/]*/, '').sub(/(,\d+)\//, '\1:')
-        key = "tag:#{key}" unless key =~ /^(tag:|x-private)/
+        key = "tag:#{key}" unless key =~ /^(?:tag:|x-private)/
 
         if @domain_types.key? key
           value, block = @domain_types[key]
@@ -89,7 +89,7 @@ module Psych
           Float(@ss.tokenize(o.value))
         when "!ruby/regexp"
           klass = class_loader.regexp
-          o.value =~ /^\/(.*)\/([mixn]*)$/
+          o.value =~ /^\/(.*)\/([mixn]*)$/m
           source  = $1
           options = 0
           lang    = nil
@@ -263,6 +263,7 @@ module Psych
 
         when /^!ruby\/hash-with-ivars(?::(.*))?$/
           hash = $1 ? resolve_class($1).allocate : {}
+          register o, hash
           o.children.each_slice(2) do |key, value|
             case key.value
             when 'elements'

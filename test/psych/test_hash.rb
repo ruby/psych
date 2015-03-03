@@ -23,6 +23,13 @@ module Psych
       @hash = { :a => 'b' }
     end
 
+    def test_referenced_hash_with_ivar
+      a = [1,2,3,4,5]
+      t1 = [HashWithCustomInit.new(a)]
+      t1 << t1.first
+      assert_cycle t1
+    end
+
     def test_custom_initialized
       a = [1,2,3,4,5]
       t1 = HashWithCustomInit.new(a)
@@ -36,12 +43,6 @@ module Psych
       t2 = Psych.load(Psych.dump(t1))
       assert_equal t1, t2
       assert_cycle t1
-    end
-
-    def test_hash_with_ivars
-      @hash.instance_variable_set :@foo, 'bar'
-      dup = Psych.load Psych.dump @hash
-      assert_equal 'bar', dup.instance_variable_get(:@foo)
     end
 
     def test_hash_subclass_with_ivars
