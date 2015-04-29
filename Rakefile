@@ -64,7 +64,25 @@ $hoe = Hoe.spec 'psych' do
     end
   end
 end
-$hoe.spec.files << 'lib/psych.jar'
+
+def gem_build_path
+  File.join 'pkg', $hoe.spec.full_name
+end
+
+def add_file_to_gem relative_path
+  target_path = File.join gem_build_path, relative_path
+  target_dir = File.dirname(target_path)
+  mkdir_p target_dir unless File.directory?(target_dir)
+  rm_f target_path
+  safe_ln relative_path, target_path
+  $hoe.spec.files.concat [relative_path]
+end
+
+if java?
+  task gem_build_path => [:compile] do
+    add_file_to_gem 'lib/psych.jar'
+  end
+end
 
 Hoe.add_include_dirs('.:lib/psych')
 
