@@ -9,7 +9,7 @@ class Hoe
 end
 
 gem 'rake-compiler', '>= 0.4.1'
-gem 'minitest', '~> 4.0'
+gem 'minitest', '~> 5.0'
 require "rake/extensiontask"
 
 Hoe.plugin :doofus, :git, :gemspec
@@ -24,7 +24,7 @@ $hoe = Hoe.spec 'psych' do
   self.testlib           = :minitest
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
-  extra_dev_deps << ['minitest', '~> 4.0']
+  extra_dev_deps << ['minitest', '~> 5.0']
 
   self.spec_extras = {
     :extensions            => ["ext/psych/extconf.rb"],
