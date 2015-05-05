@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.jcodings.unicode.UnicodeEncoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
@@ -134,10 +135,13 @@ public class PsychParser extends RubyObject {
         Ruby runtime = context.runtime;
 
         if (yaml instanceof RubyString) {
+            Encoding enc = ((RubyString)yaml).getEncoding();
+            if (!(enc instanceof UnicodeEncoding)) enc = UTF8Encoding.INSTANCE;
+
             ByteList byteList = ((RubyString)yaml).getByteList();
             ByteArrayInputStream bais = new ByteArrayInputStream(byteList.getUnsafeBytes(), byteList.getBegin(), byteList.getRealSize());
 
-            Charset charset = byteList.getEncoding().getCharset();
+            Charset charset = enc.getCharset();
             if (charset == null) charset = Charset.defaultCharset();
 
             InputStreamReader isr = new InputStreamReader(bais, charset);
@@ -147,9 +151,10 @@ public class PsychParser extends RubyObject {
 
         // fall back on IOInputStream, using default charset
         if (yaml.respondsTo("read")) {
-            Charset charset = (yaml instanceof RubyIO)
-                ? ((RubyIO)yaml).getReadEncoding().getCharset()
-                : Charset.defaultCharset();
+            Encoding enc = (yaml instanceof RubyIO)
+                ? ((RubyIO)yaml).getReadEncoding()
+                : UTF8Encoding.INSTANCE;
+            Charset charset = enc.getCharset();
             return new StreamReader(new InputStreamReader(new IOInputStream(yaml), charset));
         } else {
             throw runtime.newTypeError(yaml, runtime.getIO());
