@@ -1,6 +1,6 @@
 #-*- mode: ruby -*-
 
-pom 'org.jruby:jruby:9.0.0.0.pre1', :scope => :provided
+pom 'org.jruby:jruby:${jruby.version}', :scope => :provided
 
 jar 'org.yaml:snakeyaml:${snakeyaml.version}'
 

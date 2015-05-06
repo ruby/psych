@@ -48,10 +48,9 @@ $hoe = Hoe.spec 'psych' do
     require "rake/javaextensiontask"
     Rake::JavaExtensionTask.new("psych", spec) do |ext|
       require 'maven/ruby/maven'
-      # tell maven via system properties the snakeyaml version
-      ENV_JAVA['snakeyaml.version'] = Psych::DEFAULT_SNAKEYAML_VERSION
       # uses Mavenfile to write classpath into pkg/classpath
-      Maven::Ruby::Maven.new.exec( 'dependency:build-classpath')#, '--quiet' )
+      # and tell maven via system properties the snakeyaml version
+      Maven::Ruby::Maven.new.exec( 'dependency:build-classpath', "-Djruby.version=#{JRUBY_VERSION}", "-Dsnakeyaml.version=#{Psych::DEFAULT_SNAKEYAML_VERSION}")#, '--quiet' )
       ext.source_version = '1.7'
       ext.target_version = '1.7'
       ext.classpath = File.read('pkg/classpath')
