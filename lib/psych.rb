@@ -223,7 +223,7 @@ require 'psych/class_loader'
 
 module Psych
   # The version is Psych you're using
-  VERSION         = '2.0.14.pre1'
+  VERSION         = '2.0.14'
 
   # The version of libyaml Psych is using
   LIBYAML_VERSION = Psych.libyaml_version.join '.'
