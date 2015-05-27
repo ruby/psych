@@ -1,6 +1,6 @@
 *.swp
 *.bundle
-*.jar
+lib/*.jar
 *.class
 /pkg
 /tmp
