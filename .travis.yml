@@ -3,12 +3,13 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.0
+  - 2.2.0
   - ruby-head
   - rbx-2
 before_script:
   - gem install hoe
   - gem install rake-compiler
-  - gem install minitest -v '~> 4.0'
+  - gem install minitest -v '~> 5.0'
 script: rake test
 matrix:
   allow_failures:
