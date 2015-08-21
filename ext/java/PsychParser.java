@@ -52,6 +52,7 @@ import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IOInputStream;
+import org.jruby.util.io.EncodingUtils;
 import org.jruby.util.log.Logger;
 import org.jruby.util.log.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -135,14 +136,20 @@ public class PsychParser extends RubyObject {
         Ruby runtime = context.runtime;
 
         if (yaml instanceof RubyString) {
-            Encoding enc = ((RubyString)yaml).getEncoding();
-            if (!(enc instanceof UnicodeEncoding)) enc = UTF8Encoding.INSTANCE;
-
             ByteList byteList = ((RubyString)yaml).getByteList();
+            Encoding enc = byteList.getEncoding();
+
+            // if not unicode, transcode to UTF8
+            if (!(enc instanceof UnicodeEncoding)) {
+                byteList = EncodingUtils.strConvEnc(context, byteList, enc, UTF8Encoding.INSTANCE);
+                enc = UTF8Encoding.INSTANCE;
+            }
+
             ByteArrayInputStream bais = new ByteArrayInputStream(byteList.getUnsafeBytes(), byteList.getBegin(), byteList.getRealSize());
 
             Charset charset = enc.getCharset();
-            if (charset == null) charset = Charset.defaultCharset();
+
+            assert charset != null : "charset for encoding " + enc + " should not be null";
 
             InputStreamReader isr = new InputStreamReader(bais, charset);
 
