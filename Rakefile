@@ -50,7 +50,9 @@ $hoe = Hoe.spec 'psych' do
       require 'maven/ruby/maven'
       # uses Mavenfile to write classpath into pkg/classpath
       # and tell maven via system properties the snakeyaml version
-      Maven::Ruby::Maven.new.exec( 'dependency:build-classpath', "-Djruby.version=#{JRUBY_VERSION}", "-Dsnakeyaml.version=#{Psych::DEFAULT_SNAKEYAML_VERSION}")#, '--quiet' )
+      # this is basically the same as running from the commandline:
+      # rmvn dependency:build-classpath -Dsnakeyaml.version='use version from Psych::DEFAULT_SNAKEYAML_VERSION here'
+      Maven::Ruby::Maven.new.exec( 'dependency:build-classpath', "-Dsnakeyaml.version=#{Psych::DEFAULT_SNAKEYAML_VERSION}", '-Dverbose=true')#, '--quiet' )
       ext.source_version = '1.7'
       ext.target_version = '1.7'
       ext.classpath = File.read('pkg/classpath')
