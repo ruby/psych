@@ -510,27 +510,11 @@ module Psych
       def dump_list o
       end
 
-      # '%:z' was no defined until 1.9.3
-      if RUBY_VERSION < '1.9.3'
-        def format_time time
-          formatted = time.strftime("%Y-%m-%d %H:%M:%S.%9N")
-
-          if time.utc?
-            formatted += " Z"
-          else
-            zone = time.strftime('%z')
-            formatted += " #{zone[0,3]}:#{zone[3,5]}"
-          end
-
-          formatted
-        end
-      else
-        def format_time time
-          if time.utc?
-            time.strftime("%Y-%m-%d %H:%M:%S.%9N Z")
-          else
-            time.strftime("%Y-%m-%d %H:%M:%S.%9N %:z")
-          end
+      def format_time time
+        if time.utc?
+          time.strftime("%Y-%m-%d %H:%M:%S.%9N Z")
+        else
+          time.strftime("%Y-%m-%d %H:%M:%S.%9N %:z")
         end
       end
 
