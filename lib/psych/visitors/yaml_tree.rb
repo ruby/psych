@@ -70,6 +70,14 @@ module Psych
         @ss         = ss
         @options    = options
         @line_width = options[:line_width]
+        if @line_width && @line_width < 0
+          if @line_width == -1
+            # Treat -1 as unlimited line-width, same as libyaml does.
+            @line_width = nil
+          else
+            fail(ArgumentError, "Invalid line_width #{@line_width}, must be non-negative or -1 for unlimited.")
+          end
+        end
         @coders     = []
 
         @dispatch_cache = Hash.new do |h,klass|
