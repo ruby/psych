@@ -10,7 +10,7 @@ install:
 build_script:
   - net user
   - net localgroup
-  - rake compile -- --with-bundled-yaml
+  - rake compile -- --with-bundled-libyaml
 test_script:
   - rake test
 
