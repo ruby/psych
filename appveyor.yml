@@ -11,7 +11,7 @@ install:
 build_script:
   - net user
   - net localgroup
-  - ruby compile -- --enable-bundled-libyaml
+  - rake compile -- --enable-bundled-libyaml
 test_script:
   - rake test
 environment:
