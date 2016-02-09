@@ -11,7 +11,6 @@ install:
 build_script:
   - net user
   - net localgroup
-  - cd ext\psych
   - ruby compile -- --enable-bundled-libyaml
 test_script:
   - rake test
