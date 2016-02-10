@@ -11,15 +11,11 @@ install:
 build_script:
   - net user
   - net localgroup
-  - rake compile -- --enable-bundled-libyaml
+  - cd ext\psych
+  - ruby extconf.rb --enable-bundled-libyaml
 test_script:
   - rake test
 environment:
   matrix:
-    - ruby_version: "193"
-    - ruby_version: "200"
-    - ruby_version: "200-x64"
-    - ruby_version: "21"
     - ruby_version: "21-x64"
-    - ruby_version: "22"
     - ruby_version: "22-x64"
