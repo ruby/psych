@@ -22,24 +22,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = "2.5.1"
   s.summary = "Psych is a YAML parser and emitter"
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<rdoc>, ["~> 4.0"])
-      s.add_development_dependency(%q<rake-compiler>, [">= 0.4.1"])
-      s.add_development_dependency(%q<minitest>, ["~> 5.0"])
-      s.add_development_dependency(%q<hoe>, ["~> 3.15"])
-    else
-      s.add_dependency(%q<rdoc>, ["~> 4.0"])
-      s.add_dependency(%q<rake-compiler>, [">= 0.4.1"])
-      s.add_dependency(%q<minitest>, ["~> 5.0"])
-      s.add_dependency(%q<hoe>, ["~> 3.15"])
-    end
-  else
-    s.add_dependency(%q<rdoc>, ["~> 4.0"])
-    s.add_dependency(%q<rake-compiler>, [">= 0.4.1"])
-    s.add_dependency(%q<minitest>, ["~> 5.0"])
-    s.add_dependency(%q<hoe>, ["~> 3.15"])
-  end
+  s.add_development_dependency(%q<rdoc>, ["~> 4.0"])
+  s.add_development_dependency(%q<rake-compiler>, [">= 0.4.1"])
+  s.add_development_dependency(%q<minitest>, ["~> 5.0"])
+  s.add_development_dependency(%q<hoe>, ["~> 3.15"])
 end
