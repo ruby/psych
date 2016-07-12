@@ -19,10 +19,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = "2.5.1"
   s.summary = "Psych is a YAML parser and emitter"
 
-  s.add_development_dependency(%q<rdoc>, ["~> 4.0"])
   s.add_development_dependency(%q<rake-compiler>, [">= 0.4.1"])
   s.add_development_dependency(%q<minitest>, ["~> 5.0"])
-  s.add_development_dependency(%q<hoe>, ["~> 3.15"])
 
   if RUBY_PLATFORM =~ /java/
     require 'psych/versions'
