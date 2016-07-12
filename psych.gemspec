@@ -26,4 +26,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<rake-compiler>, [">= 0.4.1"])
   s.add_development_dependency(%q<minitest>, ["~> 5.0"])
   s.add_development_dependency(%q<hoe>, ["~> 3.15"])
+
+  if RUBY_PLATFORM =~ /java/
+    s.platform = 'java'
+    s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
+    s.add_dependency 'jar-dependencies', '>= 0.1.7'
+  end
 end
