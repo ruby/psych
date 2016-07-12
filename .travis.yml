@@ -5,6 +5,3 @@ rvm:
   - 2.3.0
   - ruby-head
 before_install: gem install bundler --no-document
-matrix:
-  allow_failures:
-    - rvm: ruby-head
