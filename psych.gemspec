@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-# stub: psych 2.1.0 ruby lib
-# stub: ext/psych/extconf.rb
 
 Gem::Specification.new do |s|
   s.name = "psych"
