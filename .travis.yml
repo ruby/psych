@@ -6,8 +6,6 @@ rvm:
   - ruby-head
   - rbx-2
 before_install: gem install bundler --no-document
-before_script: rake compile
-script: rake test
 matrix:
   allow_failures:
     - rvm: ruby-head
