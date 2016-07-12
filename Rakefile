@@ -1,7 +1,5 @@
 require "bundler/gem_tasks"
 require "rake/testtask"
-require 'rake/extensiontask'
-require 'rake/javaextensiontask'
 
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
@@ -10,6 +8,7 @@ Rake::TestTask.new(:test) do |t|
 end
 
 if RUBY_PLATFORM =~ /java/
+  require 'rake/javaextensiontask'
   Rake::JavaExtensionTask.new("psych") do |ext|
     require 'maven/ruby/maven'
     # uses Mavenfile to write classpath into pkg/classpath
@@ -23,6 +22,7 @@ if RUBY_PLATFORM =~ /java/
     ext.ext_dir = 'ext/java'
   end
 else
+  require 'rake/extensiontask'
   Rake::ExtensionTask.new("psych") do |ext|
     ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
   end
