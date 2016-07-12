@@ -31,5 +31,6 @@ Gem::Specification.new do |s|
     s.platform = 'java'
     s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
+    s.add_development_dependency 'ruby-maven'
   end
 end
