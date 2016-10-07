@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require_relative 'helper'
 require 'date'
 
@@ -71,6 +72,10 @@ module Psych
 
     def test_scan_nan
       assert ss.tokenize('.nan').nan?
+    end
+
+    def test_scan_float_with_exponent_but_no_fraction
+      assert_equal(0.0, ss.tokenize('0.E+0'))
     end
 
     def test_scan_null

@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require_relative 'helper'
 
 require 'stringio'
@@ -140,6 +141,12 @@ class TestPsych < Psych::TestCase
       t.write('--- hello world')
       t.close
       assert_equal 'hello world', Psych.load_file(t.path)
+    }
+  end
+
+  def test_load_file_with_fallback
+    Tempfile.create(['empty', 'yml']) {|t|
+      assert_equal Hash.new, Psych.load_file(t.path, Hash.new)
     }
   end
 

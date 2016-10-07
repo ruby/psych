@@ -77,7 +77,7 @@ import org.jruby.util.ByteList;
 
 public class PsychParser extends RubyObject {
 
-    private static final Logger LOG = LoggerFactory.getLogger("PsychParser");
+    private static final Logger LOG = LoggerFactory.getLogger(PsychParser.class);
     
     public static void initPsychParser(Ruby runtime, RubyModule psych) {
         RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), new ObjectAllocator() {

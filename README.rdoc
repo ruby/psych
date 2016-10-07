@@ -1,6 +1,6 @@
 = Psych
 
-* http://github.com/tenderlove/psych
+* https://github.com/ruby/psych
 
 == Description
 

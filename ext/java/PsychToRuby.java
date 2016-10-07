@@ -55,7 +55,7 @@ public class PsychToRuby {
         public static IRubyObject build_exception(ThreadContext context, IRubyObject self, IRubyObject klass, IRubyObject message) {
             if (klass instanceof RubyClass) {
                 IRubyObject exception = ((RubyClass)klass).allocate();
-                ((RubyException)exception).message = message;
+                ((RubyException)exception).setMessage(message);
                 return exception;
             } else {
                 throw context.runtime.newTypeError(klass, context.runtime.getClassClass());

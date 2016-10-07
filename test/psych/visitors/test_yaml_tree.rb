@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require 'psych/helper'
 
 module Psych
@@ -153,6 +154,12 @@ module Psych
         assert Psych.load(Psych.dump(0.0 / 0.0)).nan?
         assert_equal 1, Psych.load(Psych.dump(1 / 0.0)).infinite?
         assert_equal(-1, Psych.load(Psych.dump(-1 / 0.0)).infinite?)
+      end
+
+      def test_string
+        assert_match(/'017'/, Psych.dump({'a' => '017'}))
+        assert_match(/'019'/, Psych.dump({'a' => '019'}))
+        assert_match(/'01818'/, Psych.dump({'a' => '01818'}))
       end
 
       # http://yaml.org/type/null.html

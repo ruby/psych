@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require 'psych/tree_builder'
 require 'psych/scalar_scanner'
 require 'psych/class_loader'
@@ -313,7 +314,7 @@ module Psych
         tag   = nil
 
         if binary?(o)
-          o     = [o].pack('m').chomp
+          o     = [o].pack('m0')
           tag   = '!binary' # FIXME: change to below when syck is removed
           #tag   = 'tag:yaml.org,2002:binary'
           style = Nodes::Scalar::LITERAL
@@ -330,7 +331,7 @@ module Psych
           style = Nodes::Scalar::FOLDED
         elsif o =~ /^[^[:word:]][^"]*$/
           style = Nodes::Scalar::DOUBLE_QUOTED
-        elsif not String === @ss.tokenize(o)
+        elsif not String === @ss.tokenize(o) or /\A0[0-7]*[89]/ =~ o
           style = Nodes::Scalar::SINGLE_QUOTED
         end
 
