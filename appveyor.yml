@@ -12,7 +12,5 @@ test_script:
   - rake test
 environment:
   matrix:
-    - ruby_version: "21"
     - ruby_version: "21-x64"
-    - ruby_version: "22"
     - ruby_version: "22-x64"
