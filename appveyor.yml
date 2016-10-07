@@ -1,17 +1,18 @@
 ---
-shallow_clone: true
-platform: x64
+clone_depth: 10
 install:
   - '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64'
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - gem update --system
   - bundle install
 build_script:
   - rake -rdevkit compile
 test_script:
   - rake test
+deploy: off
 environment:
   matrix:
+    - ruby_version: "200"
+    - ruby_version: "200-x64"
     - ruby_version: "21"
     - ruby_version: "21-x64"
     - ruby_version: "22"
