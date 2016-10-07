@@ -3,13 +3,11 @@ shallow_clone: true
 platform: x64
 install:
   - '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64'
-  - SET PATH=C:\Ruby%ruby_version%\bin;C:\Ruby%ruby_version%\Devkit\mingw\bin;C:\msys64\usr\bin;%PATH%
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - gem update --system
-  - gem install hoe minitest rake-compiler --no-document
+  - bundle install
 build_script:
-  - cd ext\psych
-  - ruby extconf.rb --enable-bundled-libyaml
-  - nmake
+  - rake -rdevkit compile
 test_script:
   - rake test
 environment:
