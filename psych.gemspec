@@ -26,8 +26,8 @@ DESCRIPTION
   s.rubygems_version = "2.5.1"
   s.required_rubygems_version = Gem::Requirement.new(">= 0")
 
-  s.add_development_dependency(%q<rake-compiler>, [">= 0.4.1"])
-  s.add_development_dependency(%q<minitest>, ["~> 5.0"])
+  s.add_development_dependency 'rake-compiler', ">= 0.4.1"
+  s.add_development_dependency 'minitest', "~> 5.0"
 
   if RUBY_PLATFORM =~ /java/
     require 'psych/versions'
