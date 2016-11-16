@@ -8,6 +8,7 @@
 #endif
 
 VALUE cPsychEmitter;
+static ID id_io;
 static ID id_write;
 static ID id_line_width;
 static ID id_indentation;
@@ -21,7 +22,7 @@ static void emit(yaml_emitter_t * emitter, yaml_event_t * event)
 
 static int writer(void *ctx, unsigned char *buffer, size_t size)
 {
-    VALUE io = (VALUE)ctx;
+    VALUE self = (VALUE)ctx, io = rb_attr_get(self, id_io);
 #ifdef HAVE_RUBY_ENCODING_H
     VALUE str = rb_enc_str_new((const char *)buffer, (long)size, rb_utf8_encoding());
 #else
@@ -94,7 +95,8 @@ static VALUE initialize(int argc, VALUE *argv, VALUE self)
 	yaml_emitter_set_canonical(emitter, Qtrue == canonical ? 1 : 0);
     }
 
-    yaml_emitter_set_output(emitter, writer, (void *)io);
+    rb_ivar_set(self, id_io, io);
+    yaml_emitter_set_output(emitter, writer, (void *)self);
 
     return self;
 }
@@ -562,6 +564,7 @@ void Init_psych_emitter(void)
     rb_define_method(cPsychEmitter, "line_width", line_width, 0);
     rb_define_method(cPsychEmitter, "line_width=", set_line_width, 1);
 
+    id_io          = rb_intern("io");
     id_write       = rb_intern("write");
     id_line_width  = rb_intern("line_width");
     id_indentation = rb_intern("indentation");
