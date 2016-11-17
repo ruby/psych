@@ -11,3 +11,8 @@ matrix:
   - rvm: jruby-9.1.6.0
 
 before_install: gem install bundler --no-document
+
+addons:
+  apt:
+    packages:
+      - haveged
