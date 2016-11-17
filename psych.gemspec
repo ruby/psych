@@ -32,7 +32,7 @@ DESCRIPTION
   if RUBY_PLATFORM =~ /java/
     require 'psych/versions'
     s.platform = 'java'
-    s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
+    s.requirements = "jar org.yaml:snakeyaml, 1.17"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
     s.add_development_dependency 'ruby-maven'
   else
