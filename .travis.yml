@@ -4,4 +4,10 @@ rvm:
   - 2.2
   - 2.3.0
   - ruby-head
+  - jruby-9.1.6.0
+
+matrix:
+  allow_failures:
+  - rvm: jruby-9.1.6.0
+
 before_install: gem install bundler --no-document
