@@ -159,7 +159,7 @@ module Psych
         if Psych.load_tags[o.tag]
           return revive(resolve_class(Psych.load_tags[o.tag]), o)
         end
-        return revive_hash(register(o, {}), o) unless o.tag
+        return revive_hash(register(o, empty_mapping(o)), o) unless o.tag
 
         case o.tag
         when /^!ruby\/struct:?(.*)?$/
@@ -320,6 +320,11 @@ module Psych
       end
 
       private
+
+      def empty_mapping o
+        return {}
+      end
+
       def register node, object
         @st[node.anchor] = object if node.anchor
         object
