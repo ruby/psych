@@ -303,7 +303,7 @@ module Psych
           end
 
         else
-          revive_hash(register(o, {}), o)
+          revive_hash(register(o, empty_mapping(o)), o)
         end
       end
 
