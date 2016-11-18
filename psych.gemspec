@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require 'psych/versions'
+require_relative 'lib/psych/versions'
 
 Gem::Specification.new do |s|
   s.name = "psych"
