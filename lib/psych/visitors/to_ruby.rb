@@ -336,11 +336,19 @@ module Psych
         list
       end
 
+      def accept_key k
+        accept(k)
+      end
+
+      def accept_value v
+        accept(v)
+      end
+
       SHOVEL = '<<'
       def revive_hash hash, o
         o.children.each_slice(2) { |k,v|
-          key = accept(k)
-          val = accept(v)
+          key = accept_key(k)
+          val = accept_value(v)
 
           if key == SHOVEL && k.tag != "tag:yaml.org,2002:str"
             case v
