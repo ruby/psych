@@ -142,7 +142,7 @@ module Psych
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, Psych::Omap.new)
           o.children.each { |a|
-            map[accept(a.children.first)] = accept a.children.last
+            map[accept_key(a.children.first)] = accept_value a.children.last
           }
           map
         when /^!(?:seq|ruby\/array):(.*)$/
@@ -171,8 +171,8 @@ module Psych
             members = {}
             struct_members = s.members.map { |x| class_loader.symbolize x }
             o.children.each_slice(2) do |k,v|
-              member = accept(k)
-              value  = accept(v)
+              member = accept_key(k)
+              value  = accept_value(v)
               if struct_members.include?(class_loader.symbolize(member))
                 s.send("#{member}=", value)
               else
@@ -215,8 +215,8 @@ module Psych
           string  = nil
 
           o.children.each_slice(2) do |k,v|
-            key   = accept k
-            value = accept v
+            key   = accept_key k
+            value = accept_value v
 
             if key == 'str'
               if klass
@@ -258,7 +258,7 @@ module Psych
           set = class_loader.psych_set.new
           @st[o.anchor] = set if o.anchor
           o.children.each_slice(2) do |k,v|
-            set[accept(k)] = accept(v)
+            set[accept_key(k)] = accept_value(v)
           end
           set
 
@@ -271,7 +271,7 @@ module Psych
               revive_hash hash, value
             when 'ivars'
               value.children.each_slice(2) do |k,v|
-                hash.instance_variable_set accept(k), accept(v)
+                hash.instance_variable_set accept_key(k), accept_value(v)
               end
             end
           end
@@ -283,7 +283,7 @@ module Psych
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, class_loader.psych_omap.new)
           o.children.each_slice(2) do |l,r|
-            map[accept(l)] = accept r
+            map[accept_key(l)] = accept_value r
           end
           map
 
