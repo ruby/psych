@@ -354,7 +354,7 @@ module Psych
             case v
             when Nodes::Alias, Nodes::Mapping
               begin
-                hash.merge! val
+                merge_mapping(hash, val)
               rescue TypeError
                 hash[key] = val
               end
@@ -362,9 +362,9 @@ module Psych
               begin
                 h = {}
                 val.reverse_each do |value|
-                  h.merge! value
+                  merge_mapping(h, value)
                 end
-                hash.merge! h
+                merge_mapping(hash, h)
               rescue TypeError
                 hash[key] = val
               end
@@ -377,6 +377,10 @@ module Psych
 
         }
         hash
+      end
+
+      def merge_mapping hash, val
+        hash.merge! val
       end
 
       def merge_key hash, key, val
