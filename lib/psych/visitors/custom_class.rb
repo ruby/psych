@@ -43,6 +43,41 @@ module Psych
     ##     p team.members[0].name     #=> "Haruhi"
     ##     p team.members[0].gender   #=> "F"
     ##
+    ## Example2:
+    ##
+    ##     ## allows `hash.foo` instead of `hash["foo"]`
+    ##     class MagicHash < Hash
+    ##       def method_missing(method, *args)
+    ##         return super unless args.empty?
+    ##         return self[method.to_s]
+    ##       end
+    ##     end
+    ##     ## create visitor with custom hash class
+    ##     require 'psych'
+    ##     require 'psych/visitors/custom_class'
+    ##     classmap = {'*' => MagicHash}
+    ##     visitor = Psych::Visitors::CustomClassVisitor.create(classmap)
+    ##     ## sample YAML document
+    ##     input = <<-'END'
+    ##     teams:
+    ##       - name: SOS Brigade
+    ##         members:
+    ##           - {name: Haruhi, gender: F}
+    ##           - {name: Kyon,   gender: M}
+    ##           - {name: Mikuru, gender: F}
+    ##           - {name: Itsuki, gender: M}
+    ##           - {name: Yuki,   gender: F}
+    ##     END
+    ##     ## parse YAML document with custom hash class
+    ##     tree = Psych.parse(input)
+    ##     ydoc = visitor.accept(tree)
+    ##     p ydoc.class                            #=> MagicHash
+    ##     p ydoc['teams'][0].class                #=> MagicHash
+    ##     p ydoc['teams'][0]['members'][0].class  #=> MagicHash
+    ##     p ydoc.teams[0].members[0].name    #=> "Haruhi"
+    ##     p ydoc.teams[0].members[0].gender  #=> "F"
+    ##
+
     class CustomClassVisitor < ToRuby
 
       def self.create(classmap={})
@@ -73,7 +108,7 @@ module Psych
       end
 
       def empty_mapping(o)  # generate custom object (or Hash object)
-        klass = @classmap[@key_path.last]
+        klass = @classmap[@key_path.last] || @classmap['*']
         klass ? klass.new : super
       end
 
