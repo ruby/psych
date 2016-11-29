@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 $LOAD_PATH.unshift './lib'
+load 'psych/versions.rb'
 
 Gem::Specification.new do |s|
   s.name = "psych"
@@ -31,7 +32,6 @@ DESCRIPTION
   s.add_development_dependency 'minitest', "~> 5.0"
 
   if RUBY_ENGINE == 'jruby'
-    load 'psych/versions.rb'
     s.platform = 'java'
     s.files.concat ["ext/java/PsychEmitter.java", "ext/java/PsychLibrary.java", "ext/java/PsychParser.java", "ext/java/PsychToRuby.java", "ext/java/PsychYamlTree.java", "lib/psych_jars.rb"]
     s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
