@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require_relative 'lib/psych/versions'
+$LOAd_PATH.unshift './lib'
 
 Gem::Specification.new do |s|
   s.name = "psych"
@@ -31,6 +31,7 @@ DESCRIPTION
   s.add_development_dependency 'minitest', "~> 5.0"
 
   if RUBY_PLATFORM =~ /java/
+    load 'psych/versions.rb'
     s.platform = 'java'
     s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
