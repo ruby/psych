@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
+require_relative 'lib/psych/versions'
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = "2.2.1"
+  s.version = Psych::VERSION
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.date = "2016-11-14"
@@ -30,9 +31,8 @@ DESCRIPTION
   s.add_development_dependency 'minitest', "~> 5.0"
 
   if RUBY_PLATFORM =~ /java/
-    require 'psych/versions'
     s.platform = 'java'
-    s.requirements = "jar org.yaml:snakeyaml, 1.17"
+    s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
     s.add_development_dependency 'ruby-maven'
   else
