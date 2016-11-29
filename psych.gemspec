@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-$LOAd_PATH.unshift './lib'
+$LOAD_PATH.unshift './lib'
 
 Gem::Specification.new do |s|
   s.name = "psych"
