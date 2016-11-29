@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift './lib'
+load 'psych/versions.rb'
 require "bundler/gem_tasks"
 require "rake/testtask"
 
@@ -15,7 +17,7 @@ if RUBY_PLATFORM =~ /java/
     # and tell maven via system properties the snakeyaml version
     # this is basically the same as running from the commandline:
     # rmvn dependency:build-classpath -Dsnakeyaml.version='use version from Psych::DEFAULT_SNAKEYAML_VERSION here'
-    Maven::Ruby::Maven.new.exec( 'dependency:build-classpath', "-Dsnakeyaml.version=1.17", '-Dverbose=true')#, '--quiet' )
+    Maven::Ruby::Maven.new.exec('dependency:build-classpath', "-Dsnakeyaml.version=#{Psych::DEFAULT_SNAKEYAML_VERSION}", '-Dverbose=true')
     ext.source_version = '1.7'
     ext.target_version = '1.7'
     ext.classpath = File.read('pkg/classpath')

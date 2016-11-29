@@ -241,9 +241,10 @@ public class PsychParser extends RubyObject {
     private void handleDocumentStart(ThreadContext context, DocumentStartEvent dse, boolean tainted, IRubyObject handler) {
         Ruby runtime = context.runtime;
         DumperOptions.Version _version = dse.getVersion();
-        IRubyObject version = _version == null ?
+        Integer[] versionInts = _version == null ? null : _version.getArray();
+        IRubyObject version = versionInts == null ?
             RubyArray.newArray(runtime) :
-            RubyArray.newArray(runtime, runtime.newFixnum(_version.major()), runtime.newFixnum(_version.minor()));
+            RubyArray.newArray(runtime, runtime.newFixnum(versionInts[0]), runtime.newFixnum(versionInts[1]));
         
         Map<String, String> tagsMap = dse.getTags();
         RubyArray tags = RubyArray.newArray(runtime);
