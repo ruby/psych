@@ -30,7 +30,7 @@ DESCRIPTION
   s.add_development_dependency 'rake-compiler', ">= 0.4.1"
   s.add_development_dependency 'minitest', "~> 5.0"
 
-  if RUBY_PLATFORM =~ /java/
+  if RUBY_ENGINE == 'jruby'
     load 'psych/versions.rb'
     s.platform = 'java'
     s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
