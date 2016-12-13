@@ -4,7 +4,7 @@ require 'psych'
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = Psych::VERSION
+  s.version = "2.2.2"
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.date = "2016-11-14"
