@@ -11,6 +11,8 @@ matrix:
 
 before_install: gem install bundler --no-document
 
+script: rake
+
 addons:
   apt:
     packages:
