@@ -101,7 +101,7 @@ public class PsychEmitter extends RubyObject {
 
         options.setCanonical(canonical.isTrue());
         options.setIndent((int)level.convertToInteger().getLongValue());
-        options.setWidth((int)width.convertToInteger().getLongValue());
+        line_width_set(context, width);
 
         this.io = io;
 
@@ -296,7 +296,9 @@ public class PsychEmitter extends RubyObject {
 
     @JRubyMethod(name = "line_width=")
     public IRubyObject line_width_set(ThreadContext context, IRubyObject width) {
-        options.setWidth((int)width.convertToInteger().getLongValue());
+        int newWidth = (int)width.convertToInteger().getLongValue();
+        if (newWidth <= 0) newWidth = Integer.MAX_VALUE;
+        options.setWidth(newWidth);
         return width;
     }
 
