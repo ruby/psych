@@ -9,6 +9,9 @@ matrix:
   allow_failures:
   - rvm: jruby-9.1.7.0
 
+before_script:
+  - unset JRUBY_OPTS
+
 script: rake
 
 addons:
