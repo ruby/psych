@@ -8,45 +8,10 @@ module Psych
       Psych.domain_types.clear
     end
 
-    class QuickEmitter
-      attr_reader :name
-      attr_reader :value
-
-      def initialize
-        @name  = 'hello!!'
-        @value = 'Friday!'
-      end
-
-      def to_yaml opts = {}
-        Psych.quick_emit object_id, opts do |out|
-          out.map taguri, to_yaml_style do |map|
-            map.add 'name', @name
-            map.add 'value', nil
-          end
-        end
-      end
-    end
+    class QuickEmitter; end
 
     def setup
-      @qe = QuickEmitter.new
       @orig_verbose, $VERBOSE = $VERBOSE, false
-    end
-
-    def test_quick_emit
-      qe2 = Psych.load @qe.to_yaml
-      assert_equal @qe.name, qe2.name
-      assert_instance_of QuickEmitter, qe2
-      assert_nil qe2.value
-    end
-
-    def test_recursive_quick_emit
-      hash  = { :qe => @qe }
-      hash2 = Psych.load Psych.dump hash
-      qe    = hash2[:qe]
-
-      assert_equal @qe.name, qe.name
-      assert_instance_of QuickEmitter, qe
-      assert_nil qe.value
     end
 
     class QuickEmitterEncodeWith
