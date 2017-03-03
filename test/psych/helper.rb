@@ -70,9 +70,15 @@ module Psych
     def assert_cycle( obj )
       v = Visitors::YAMLTree.create
       v << obj
-      assert_equal(obj, Psych.load(v.tree.yaml))
-      assert_equal( obj, Psych::load(Psych.dump(obj)))
-      assert_equal( obj, Psych::load( obj.psych_to_yaml ) )
+      if obj.nil?
+        assert_nil Psych.load(v.tree.yaml)
+        assert_nil Psych::load(Psych.dump(obj))
+        assert_nil Psych::load( obj.psych_to_yaml )
+      else
+        assert_equal(obj, Psych.load(v.tree.yaml))
+        assert_equal( obj, Psych::load(Psych.dump(obj)))
+        assert_equal( obj, Psych::load( obj.psych_to_yaml ) )
+      end
     end
 
     #
