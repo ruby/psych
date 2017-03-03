@@ -79,9 +79,9 @@ module Psych
     end
 
     def test_scan_null
-      assert_equal nil, ss.tokenize('null')
-      assert_equal nil, ss.tokenize('~')
-      assert_equal nil, ss.tokenize('')
+      assert_nil ss.tokenize('null')
+      assert_nil ss.tokenize('~')
+      assert_nil ss.tokenize('')
     end
 
     def test_scan_symbol
