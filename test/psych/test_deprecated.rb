@@ -122,18 +122,6 @@ module Psych
       assert_match(/helloworld/, Psych.dump(YamlAs.new))
     end
 
-    def test_ruby_type
-      types = []
-      appender = lambda { |*args| types << args }
-
-      Psych.add_ruby_type('foo', &appender)
-      Psych.load <<-eoyml
-- !ruby.yaml.org,2002/foo bar
-      eoyml
-
-      assert_equal [["tag:ruby.yaml.org,2002:foo", "bar"]], types
-    end
-
     def test_private_type
       types = []
       Psych.add_private_type('foo') { |*args| types << args }
