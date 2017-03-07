@@ -9,14 +9,6 @@ module Psych
     attr_accessor :to_yaml_style
   end
 
-  def self.detect_implicit thing
-    warn "#{caller[0]}: detect_implicit is deprecated" if $VERBOSE
-    return '' unless String === thing
-    return 'null' if '' == thing
-    ss = ScalarScanner.new(ClassLoader.new)
-    ss.tokenize(thing).class.name.downcase
-  end
-
   def self.add_ruby_type type_tag, &block
     warn "#{caller[0]}: add_ruby_type is deprecated, use add_domain_type" if $VERBOSE
     domain = 'ruby.yaml.org,2002'
