@@ -9,16 +9,6 @@ module Psych
     attr_accessor :to_yaml_style
   end
 
-  # This method is deprecated, use Psych.load_stream instead.
-  def self.load_documents yaml, &block
-    if $VERBOSE
-      warn "#{caller[0]}: load_documents is deprecated, use load_stream"
-    end
-    list = load_stream yaml
-    return list unless block_given?
-    list.each(&block)
-  end
-
   def self.detect_implicit thing
     warn "#{caller[0]}: detect_implicit is deprecated" if $VERBOSE
     return '' unless String === thing
