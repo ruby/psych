@@ -88,6 +88,12 @@ module Psych
       assert_equal :foo, ss.tokenize(':foo')
     end
 
+    def test_scan_not_sexagesimal
+      assert_equal '00:00:00:00:0f', ss.tokenize('00:00:00:00:0f')
+      assert_equal '00:00:00:00:00', ss.tokenize('00:00:00:00:00')
+      assert_equal '00:00:00:00:00.0', ss.tokenize('00:00:00:00:00.0')
+    end
+
     def test_scan_sexagesimal_float
       assert_equal 685230.15, ss.tokenize('190:20:30.15')
     end
