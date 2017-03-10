@@ -122,16 +122,6 @@ module Psych
       assert_match(/helloworld/, Psych.dump(YamlAs.new))
     end
 
-    def test_private_type
-      types = []
-      Psych.add_private_type('foo') { |*args| types << args }
-      Psych.load <<-eoyml
-- !x-private:foo bar
-      eoyml
-
-      assert_equal [["x-private:foo", "bar"]], types
-    end
-
     def test_tagurize
       assert_nil Psych.tagurize nil
       assert_equal Psych, Psych.tagurize(Psych)

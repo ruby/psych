@@ -9,13 +9,6 @@ module Psych
     attr_accessor :to_yaml_style
   end
 
-  def self.add_private_type type_tag, &block
-    warn "#{caller[0]}: add_private_type is deprecated, use add_domain_type" if $VERBOSE
-    domain = 'x-private'
-    key = [domain, type_tag].join ':'
-    @domain_types[key] = [key, block]
-  end
-
   def self.tagurize thing
     warn "#{caller[0]}: add_private_type is deprecated, use add_domain_type" if $VERBOSE
     return thing unless String === thing
