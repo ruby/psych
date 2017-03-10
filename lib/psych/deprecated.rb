@@ -15,16 +15,6 @@ module Psych
     "tag:yaml.org,2002:#{thing}"
   end
 
-  def self.read_type_class type, reference
-    warn "#{caller[0]}: read_type_class is deprecated" if $VERBOSE
-    _, _, type, name = type.split ':', 4
-
-    reference = name.split('::').inject(reference) do |k,n|
-      k.const_get(n.to_sym)
-    end if name
-    [type, reference]
-  end
-
   def self.object_maker klass, hash
     warn "#{caller[0]}: object_maker is deprecated" if $VERBOSE
     klass.allocate.tap do |obj|
