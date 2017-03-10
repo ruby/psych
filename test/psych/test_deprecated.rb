@@ -127,12 +127,5 @@ module Psych
       assert_equal Psych, Psych.tagurize(Psych)
       assert_equal 'tag:yaml.org,2002:foo', Psych.tagurize('foo')
     end
-
-    def test_object_maker
-      thing = Psych.object_maker(Object, { 'a' => 'b', 'c' => 'd' })
-      assert_instance_of(Object, thing)
-      assert_equal 'b', thing.instance_variable_get(:@a)
-      assert_equal 'd', thing.instance_variable_get(:@c)
-    end
   end
 end
