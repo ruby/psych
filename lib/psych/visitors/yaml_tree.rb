@@ -336,7 +336,7 @@ module Psych
         end
 
         is_primitive = o.class == ::String
-        ivars = find_ivars o, is_primitive
+        ivars = is_primitive ? [] : o.instance_variables
 
         if ivars.empty?
           unless is_primitive
@@ -527,24 +527,6 @@ module Psych
         end
       end
 
-      # FIXME: remove this method once "to_yaml_properties" is removed
-      def find_ivars target, is_primitive=false
-        begin
-          loc = target.method(:to_yaml_properties).source_location.first
-          unless loc.start_with?(Psych::DEPRECATED) || loc.end_with?('rubytypes.rb')
-            if $VERBOSE
-              warn "#{loc}: to_yaml_properties is deprecated, please implement \"encode_with(coder)\""
-            end
-            return target.to_yaml_properties
-          end
-        rescue
-          # public_method or source_location might be overridden,
-          # and it's OK to skip it since it's only to emit a warning.
-        end
-
-        is_primitive ? [] : target.instance_variables
-      end
-
       def register target, yaml_obj
         @st.register target, yaml_obj
         yaml_obj
@@ -586,9 +568,7 @@ module Psych
       end
 
       def dump_ivars target
-        ivars = find_ivars target
-
-        ivars.each do |iv|
+        target.instance_variables.each do |iv|
           @emitter.scalar("#{iv.to_s.sub(/^@/, '')}", nil, nil, true, false, Nodes::Scalar::ANY)
           accept target.instance_variable_get(iv)
         end
