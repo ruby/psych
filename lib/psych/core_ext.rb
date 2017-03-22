@@ -14,6 +14,7 @@ class Object
   end
 end
 
+<<<<<<< HEAD
 class Module
   def yaml_as url
     return if caller[0].end_with?('rubytypes.rb')
@@ -24,6 +25,8 @@ class Module
   end
 end
 
+=======
+>>>>>>> Removed Module#psych_yaml_as
 if defined?(::IRB)
   require 'psych/y'
 end

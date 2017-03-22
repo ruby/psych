@@ -111,6 +111,7 @@ module Psych
       assert_equal 'some string', coder.scalar
       assert_equal :scalar, coder.type
     end
+<<<<<<< HEAD
 
     class YamlAs
       TestCase.suppress_warning do
@@ -121,5 +122,7 @@ module Psych
     def test_yaml_as
       assert_match(/helloworld/, Psych.dump(YamlAs.new))
     end
+=======
+>>>>>>> Removed Module#psych_yaml_as
   end
 end
