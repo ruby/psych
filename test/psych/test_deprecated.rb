@@ -49,30 +49,6 @@ module Psych
       assert_nil qe.value
     end
 
-    class YamlInit
-      attr_reader :name
-      attr_reader :value
-
-      def initialize
-        @name  = 'hello!!'
-        @value = 'Friday!'
-      end
-
-      def yaml_initialize tag, vals
-        vals.each { |ivar, val| instance_variable_set "@#{ivar}", 'TGIF!' }
-      end
-    end
-
-    def test_yaml_initialize
-      hash  = { :yi => YamlInit.new }
-      hash2 = Psych.load Psych.dump hash
-      yi    = hash2[:yi]
-
-      assert_equal 'TGIF!', yi.name
-      assert_equal 'TGIF!', yi.value
-      assert_instance_of YamlInit, yi
-    end
-
     class YamlInitAndInitWith
       attr_reader :name
       attr_reader :value
