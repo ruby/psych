@@ -130,6 +130,7 @@ module Psych
           return @emitter.alias anchor
         end
 
+<<<<<<< HEAD
         if target.respond_to?(:to_yaml)
           begin
             loc = target.method(:to_yaml).source_location.first
@@ -148,6 +149,8 @@ module Psych
           end
         end
 
+=======
+>>>>>>> Removed to_yaml support on YAMLTree
         if target.respond_to?(:encode_with)
           dump_coder target
         else
