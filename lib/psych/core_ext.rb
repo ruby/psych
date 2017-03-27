@@ -14,19 +14,6 @@ class Object
   end
 end
 
-<<<<<<< HEAD
-class Module
-  def yaml_as url
-    return if caller[0].end_with?('rubytypes.rb')
-    if $VERBOSE
-      warn "#{caller[0]}: yaml_as is deprecated, please use yaml_tag"
-    end
-    Psych.add_tag(url, self)
-  end
-end
-
-=======
->>>>>>> Removed Module#psych_yaml_as
 if defined?(::IRB)
   require 'psych/y'
 end

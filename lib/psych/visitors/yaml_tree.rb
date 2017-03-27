@@ -130,27 +130,6 @@ module Psych
           return @emitter.alias anchor
         end
 
-<<<<<<< HEAD
-        if target.respond_to?(:to_yaml)
-          begin
-            loc = target.method(:to_yaml).source_location.first
-            if loc !~ /psych\/core_ext.rb/
-              unless target.respond_to?(:encode_with)
-                if $VERBOSE
-                  warn "implementing to_yaml is deprecated, please implement \"encode_with\""
-                end
-
-                target.to_yaml(:nodump => true)
-              end
-            end
-          rescue
-            # public_method or source_location might be overridden,
-            # and it's OK to skip it since it's only to emit a warning
-          end
-        end
-
-=======
->>>>>>> Removed to_yaml support on YAMLTree
         if target.respond_to?(:encode_with)
           dump_coder target
         else
