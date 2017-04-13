@@ -9,8 +9,23 @@ module Psych
       assert_cycle time
     end
 
+    def test_usec
+      time = Time.utc(2017, 4, 13, 12, 0, 0, 5)
+      assert_cycle time
+    end
+
+    def test_non_utc
+      time = Time.new(2017, 4, 13, 12, 0, 0.5, "+09:00")
+      assert_cycle time
+    end
+
     def test_new_datetime
       assert_cycle DateTime.new
+    end
+
+    def test_datetime_non_utc
+      dt = DateTime.new(2017, 4, 13, 12, 0, 0.5, "+09:00")
+      assert_cycle dt
     end
 
     def test_invalid_date
