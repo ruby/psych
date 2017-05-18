@@ -31,8 +31,7 @@ module Psych
   # construct an AST of the parsed YAML document.
 
   class Parser
-    class Mark < Struct.new(:index, :line, :column)
-    end
+    Mark = Struct.new(:index, :line, :column
 
     # The handler on which events will be called
     attr_accessor :handler
