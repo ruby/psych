@@ -158,10 +158,15 @@ public class PsychParser extends RubyObject {
 
         // fall back on IOInputStream, using default charset
         if (yaml.respondsTo("read")) {
-            Encoding enc = (yaml instanceof RubyIO)
-                ? ((RubyIO)yaml).getReadEncoding()
-                : UTF8Encoding.INSTANCE;
-            Charset charset = enc.getCharset();
+            Charset charset = null;
+            if (yaml instanceof RubyIO) {
+                Encoding enc = ((RubyIO) yaml).getReadEncoding();
+                charset = enc.getCharset();
+            }
+            if (charset == null) {
+                // If we can't get it from the IO or it doesn't have a charset, fall back on UTF-8
+                charset = UTF8Encoding.INSTANCE.getCharset();
+            }
             return new StreamReader(new InputStreamReader(new IOInputStream(yaml), charset));
         } else {
             throw runtime.newTypeError(yaml, runtime.getIO());
