@@ -1,5 +1,5 @@
 # encoding: UTF-8
-# frozen_string_literal: false
+# frozen_string_literal: true
 require_relative 'helper'
 
 module Psych
@@ -166,7 +166,7 @@ string: &70121654388580 !ruby/string
     end
 
     def test_nonascii_string_as_binary
-      string = "hello \x80 world!"
+      string = "hello \x80 world!".dup
       string.force_encoding 'ascii-8bit'
       yml = Psych.dump string
       assert_match(/binary/, yml)
@@ -202,7 +202,7 @@ string: &70121654388580 !ruby/string
     end
 
     def test_string_with_ivars
-      food = "is delicious"
+      food = "is delicious".dup
       ivar = "on rock and roll"
       food.instance_variable_set(:@we_built_this_city, ivar)
 
@@ -220,7 +220,7 @@ string: &70121654388580 !ruby/string
     end
 
     def binary_string percentage = 0.31, length = 100
-      string = ''
+      string = ''.dup
       (percentage * length).to_i.times do |i|
         string << "\b"
       end

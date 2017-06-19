@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 require 'psych/tree_builder'
 require 'psych/scalar_scanner'
 require 'psych/class_loader'
@@ -321,7 +321,7 @@ module Psych
           end
           @emitter.scalar o, nil, tag, plain, quote, style
         else
-          maptag = '!ruby/string'
+          maptag = '!ruby/string'.dup
           maptag << ":#{o.class}" unless o.class == ::String
 
           register o, @emitter.start_mapping(nil, maptag, false, Nodes::Mapping::BLOCK)
