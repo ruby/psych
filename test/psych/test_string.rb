@@ -174,7 +174,7 @@ string: &70121654388580 !ruby/string
     end
 
     def test_binary_string_null
-      string = "\x00"
+      string = "\x00\x92".b
       yml = Psych.dump string
       assert_match(/binary/, yml)
       assert_equal string, Psych.load(yml)
@@ -187,8 +187,8 @@ string: &70121654388580 !ruby/string
       assert_equal string, Psych.load(yml)
     end
 
-    def test_non_binary_string
-      string = binary_string(0.29)
+    def test_ascii_only_binary_string
+      string = "non bnry string".b
       yml = Psych.dump string
       refute_match(/binary/, yml)
       assert_equal string, Psych.load(yml)
@@ -220,9 +220,9 @@ string: &70121654388580 !ruby/string
     end
 
     def binary_string percentage = 0.31, length = 100
-      string = ''.dup
+      string = ''.b
       (percentage * length).to_i.times do |i|
-        string << "\b"
+        string << "\x92".b
       end
       string << 'a' * (length - string.length)
       string
