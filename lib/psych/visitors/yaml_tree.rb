@@ -411,15 +411,9 @@ module Psych
       end
 
       private
-      # FIXME: Remove the index and count checks in Psych 3.0
-      NULL         = "\x00"
-      BINARY_RANGE = "\x00-\x7F"
-      WS_RANGE     = "^ -~\t\r\n"
 
       def binary? string
-        (string.encoding == Encoding::ASCII_8BIT && !string.ascii_only?) ||
-          string.index(NULL) ||
-          string.count(BINARY_RANGE, WS_RANGE).fdiv(string.length) > 0.3
+        string.encoding == Encoding::ASCII_8BIT && !string.ascii_only?
       end
 
       def visit_array_subclass o
