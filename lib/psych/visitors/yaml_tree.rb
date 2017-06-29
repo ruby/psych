@@ -378,12 +378,16 @@ module Psych
 
       def visit_Array o
         if o.class == ::Array
-          register o, @emitter.start_sequence(nil, nil, true, Nodes::Sequence::BLOCK)
-          o.each { |c| accept c }
-          @emitter.end_sequence
+          visit_Enumerator o
         else
           visit_array_subclass o
         end
+      end
+
+      def visit_Enumerator o
+        register o, @emitter.start_sequence(nil, nil, true, Nodes::Sequence::BLOCK)
+        o.each { |c| accept c }
+        @emitter.end_sequence
       end
 
       def visit_NilClass o

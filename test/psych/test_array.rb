@@ -15,6 +15,12 @@ module Psych
       @list = [{ :a => 'b' }, 'foo']
     end
 
+    def test_enumerator
+      x = [1, 2, 3, 4]
+      y = Psych.load Psych.dump x.to_enum
+      assert_equal x, y
+    end
+
     def test_another_subclass_with_attributes
       y = Y.new.tap {|o| o.val = 1}
       y << "foo" << "bar"
