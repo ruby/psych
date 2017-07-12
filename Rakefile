@@ -10,11 +10,9 @@ Rake::TestTask.new(:test) do |t|
   t.warning = true
 end
 
-spec = eval File.read("psych.gemspec")
-
 if RUBY_PLATFORM =~ /java/
   require 'rake/javaextensiontask'
-  Rake::JavaExtensionTask.new("psych", spec) do |ext|
+  Rake::JavaExtensionTask.new("psych") do |ext|
     require 'maven/ruby/maven'
     # uses Mavenfile to write classpath into pkg/classpath
     # and tell maven via system properties the snakeyaml version
@@ -28,6 +26,7 @@ if RUBY_PLATFORM =~ /java/
   end
 else
   require 'rake/extensiontask'
+  spec = eval File.read("psych.gemspec")
   Rake::ExtensionTask.new("psych", spec) do |ext|
     ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
     ext.cross_compile = true
