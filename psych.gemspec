@@ -46,7 +46,6 @@ DESCRIPTION
   s.required_rubygems_version = Gem::Requirement.new(">= 0")
 
   s.add_development_dependency 'rake-compiler', ">= 0.4.1"
-  s.add_development_dependency 'rake-compiler-dock', ">= 0.6.1"
   s.add_development_dependency 'minitest', "~> 5.0"
 
   if RUBY_ENGINE == 'jruby'
@@ -60,5 +59,6 @@ DESCRIPTION
     s.add_development_dependency 'ruby-maven'
   else
     s.extensions = ["ext/psych/extconf.rb"]
+    s.add_development_dependency 'rake-compiler-dock', ">= 0.6.1"
   end
 end
