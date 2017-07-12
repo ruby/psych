@@ -27,7 +27,15 @@ else
   require 'rake/extensiontask'
   Rake::ExtensionTask.new("psych") do |ext|
     ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
+    ext.cross_compile = true
+    ext.cross_platform = %w[x86-mingw32 x64-mingw32]
   end
+end
+
+task 'gem:native' do
+  require 'rake_compiler_dock'
+  sh "bundle package"   # Avoid repeated downloads of gems by using gem files from the host.
+  RakeCompilerDock.sh "bundle --local && rake cross native gem"
 end
 
 task :default => [:compile, :test]
