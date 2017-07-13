@@ -1,5 +1,6 @@
 *.swp
 *.bundle
+*.so
 *.jar
 *.class
 .mvn
@@ -12,3 +13,4 @@
 /pkg/
 /spec/reports/
 /tmp/
+/vendor
