@@ -190,6 +190,12 @@ public class PsychParser extends RubyObject {
             while (true) {
                 event = parser.getEvent();
 
+                IRubyObject start_line = runtime.newFixnum(event.getStartMark().getLine());
+                IRubyObject start_column = runtime.newFixnum(event.getStartMark().getColumn());
+                IRubyObject end_line = runtime.newFixnum(event.getEndMark().getLine());
+                IRubyObject end_column = runtime.newFixnum(event.getEndMark().getColumn());
+                invoke(context, handler, "event_location", start_line, start_column, end_line, end_column);
+
                 // FIXME: Event should expose a getID, so it can be switched
                 if (event.is(ID.StreamStart)) {
                     invoke(context, handler, "start_stream", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
@@ -277,6 +283,7 @@ public class PsychParser extends RubyObject {
         
     private void handleScalar(ThreadContext context, ScalarEvent se, boolean tainted, IRubyObject handler) {
         Ruby runtime = context.runtime;
+
         IRubyObject anchor = stringOrNilFor(runtime, se.getAnchor(), tainted);
         IRubyObject tag = stringOrNilFor(runtime, se.getTag(), tainted);
         IRubyObject plain_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInPlainScalar());
