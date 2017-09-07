@@ -33,6 +33,8 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF16BEEncoding;
+import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.jruby.Ruby;
@@ -162,6 +164,11 @@ public class PsychParser extends RubyObject {
             if (yaml instanceof RubyIO) {
                 Encoding enc = ((RubyIO) yaml).getReadEncoding();
                 charset = enc.getCharset();
+
+                // libyaml treats non-utf encodings as utf-8 and hopes for the best.
+                if (!(enc instanceof UTF8Encoding)  && !(enc instanceof UTF16LEEncoding) && !(enc instanceof UTF16BEEncoding)) {
+                    charset = UTF8Encoding.INSTANCE.getCharset();
+                }
             }
             if (charset == null) {
                 // If we can't get it from the IO or it doesn't have a charset, fall back on UTF-8
