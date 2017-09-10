@@ -66,6 +66,7 @@ module Psych
     # Emit a scalar with +value+
     def scalar= value
       @type   = :scalar
+      @style  = Psych::Nodes::Scalar::ANY if @style == Psych::Nodes::Mapping::BLOCK
       @scalar = value
     end
 
