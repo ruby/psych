@@ -116,7 +116,7 @@ module Psych
           assert_equal "こんにちは！", Psych.load(f)
         end
       }
-    end    
+    end
 
     def test_emit_alias
       @emitter.start_stream Psych::Parser::UTF8
