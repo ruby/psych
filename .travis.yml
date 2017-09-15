@@ -3,11 +3,11 @@ rvm:
   - 2.3.4
   - 2.4.1
   - ruby-head
-  - jruby-9.1.8.0
+  - jruby-9.1.13.0
 
 matrix:
   allow_failures:
-  - rvm: jruby-9.1.8.0
+  - rvm: jruby-9.1.13.0
 
 before_script:
   - unset JRUBY_OPTS
