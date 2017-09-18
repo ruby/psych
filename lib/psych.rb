@@ -198,12 +198,13 @@ require 'psych/class_loader'
 #
 # ==== Receiving an events stream
 #
-#   parser = Psych::Parser.new(Psych::Handlers::Recorder.new)
+#   recorder = Psych::Handlers::Recorder.new
+#   parser = Psych::Parser.new(recorder)
 #
 #   parser.parse("---\n - a\n - b")
-#   parser.events # => [list of [event, args] lists]
-#                 # event is one of: Psych::Handler::EVENTS
-#                 # args are the arguments passed to the event
+#   recorder.events # => [list of [event, args] lists]
+#                   # event is one of: Psych::Handler::EVENTS
+#                   # args are the arguments passed to the event
 #
 # === Emitting
 #
