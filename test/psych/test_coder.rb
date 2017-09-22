@@ -208,6 +208,7 @@ module Psych
       foo = Psych.dump([1,2,3])
       assert_equal foo, "---\n- 1\n- 2\n- 3\n"
     end
+
     class TestArrayFlow < Array
       def encode_with(coder)
         coder.style = Psych::Nodes::Mapping::FLOW
@@ -215,24 +216,29 @@ module Psych
         coder.seq = self
       end
     end
+
     def test_coder_style_array_flow
       foo = Psych.dump(TestArrayFlow.new([1,2,3]))
       assert_equal foo, "--- [1, 2, 3]\n"
     end
+
     def test_coder_style_scalar_default
       foo = Psych.dump('some scalar')
       assert_equal foo, "--- some scalar\n...\n"
     end
+
     class TestStringAny < String
       def encode_with(coder)
         coder.tag = nil
         coder.scalar = self
       end
     end
+
     def test_coder_style_scalar_explicit_default
       foo = Psych.dump(TestStringAny.new('some scalar'))
       assert_equal foo, "--- some scalar\n...\n"
     end
+
     class TestStringQuoted < String
       def encode_with(coder)
         coder.style = Psych::Nodes::Scalar::SINGLE_QUOTED
@@ -240,10 +246,12 @@ module Psych
         coder.scalar = self
       end
     end
+
     def test_coder_style_scalar_quoted
       foo = Psych.dump(TestStringQuoted.new('some scalar'))
       assert_equal foo, "--- ! 'some scalar'\n"
     end
+
     class TestStringFolded < String
       def encode_with(coder)
         coder.style = Psych::Nodes::Scalar::FOLDED
@@ -251,6 +259,7 @@ module Psych
         coder.scalar = self
       end
     end
+
     def test_coder_style_scalar_folded
       foo = Psych.dump(TestStringFolded.new('some scalar'))
       assert_equal foo, "--- ! >-\n  some scalar\n"
