@@ -1186,11 +1186,9 @@ yaml_parser_increase_flow_level(yaml_parser_t *parser)
 static int
 yaml_parser_decrease_flow_level(yaml_parser_t *parser)
 {
-    yaml_simple_key_t dummy_key;    /* Used to eliminate a compiler warning. */
-
     if (parser->flow_level) {
         parser->flow_level --;
-        dummy_key = POP(parser, parser->simple_keys);
+	(void)POP(parser, parser->simple_keys);
     }
 
     return 1;
@@ -1638,7 +1636,7 @@ yaml_parser_fetch_key(yaml_parser_t *parser)
 
     if (!parser->flow_level)
     {
-        /* Check if we are allowed to start a new key (not nessesary simple). */
+        /* Check if we are allowed to start a new key (not necessary simple). */
 
         if (!parser->simple_key_allowed) {
             return yaml_parser_set_scanner_error(parser, NULL, parser->mark,

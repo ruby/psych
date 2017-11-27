@@ -24,8 +24,8 @@
  */
 
 #define PUT_BREAK(emitter)                                                      \
-    (FLUSH(emitter)                                                             \
-     && ((emitter->line_break == YAML_CR_BREAK ?                                \
+    (FLUSH(emitter) ?                                                             \
+      ((emitter->line_break == YAML_CR_BREAK ?                                \
              (*(emitter->buffer.pointer++) = (yaml_char_t) '\r') :              \
           emitter->line_break == YAML_LN_BREAK ?                                \
              (*(emitter->buffer.pointer++) = (yaml_char_t) '\n') :              \
@@ -34,7 +34,7 @@
               *(emitter->buffer.pointer++) = (yaml_char_t) '\n') : 0),          \
          emitter->column = 0,                                                   \
          emitter->line ++,                                                      \
-         1))
+         1) : 0)
 
 /*
  * Copy a character from a string into buffer.
@@ -221,7 +221,7 @@ yaml_emitter_write_indent(yaml_emitter_t *emitter);
 
 static int
 yaml_emitter_write_indicator(yaml_emitter_t *emitter,
-        char *indicator, int need_whitespace,
+        const char *indicator, int need_whitespace,
         int is_whitespace, int is_indention);
 
 static int
@@ -1784,7 +1784,7 @@ yaml_emitter_write_indent(yaml_emitter_t *emitter)
 
 static int
 yaml_emitter_write_indicator(yaml_emitter_t *emitter,
-        char *indicator, int need_whitespace,
+        const char *indicator, int need_whitespace,
         int is_whitespace, int is_indention)
 {
     size_t indicator_length;
@@ -2178,7 +2178,7 @@ yaml_emitter_write_block_scalar_hints(yaml_emitter_t *emitter,
         yaml_string_t string)
 {
     char indent_hint[2];
-    char *chomp_hint = NULL;
+    const char *chomp_hint = NULL;
 
     if (IS_SPACE(string) || IS_BREAK(string))
     {
