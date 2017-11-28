@@ -252,6 +252,13 @@ module Psych
   #     ex.file    # => 'file.txt'
   #     ex.message # => "(file.txt): found character that cannot start any token"
   #   end
+  #
+  # When the optional +symbolize_names+ keyword argument is set to a
+  # true value, returns symbols for keys in Hash objects (default: strings).
+  #
+  #   Psych.load("---\n foo: bar")                         # => {"foo"=>"bar"}
+  #   Psych.load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
+  #
   def self.load yaml, filename = nil, fallback = false, symbolize_names: false
     result = parse(yaml, filename, fallback)
     result = result.to_ruby if result
