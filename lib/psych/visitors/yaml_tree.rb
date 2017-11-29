@@ -311,7 +311,7 @@ module Psych
           style = Nodes::Scalar::DOUBLE_QUOTED
         elsif @line_width && o.length > @line_width
           style = Nodes::Scalar::FOLDED
-        elsif o.match?(/^[^[:word:]][^"]*$/)
+        elsif o.match?(/^[^[:word:]][^"]*$/) || o.match?(/^([^"]*'+[^"]*)+$/)
           style = Nodes::Scalar::DOUBLE_QUOTED
         elsif not String === @ss.tokenize(o) or /\A0[0-7]*[89]/.match?(o)
           style = Nodes::Scalar::SINGLE_QUOTED
