@@ -300,7 +300,7 @@ module Psych
   #
   # A Psych::BadAlias exception will be raised if the yaml contains aliases
   # but the +aliases+ parameter is set to false.
-  def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil
+  def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil, symbolize_names: false
     result = parse(yaml, filename)
     return unless result
 
@@ -312,7 +312,9 @@ module Psych
     else
       visitor = Visitors::NoAliasRuby.new scanner, class_loader
     end
-    visitor.accept result
+    result = visitor.accept result
+    symbolize_names!(result) if symbolize_names
+    result
   end
 
   ###
