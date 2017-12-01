@@ -260,7 +260,7 @@ module Psych
   #   Psych.load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
   #
   def self.load yaml, filename = nil, fallback = false, symbolize_names: false
-    result = parse(yaml, filename, fallback)
+    result = parse(yaml, filename, FALLBACK.new(fallback))
     result = result.to_ruby if result
     symbolize_names!(result) if symbolize_names
     result
@@ -485,7 +485,7 @@ module Psych
   # the specified +fallback+ return value, which defaults to +false+.
   def self.load_file filename, fallback = false
     File.open(filename, 'r:bom|utf-8') { |f|
-      self.load f, filename, FALLBACK.new(fallback)
+      self.load f, filename, fallback
     }
   end
 
