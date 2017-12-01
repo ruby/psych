@@ -144,7 +144,19 @@ class TestPsych < Psych::TestCase
     }
   end
 
+  def test_load_file_default_return_value
+    Tempfile.create(['empty', 'yml']) {|t|
+      assert_equal false, Psych.load_file(t.path)
+    }
+  end
+
   def test_load_file_with_fallback
+    Tempfile.create(['empty', 'yml']) {|t|
+      assert_equal 42, Psych.load_file(t.path, 42)
+    }
+  end
+
+  def test_load_file_with_fallback_hash
     Tempfile.create(['empty', 'yml']) {|t|
       assert_equal Hash.new, Psych.load_file(t.path, Hash.new)
     }
