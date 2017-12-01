@@ -300,6 +300,16 @@ module Psych
   #
   # A Psych::BadAlias exception will be raised if the yaml contains aliases
   # but the +aliases+ parameter is set to false.
+  #
+  # +filename+ will be used in the exception message if any exception is raised
+  # while parsing.
+  #
+  # When the optional +symbolize_names+ keyword argument is set to a
+  # true value, returns symbols for keys in Hash objects (default: strings).
+  #
+  #   Psych.safe_load("---\n foo: bar")                         # => {"foo"=>"bar"}
+  #   Psych.safe_load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
+  #
   def self.safe_load yaml, whitelist_classes = [], whitelist_symbols = [], aliases = false, filename = nil, symbolize_names: false
     result = parse(yaml, filename)
     return unless result
