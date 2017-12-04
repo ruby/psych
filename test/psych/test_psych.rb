@@ -135,6 +135,18 @@ class TestPsych < Psych::TestCase
     assert_equal({ 'hello' => 'world' }, got)
   end
 
+  def test_load_default_return_value
+    assert_equal false, Psych.load("")
+  end
+
+  def test_load_with_fallback
+    assert_equal 42, Psych.load("", "file", 42)
+  end
+
+  def test_load_with_fallback_hash
+    assert_equal Hash.new, Psych.load("", "file", Hash.new)
+  end
+
   def test_load_file
     Tempfile.create(['yikes', 'yml']) {|t|
       t.binmode
@@ -144,7 +156,19 @@ class TestPsych < Psych::TestCase
     }
   end
 
+  def test_load_file_default_return_value
+    Tempfile.create(['empty', 'yml']) {|t|
+      assert_equal false, Psych.load_file(t.path)
+    }
+  end
+
   def test_load_file_with_fallback
+    Tempfile.create(['empty', 'yml']) {|t|
+      assert_equal 42, Psych.load_file(t.path, 42)
+    }
+  end
+
+  def test_load_file_with_fallback_hash
     Tempfile.create(['empty', 'yml']) {|t|
       assert_equal Hash.new, Psych.load_file(t.path, Hash.new)
     }
