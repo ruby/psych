@@ -236,8 +236,9 @@ module Psych
   ###
   # Load +yaml+ in to a Ruby data structure.  If multiple documents are
   # provided, the object contained in the first document will be returned.
-  # +filename+ will be used in the exception message if any exception is raised
-  # while parsing.
+  # +filename+ will be used in the exception message if any exception
+  # is raised while parsing.  If +yaml+ is empty, it returns
+  # the specified +fallback+ return value, which defaults to +false+.
   #
   # Raises a Psych::SyntaxError when a YAML syntax error is detected.
   #
