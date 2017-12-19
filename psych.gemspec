@@ -3,7 +3,7 @@
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = "3.0.1"
+  s.version = "3.0.2"
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.date = "2017-12-04"
