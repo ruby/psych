@@ -14,11 +14,13 @@ serialize and de-serialize most Ruby objects to and from the YAML format.
 
 ## Examples
 
-    # Load YAML in to a Ruby object
-    Psych.load('--- foo') # => 'foo'
+```ruby
+# Load YAML in to a Ruby object
+Psych.load('--- foo') # => 'foo'
 
-    # Emit YAML from a Ruby object
-    Psych.dump("foo")     # => "--- foo\n...\n"
+# Emit YAML from a Ruby object
+Psych.dump("foo")     # => "--- foo\n...\n"
+```
 
 ## Dependencies
 
