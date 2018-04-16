@@ -202,7 +202,7 @@ public class PsychEmitter extends RubyObject {
                 value.asJavaString(),
                 NULL_MARK,
                 NULL_MARK,
-                SCALAR_STYLES[(int)style.convertToInteger().getLongValue()]);
+                SCALAR_STYLES[style.convertToInteger().getIntValue()]);
         emit(context, event);
         return this;
     }
@@ -222,7 +222,7 @@ public class PsychEmitter extends RubyObject {
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
-                SEQUENCE_BLOCK != style.convertToInteger().getLongValue());
+                SEQUENCE_BLOCK != style.convertToInteger().getLongValue() ? DumperOptions.FlowStyle.BLOCK : DumperOptions.FlowStyle.FLOW);
         emit(context, event);
         return this;
     }
@@ -249,7 +249,7 @@ public class PsychEmitter extends RubyObject {
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
-                MAPPING_BLOCK != style.convertToInteger().getLongValue());
+                MAPPING_BLOCK != style.convertToInteger().getLongValue() ? DumperOptions.FlowStyle.BLOCK : DumperOptions.FlowStyle.FLOW);
         emit(context, event);
         return this;
     }
@@ -332,16 +332,16 @@ public class PsychEmitter extends RubyObject {
     DumperOptions options = new DumperOptions();
     IRubyObject io;
 
-    private static final Mark NULL_MARK = new Mark(null, 0, 0, 0, null, 0);
+    private static final Mark NULL_MARK = new Mark(null, 0, 0, 0, new int[0], 0);
 
     // Map style constants from Psych values (ANY = 0 ... FOLDED = 5)
     // to SnakeYaml values; see psych/nodes/scalar.rb.
-    private static final Character[] SCALAR_STYLES = new Character[] {
-        null, // ANY; we'll choose plain
-        null, // PLAIN
-        '\'', // SINGLE_QUOTED
-        '"',  // DOUBLE_QUOTED
-        '|',  // LITERAL
-        '>',  // FOLDED
+    private static final DumperOptions.ScalarStyle[] SCALAR_STYLES = new DumperOptions.ScalarStyle[] {
+            DumperOptions.ScalarStyle.PLAIN, // ANY
+            DumperOptions.ScalarStyle.PLAIN,
+            DumperOptions.ScalarStyle.SINGLE_QUOTED,
+            DumperOptions.ScalarStyle.DOUBLE_QUOTED,
+            DumperOptions.ScalarStyle.LITERAL,
+            DumperOptions.ScalarStyle.FOLDED
     };
 }

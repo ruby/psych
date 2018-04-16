@@ -41,6 +41,7 @@ import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
 import org.jruby.RubyEncoding;
+import org.jruby.RubyFixnum;
 import org.jruby.RubyIO;
 import org.jruby.RubyKernel;
 import org.jruby.RubyModule;
@@ -359,24 +360,26 @@ public class PsychParser extends RubyObject {
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
-    private static int translateStyle(Character style) {
+    private static int translateStyle(DumperOptions.ScalarStyle style) {
         if (style == null) return 0; // any
 
         switch (style) {
-            case 0: return 1; // plain
-            case '\'': return 2; // single-quoted
-            case '"': return 3; // double-quoted
-            case '|': return 4; // literal
-            case '>': return 5; // folded
+            case PLAIN: return 1; // plain
+            case SINGLE_QUOTED: return 2; // single-quoted
+            case DOUBLE_QUOTED: return 3; // double-quoted
+            case LITERAL: return 4; // literal
+            case FOLDED: return 5; // folded
             default: return 0; // any
         }
     }
     
-    private static int translateFlowStyle(Boolean flowStyle) {
-        if (flowStyle == null) return 0; // any
-
-        if (flowStyle) return 2;
-        return 1;
+    private static int translateFlowStyle(DumperOptions.FlowStyle flowStyle) {
+        switch (flowStyle) {
+            case AUTO: return 0;
+            case BLOCK: return 1;
+            case FLOW:
+            default: return 2;
+        }
     }
 
     @JRubyMethod
@@ -394,9 +397,9 @@ public class PsychParser extends RubyObject {
         if (event == null) {
             return ((RubyClass)context.runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
                     context,
-                    runtime.newFixnum(0),
-                    runtime.newFixnum(0),
-                    runtime.newFixnum(0),
+                    RubyFixnum.zero(runtime),
+                    RubyFixnum.zero(runtime),
+                    RubyFixnum.zero(runtime),
                     Block.NULL_BLOCK
             );
         }
@@ -405,7 +408,7 @@ public class PsychParser extends RubyObject {
 
         return ((RubyClass)context.runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
                 context,
-                runtime.newFixnum(mark.getIndex()),
+                RubyFixnum.zero(runtime),
                 runtime.newFixnum(mark.getLine()),
                 runtime.newFixnum(mark.getColumn()),
                 Block.NULL_BLOCK
