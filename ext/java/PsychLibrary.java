@@ -57,7 +57,13 @@ public class PsychLibrary implements Library {
         catch( IOException e ) {
             // ignored
         }
-        RubyString version = runtime.newString(props.getProperty("version", "0.0") + ".0");
+        String snakeyamlVersion = props.getProperty("version", "0.0");
+
+        if (snakeyamlVersion.endsWith("-SNAPSHOT")) {
+            snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
+        }
+
+        RubyString version = runtime.newString(snakeyamlVersion + ".0");
         version.setFrozen(true);
         psych.setConstant("SNAKEYAML_VERSION", version);
 
