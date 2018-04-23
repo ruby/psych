@@ -162,6 +162,24 @@ class TestPsych < Psych::TestCase
     }
   end
 
+  def test_load_file_with_fallback_for_nil
+    Tempfile.create(['nil', 'yml']) {|t|
+      t.binmode
+      t.write('--- null')
+      t.close
+      assert_nil Psych.load_file(t.path, fallback: 42)
+    }
+  end
+
+  def test_load_file_with_fallback_for_false
+    Tempfile.create(['false', 'yml']) {|t|
+      t.binmode
+      t.write('--- false')
+      t.close
+      assert_equal false, Psych.load_file(t.path, fallback: 42)
+    }
+  end
+
   def test_parse_file
     Tempfile.create(['yikes', 'yml']) {|t|
       t.binmode
