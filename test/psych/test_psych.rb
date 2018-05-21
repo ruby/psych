@@ -135,6 +135,31 @@ class TestPsych < Psych::TestCase
     assert_equal({ 'hello' => 'world' }, got)
   end
 
+  def test_load_default_return_value
+    assert_equal false, Psych.load("")
+  end
+
+  def test_load_with_fallback
+    assert_equal 42, Psych.load("", "file", fallback: 42)
+  end
+
+  def test_load_with_fallback_nil_or_false
+    assert_nil Psych.load("", "file", fallback: nil)
+    assert_equal false, Psych.load("", "file", fallback: false)
+  end
+
+  def test_load_with_fallback_hash
+    assert_equal Hash.new, Psych.load("", "file", fallback: Hash.new)
+  end
+
+  def test_load_with_fallback_for_nil
+    assert_nil Psych.load("--- null", "file", fallback: 42)
+  end
+
+  def test_load_with_fallback_for_false
+    assert_equal false, Psych.load("--- false", "file", fallback: 42)
+  end
+
   def test_load_file
     Tempfile.create(['yikes', 'yml']) {|t|
       t.binmode
