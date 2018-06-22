@@ -18,7 +18,10 @@ if RUBY_PLATFORM =~ /java/
     # and tell maven via system properties the snakeyaml version
     # this is basically the same as running from the commandline:
     # rmvn dependency:build-classpath -Dsnakeyaml.version='use version from Psych::DEFAULT_SNAKEYAML_VERSION here'
-    Maven::Ruby::Maven.new.exec('dependency:build-classpath', "-Dsnakeyaml.version=1.21", '-Dverbose=true')
+    default_snakeyaml_version = File.read File.expand_path('lib/psych/versions.rb', File.dirname(__FILE__))
+    default_snakeyaml_version = default_snakeyaml_version[/DEFAULT_SNAKEYAML_VERSION\s?=\s?'(.*?)'.*/, 1]
+    raise "DEFAULT_SNAKEYAML_VERSION = '...' not matched" unless default_snakeyaml_version
+    Maven::Ruby::Maven.new.exec('dependency:build-classpath', "-Dsnakeyaml.version=#{default_snakeyaml_version}", '-Dverbose=true')
     ext.source_version = '1.7'
     ext.target_version = '1.7'
     ext.classpath = File.read('pkg/classpath')
