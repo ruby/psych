@@ -3,7 +3,12 @@ require 'psych/versions'
 case RUBY_ENGINE
 when 'jruby'
   require 'psych_jars'
-  org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
+  if JRuby::Util.respond_to?(:load_ext)
+    JRuby::Util.load_ext('org.jruby.ext.psych.PsychLibrary')
+  else
+    require 'java'; require 'jruby'
+    org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
+  end
 else
   begin
     require "#{RUBY_VERSION[/\d+\.\d+/]}/psych.so"
