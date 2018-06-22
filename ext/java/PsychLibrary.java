@@ -63,25 +63,31 @@ public class PsychLibrary implements Library {
             snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
         }
 
-        RubyString version = runtime.newString(snakeyamlVersion + ".0");
+        final RubyString version = runtime.newString(snakeyamlVersion);
         version.setFrozen(true);
         psych.setConstant("SNAKEYAML_VERSION", version);
-
-        String[] versionParts = version.toString().split("\\.");
-        final RubyArray versionElements = runtime.newArray(runtime.newFixnum(Integer.parseInt(versionParts[0])), runtime.newFixnum(Integer.parseInt(versionParts[1])), runtime.newFixnum(Integer.parseInt(versionParts[2])));
-        versionElements.setFrozen(true);
 
         psych.getSingletonClass().addMethod("libyaml_version", new JavaMethodZero(psych, Visibility.PUBLIC) {
             @Override
             public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name) {
-                return versionElements;
+                String[] parts = version.toString().split("\\.");
+                return runtime.newArray(parseInt(runtime, parts, 0), parseInt(runtime, parts, 1), parseInt(runtime, parts, 2));
             }
         });
-        
+
         PsychParser.initPsychParser(runtime, psych);
         PsychEmitter.initPsychEmitter(runtime, psych);
         PsychToRuby.initPsychToRuby(runtime, psych);
         PsychYamlTree.initPsychYamlTree(runtime, psych);
+    }
+
+    private static IRubyObject parseInt(final Ruby runtime, String[] parts, int i) {
+        if (i < parts.length) {
+            try {
+                return runtime.newFixnum(Integer.parseInt(parts[i]));
+            } catch (NumberFormatException ex) { /* ignore - fallback to 0 */ }
+        }
+        return runtime.newFixnum(0);
     }
 
     public enum YAMLEncoding {
