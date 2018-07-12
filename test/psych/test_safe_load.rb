@@ -84,6 +84,18 @@ module Psych
       end
     end
 
+    def test_safe_load_default_fallback
+      assert_nil Psych.safe_load("")
+    end
+
+    def test_safe_load
+      assert_equal %w[a b], Psych.safe_load("- a\n- b")
+    end
+
+    def test_safe_load_raises_on_bad_input
+      assert_raises(Psych::SyntaxError) { Psych.safe_load("--- `") }
+    end
+
     private
 
     def cycle object, whitelist = []
