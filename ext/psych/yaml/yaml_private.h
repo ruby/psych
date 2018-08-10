@@ -1,3 +1,7 @@
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif

@@ -1636,7 +1636,7 @@ yaml_parser_fetch_key(yaml_parser_t *parser)
 
     if (!parser->flow_level)
     {
-        /* Check if we are allowed to start a new key (not nessesary simple). */
+        /* Check if we are allowed to start a new key (not necessary simple). */
 
         if (!parser->simple_key_allowed) {
             return yaml_parser_set_scanner_error(parser, NULL, parser->mark,
@@ -3507,7 +3507,7 @@ yaml_parser_scan_plain_scalar(yaml_parser_t *parser, yaml_token_t *token)
         {
             if (IS_BLANK(parser->buffer))
             {
-                /* Check for tab character that abuse indentation. */
+                /* Check for tab characters that abuse indentation. */
 
                 if (leading_blanks && (int)parser->mark.column < indent
                         && IS_TAB(parser->buffer)) {
