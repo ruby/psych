@@ -9,7 +9,7 @@ end
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = Pysch::VERSION
+  s.version = Psych::VERSION
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.summary = "Psych is a YAML parser and emitter"
@@ -59,7 +59,7 @@ DESCRIPTION
       "ext/java/PsychEmitter.java", "ext/java/PsychLibrary.java", "ext/java/PsychParser.java", "ext/java/PsychToRuby.java",
       "ext/java/PsychYamlTree.java", "lib/psych_jars.rb", "lib/psych.jar"
     ]
-    s.requirements = "jar org.yaml:snakeyaml, #{Pysch::DEFAULT_SNAKEYAML_VERSION}"
+    s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
     s.add_development_dependency 'ruby-maven'
   else
