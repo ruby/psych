@@ -1,13 +1,15 @@
 rvm:
-  - 2.2.8
-  - 2.3.5
-  - 2.4.2
+  - 2.3.7
+  - 2.4.4
+  - 2.5.1
   - ruby-head
-  - jruby-9.1.14.0
+  - jruby-9.1.17.0
+  - jruby-9.2.0.0
 
 matrix:
   allow_failures:
-    - rvm: jruby-9.1.14.0
+    - rvm: jruby-9.1.17.0
+    - rvm: jruby-9.2.0.0
 
 before_script:
   - unset JRUBY_OPTS
