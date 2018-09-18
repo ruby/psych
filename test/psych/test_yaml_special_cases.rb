@@ -49,11 +49,11 @@ module Psych
 
     def test_inf
       s = "-.inf"
-      assert_equal -Float::INFINITY, Psych.load(s)
-      assert_equal [-Float::INFINITY], Psych.load_stream(s)
-      assert_equal -Float::INFINITY, Psych.parse(s).transform
-      assert_equal [-Float::INFINITY], Psych.parse_stream(s).transform
-      assert_equal -Float::INFINITY, Psych.safe_load(s)
+      assert_equal(-Float::INFINITY, Psych.load(s))
+      assert_equal([-Float::INFINITY], Psych.load_stream(s))
+      assert_equal(-Float::INFINITY, Psych.parse(s).transform)
+      assert_equal([-Float::INFINITY], Psych.parse_stream(s).transform)
+      assert_equal(-Float::INFINITY, Psych.safe_load(s))
     end
 
     def test_NaN
