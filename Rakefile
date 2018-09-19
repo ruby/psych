@@ -14,6 +14,8 @@ if RUBY_PLATFORM =~ /java/
   require 'rake/javaextensiontask'
   Rake::JavaExtensionTask.new("psych") do |ext|
     require 'maven/ruby/maven'
+    # force load of versions to overwrite constants with values from repo.
+    load './lib/psych/versions.rb'
     # uses Mavenfile to write classpath into pkg/classpath
     # and tell maven via system properties the snakeyaml version
     # this is basically the same as running from the commandline:
