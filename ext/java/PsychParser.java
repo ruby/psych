@@ -296,7 +296,7 @@ public class PsychParser extends RubyObject {
         IRubyObject tag = stringOrNilFor(runtime, se.getTag(), tainted);
         IRubyObject plain_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInPlainScalar());
         IRubyObject quoted_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInNonPlainScalar());
-        IRubyObject style = runtime.newFixnum(translateStyle(se.getStyle()));
+        IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
         IRubyObject val = stringFor(runtime, se.getValue(), tainted);
 
         invoke(context, handler, "scalar", val, anchor, tag, plain_implicit,
