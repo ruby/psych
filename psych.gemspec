@@ -53,7 +53,7 @@ DESCRIPTION
       "ext/java/PsychEmitter.java", "ext/java/PsychLibrary.java", "ext/java/PsychParser.java", "ext/java/PsychToRuby.java",
       "ext/java/PsychYamlTree.java", "lib/psych_jars.rb", "lib/psych.jar"
     ]
-    s.requirements = "jar org.yaml:snakeyaml, 1.21"
+    s.requirements = "jar org.yaml:snakeyaml, 1.23"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
     s.add_development_dependency 'ruby-maven'
   else
