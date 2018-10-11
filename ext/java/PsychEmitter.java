@@ -332,7 +332,7 @@ public class PsychEmitter extends RubyObject {
     DumperOptions options = new DumperOptions();
     IRubyObject io;
 
-    private static final Mark NULL_MARK = new Mark(null, 0, 0, 0, new int[0], 0);
+    private static final Mark NULL_MARK = new Mark("", 0, 0, 0, new int[0], 0);
 
     // Map style constants from Psych values (ANY = 0 ... FOLDED = 5)
     // to SnakeYaml values; see psych/nodes/scalar.rb.
