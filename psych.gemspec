@@ -4,6 +4,7 @@
 begin
   require_relative 'lib/psych/versions'
 rescue LoadError
+  # for Ruby core repository
   require_relative 'versions'
 end
 
