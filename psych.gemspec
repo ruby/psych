@@ -3,7 +3,7 @@
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = "3.0.3.pre2"
+  s.version = "3.0.3.pre3"
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.summary = "Psych is a YAML parser and emitter"
