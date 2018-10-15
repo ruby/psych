@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.summary = "Psych is a YAML parser and emitter"
   s.description = <<-DESCRIPTION
-Psych is a YAML parser and emitter. Psych leverages libyaml[http://pyyaml.org/wiki/LibYAML]
+Psych is a YAML parser and emitter. Psych leverages libyaml[https://pyyaml.org/wiki/LibYAML]
 for its YAML parsing and emitting capabilities. In addition to wrapping libyaml,
 Psych also knows how to serialize and de-serialize most Ruby objects to and from the YAML format.
 DESCRIPTION
