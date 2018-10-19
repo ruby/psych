@@ -222,7 +222,7 @@ public class PsychEmitter extends RubyObject {
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
-                SEQUENCE_BLOCK != style.convertToInteger().getLongValue() ? DumperOptions.FlowStyle.BLOCK : DumperOptions.FlowStyle.FLOW);
+                FLOW_STYLES[style.convertToInteger().getIntValue()]);
         emit(context, event);
         return this;
     }
@@ -249,7 +249,7 @@ public class PsychEmitter extends RubyObject {
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
-                MAPPING_BLOCK != style.convertToInteger().getLongValue() ? DumperOptions.FlowStyle.BLOCK : DumperOptions.FlowStyle.FLOW);
+                FLOW_STYLES[style.convertToInteger().getIntValue()]);
         emit(context, event);
         return this;
     }
@@ -336,12 +336,18 @@ public class PsychEmitter extends RubyObject {
 
     // Map style constants from Psych values (ANY = 0 ... FOLDED = 5)
     // to SnakeYaml values; see psych/nodes/scalar.rb.
-    private static final DumperOptions.ScalarStyle[] SCALAR_STYLES = new DumperOptions.ScalarStyle[] {
+    private static final DumperOptions.ScalarStyle[] SCALAR_STYLES = {
             DumperOptions.ScalarStyle.PLAIN, // ANY
             DumperOptions.ScalarStyle.PLAIN,
             DumperOptions.ScalarStyle.SINGLE_QUOTED,
             DumperOptions.ScalarStyle.DOUBLE_QUOTED,
             DumperOptions.ScalarStyle.LITERAL,
             DumperOptions.ScalarStyle.FOLDED
+    };
+
+    private static final DumperOptions.FlowStyle[] FLOW_STYLES = {
+            DumperOptions.FlowStyle.AUTO,
+            DumperOptions.FlowStyle.BLOCK,
+            DumperOptions.FlowStyle.FLOW
     };
 }
