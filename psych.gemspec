@@ -65,6 +65,6 @@ DESCRIPTION
     s.add_development_dependency 'ruby-maven'
   else
     s.extensions = ["ext/psych/extconf.rb"]
-    s.add_development_dependency 'rake-compiler-dock', ">= 0.6.1"
+    s.add_development_dependency 'rake-compiler-dock', ">= 0.6.3"
   end
 end

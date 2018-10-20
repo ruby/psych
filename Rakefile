@@ -42,7 +42,7 @@ end
 desc "Compile binaries for mingw platform using rake-compiler-dock"
 task 'build:mingw' do
   require 'rake_compiler_dock'
-  RakeCompilerDock.sh "bundle && rake cross native gem RUBY_CC_VERSION=2.2.2:2.3.0:2.4.0"
+  RakeCompilerDock.sh "bundle && rake cross native gem RUBY_CC_VERSION=2.5.0:2.4.0:2.3.0"
 end
 
 task :default => [:compile, :test]
