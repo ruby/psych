@@ -1,3 +1,10 @@
+Thu Nov  8 12:00:00 2018  Juanito Fatas <me@juanitofatas.com>
+
+  * lib/psych.rb: Use friendlier terminology in YAML.safe_load.
+    Replace keyword argumment whitelist_classes and whitelist_symbols.
+    with permitted_classes and permitted_symbols.
+  * test/psych/test_safer_load.rb: Update tests accordingly.
+
 Fri Feb  6 17:47:05 2015  Aaron Patterson <aaron@tenderlovemaking.com>
 
 	* ext/psych/lib/psych/visitors/yaml_tree.rb: register nodes when
