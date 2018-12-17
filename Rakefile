@@ -34,7 +34,7 @@ else
     ext.cross_compile = true
     ext.cross_platform = %w[x86-mingw32 x64-mingw32]
     ext.cross_compiling do |s|
-      s.files.concat ["lib/2.2/psych.so", "lib/2.3/psych.so", "lib/2.4/psych.so"]
+      s.files.concat ["lib/2.3/psych.so", "lib/2.4/psych.so", "lib/2.5/psych.so"]
     end
   end
 end
