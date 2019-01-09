@@ -181,41 +181,11 @@ module Psych
       end
 
       def visit_Exception o
-        tag = ['!ruby/exception', o.class.name].join ':'
-
-        @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
-
-        {
-          'message'   => private_iv_get(o, 'mesg'),
-          'backtrace' => private_iv_get(o, 'backtrace'),
-        }.each do |k,v|
-          next unless v
-          @emitter.scalar k, nil, nil, true, false, Nodes::Scalar::ANY
-          accept v
-        end
-
-        dump_ivars o
-
-        @emitter.end_mapping
+        dump_exception o, private_iv_get(o, 'mesg')
       end
 
       def visit_NameError o
-        tag = ['!ruby/exception', o.class.name].join ':'
-
-        @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
-
-        {
-          'message'   => o.message.to_s,
-          'backtrace' => private_iv_get(o, 'backtrace'),
-        }.each do |k,v|
-          next unless v
-          @emitter.scalar k, nil, nil, true, false, Nodes::Scalar::ANY
-          accept v
-        end
-
-        dump_ivars o
-
-        @emitter.end_mapping
+        dump_exception o, o.message.to_s
       end
 
       def visit_Regexp o
@@ -490,6 +460,24 @@ module Psych
       end
 
       def dump_list o
+      end
+
+      def dump_exception o, msg
+        tag = ['!ruby/exception', o.class.name].join ':'
+
+        @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
+
+        if msg
+          @emitter.scalar 'message', nil, nil, true, false, Nodes::Scalar::ANY
+          accept msg
+        end
+
+        @emitter.scalar 'backtrace', nil, nil, true, false, Nodes::Scalar::ANY
+        accept o.backtrace
+
+        dump_ivars o
+
+        @emitter.end_mapping
       end
 
       def format_time time
