@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
 # frozen_string_literal: true
 
-begin
-  require_relative 'lib/psych/versions'
-rescue LoadError
-  # for Ruby core repository
-  require_relative 'versions'
-end
+versions = File.expand_path('lib/psych/versions.rb', File.dirname(__FILE__))
+versions = File.read(versions)
+versions =
+  { VERSION: nil, DEFAULT_SNAKEYAML_VERSION: nil }.map do |const, _|
+    [ const, versions.match( /.*\s#{const}\s*=\s*['"](.*?)['"]/ )[1] ]
+  end.to_h
 
 Gem::Specification.new do |s|
   s.name = "psych"
-  s.version = Psych::VERSION
+  s.version = versions[:VERSION]
   s.authors = ["Aaron Patterson", "SHIBATA Hiroshi", "Charles Oliver Nutter"]
   s.email = ["aaron@tenderlovemaking.com", "hsbt@ruby-lang.org", "headius@headius.com"]
   s.summary = "Psych is a YAML parser and emitter"
@@ -65,7 +65,7 @@ DESCRIPTION
       "lib/psych_jars.rb",
       "lib/psych.jar"
     ]
-    s.requirements = "jar org.yaml:snakeyaml, #{Psych::DEFAULT_SNAKEYAML_VERSION}"
+    s.requirements = "jar org.yaml:snakeyaml, #{versions[:DEFAULT_SNAKEYAML_VERSION] || raise}"
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
     s.add_development_dependency 'ruby-maven'
   else
