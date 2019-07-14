@@ -29,6 +29,8 @@ if RUBY_PLATFORM =~ /java/
 else
   require 'rake/extensiontask'
   spec = Gem::Specification.load("psych.gemspec")
+  # Add stub/ on $LOAD_PATH only for binary gems
+  spec.require_paths.insert(0, *%w[stub])
   Rake::ExtensionTask.new("psych", spec) do |ext|
     ext.lib_dir = File.join(*['lib', ENV['FAT_DIR']].compact)
     ext.cross_compile = true

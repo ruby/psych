@@ -41,7 +41,8 @@ DESCRIPTION
     "lib/psych/set.rb", "lib/psych/stream.rb", "lib/psych/streaming.rb", "lib/psych/syntax_error.rb",
     "lib/psych/tree_builder.rb", "lib/psych/versions.rb", "lib/psych/visitors.rb","lib/psych/visitors/depth_first.rb",
     "lib/psych/visitors/emitter.rb", "lib/psych/visitors/json_tree.rb", "lib/psych/visitors/to_ruby.rb",
-    "lib/psych/visitors/visitor.rb", "lib/psych/visitors/yaml_tree.rb", "lib/psych/y.rb", "psych.gemspec"
+    "lib/psych/visitors/visitor.rb", "lib/psych/visitors/yaml_tree.rb", "lib/psych/y.rb", "psych.gemspec",
+    "stub/psych.rb"
   ]
 
   s.rdoc_options = ["--main", "README.md"]

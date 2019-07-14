@@ -1,21 +1,22 @@
 # frozen_string_literal: true
 require 'psych/versions'
-case RUBY_ENGINE
-when 'jruby'
-  require 'psych_jars'
-  if JRuby::Util.respond_to?(:load_ext)
-    JRuby::Util.load_ext('org.jruby.ext.psych.PsychLibrary')
+
+# When required from the stub file, the C extension is already loaded
+unless caller_locations(1, 1)[0].absolute_path == File.expand_path('../stub/psych.rb', __dir__)
+  case RUBY_ENGINE
+  when 'jruby'
+    require 'psych_jars'
+    if JRuby::Util.respond_to?(:load_ext)
+      JRuby::Util.load_ext('org.jruby.ext.psych.PsychLibrary')
+    else
+      require 'java'; require 'jruby'
+      org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
+    end
   else
-    require 'java'; require 'jruby'
-    org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
-  end
-else
-  begin
-    require "#{RUBY_VERSION[/\d+\.\d+/]}/psych.so"
-  rescue LoadError
     require 'psych.so'
   end
 end
+
 require 'psych/nodes'
 require 'psych/streaming'
 require 'psych/visitors'
