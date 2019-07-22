@@ -142,7 +142,7 @@ module Psych
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, Psych::Omap.new)
           o.children.each { |a|
-            map[accept(a.children.first)] = accept a.children.last
+            map[accept_key(a.children.first)] = accept_value a.children.last
           }
           map
         when /^!(?:seq|ruby\/array):(.*)$/
@@ -159,7 +159,7 @@ module Psych
         if Psych.load_tags[o.tag]
           return revive(resolve_class(Psych.load_tags[o.tag]), o)
         end
-        return revive_hash(register(o, {}), o) unless o.tag
+        return revive_hash(register(o, empty_mapping(o)), o) unless o.tag
 
         case o.tag
         when /^!ruby\/struct:?(.*)?$/
@@ -171,8 +171,8 @@ module Psych
             members = {}
             struct_members = s.members.map { |x| class_loader.symbolize x }
             o.children.each_slice(2) do |k,v|
-              member = accept(k)
-              value  = accept(v)
+              member = accept_key(k)
+              value  = accept_value(v)
               if struct_members.include?(class_loader.symbolize(member))
                 s.send("#{member}=", value)
               else
@@ -215,8 +215,8 @@ module Psych
           string  = nil
 
           o.children.each_slice(2) do |k,v|
-            key   = accept k
-            value = accept v
+            key   = accept_key k
+            value = accept_value v
 
             if key == 'str'
               if klass
@@ -260,7 +260,7 @@ module Psych
           set = class_loader.psych_set.new
           @st[o.anchor] = set if o.anchor
           o.children.each_slice(2) do |k,v|
-            set[accept(k)] = accept(v)
+            set[accept_key(k)] = accept_value(v)
           end
           set
 
@@ -273,7 +273,7 @@ module Psych
               revive_hash hash, value
             when 'ivars'
               value.children.each_slice(2) do |k,v|
-                hash.instance_variable_set accept(k), accept(v)
+                hash.instance_variable_set accept_key(k), accept_value(v)
               end
             end
           end
@@ -285,7 +285,7 @@ module Psych
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, class_loader.psych_omap.new)
           o.children.each_slice(2) do |l,r|
-            map[accept(l)] = accept r
+            map[accept_key(l)] = accept_value r
           end
           map
 
@@ -305,7 +305,7 @@ module Psych
           end
 
         else
-          revive_hash(register(o, {}), o)
+          revive_hash(register(o, empty_mapping(o)), o)
         end
       end
 
@@ -322,6 +322,11 @@ module Psych
       end
 
       private
+
+      def empty_mapping o
+        return {}
+      end
+
       def register node, object
         @st[node.anchor] = object if node.anchor
         object
@@ -333,17 +338,25 @@ module Psych
         list
       end
 
+      def accept_key k
+        accept(k)
+      end
+
+      def accept_value v
+        accept(v)
+      end
+
       SHOVEL = '<<'
       def revive_hash hash, o
         o.children.each_slice(2) { |k,v|
-          key = accept(k)
-          val = accept(v)
+          key = accept_key(k)
+          val = accept_value(v)
 
           if key == SHOVEL && k.tag != "tag:yaml.org,2002:str"
             case v
             when Nodes::Alias, Nodes::Mapping
               begin
-                hash.merge! val
+                merge_mapping(hash, val)
               rescue TypeError
                 hash[key] = val
               end
@@ -351,9 +364,9 @@ module Psych
               begin
                 h = {}
                 val.reverse_each do |value|
-                  h.merge! value
+                  merge_mapping(h, value)
                 end
-                hash.merge! h
+                merge_mapping(hash, h)
               rescue TypeError
                 hash[key] = val
               end
@@ -366,6 +379,10 @@ module Psych
 
         }
         hash
+      end
+
+      def merge_mapping hash, val
+        hash.merge! val
       end
 
       def merge_key hash, key, val
