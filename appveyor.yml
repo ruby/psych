@@ -2,6 +2,12 @@
 clone_depth: 10
 install:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ps: |
+      if ($env:ruby_version -eq '_trunk') {
+        $trunk_uri = 'https://ci.appveyor.com/api/projects/MSP-Greg/ruby-loco/artifacts/ruby_trunk.7z'
+        (New-Object Net.WebClient).DownloadFile($trunk_uri, 'C:\ruby_trunk.7z')
+        7z.exe x C:\ruby_trunk.7z -oC:\Ruby_trunk
+      }
   - bundle install
 build_script:
   - rake -rdevkit compile
@@ -14,3 +20,4 @@ environment:
     - ruby_version: "24-x64"
     - ruby_version: "25"
     - ruby_version: "25-x64"
+    - ruby_version: "_trunk"
