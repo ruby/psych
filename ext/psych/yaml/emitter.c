@@ -16,7 +16,7 @@
 #define PUT(emitter,value)                                                      \
     (FLUSH(emitter)                                                             \
      && (*(emitter->buffer.pointer++) = (yaml_char_t)(value),                   \
-         emitter->column ++,                                                    \
+         emitter->column++,                                                     \
          1))
 
 /*
@@ -24,8 +24,8 @@
  */
 
 #define PUT_BREAK(emitter)                                                      \
-    (FLUSH(emitter) ?                                                            \
-      ((emitter->line_break == YAML_CR_BREAK ?                                \
+    (FLUSH(emitter)                                                             \
+     && ((emitter->line_break == YAML_CR_BREAK ?                                \
              (*(emitter->buffer.pointer++) = (yaml_char_t) '\r') :              \
           emitter->line_break == YAML_LN_BREAK ?                                \
              (*(emitter->buffer.pointer++) = (yaml_char_t) '\n') :              \
@@ -34,7 +34,7 @@
               *(emitter->buffer.pointer++) = (yaml_char_t) '\n') : 0),          \
          emitter->column = 0,                                                   \
          emitter->line ++,                                                      \
-         1) : 0)
+         1))
 
 /*
  * Copy a character from a string into buffer.
@@ -649,13 +649,6 @@ yaml_emitter_emit_document_start(yaml_emitter_t *emitter,
 
     else if (event->type == YAML_STREAM_END_EVENT)
     {
-        if (emitter->open_ended)
-        {
-            if (!yaml_emitter_write_indicator(emitter, "...", 1, 0, 0))
-                return 0;
-            if (!yaml_emitter_write_indent(emitter))
-                return 0;
-        }
 
         if (!yaml_emitter_flush(emitter))
             return 0;
@@ -1946,6 +1939,10 @@ yaml_emitter_write_plain_scalar(yaml_emitter_t *emitter,
 
     emitter->whitespace = 0;
     emitter->indention = 0;
+    if (emitter->root_context)
+    {
+        emitter->open_ended = 1;
+    }
 
     return 1;
 }
@@ -2003,6 +2000,9 @@ yaml_emitter_write_single_quoted_scalar(yaml_emitter_t *emitter,
             breaks = 0;
         }
     }
+
+    if (breaks)
+        if (!yaml_emitter_write_indent(emitter)) return 0;
 
     if (!yaml_emitter_write_indicator(emitter, "'", 0, 0, 0))
         return 0;

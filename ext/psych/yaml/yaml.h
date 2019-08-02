@@ -26,7 +26,9 @@ extern "C" {
 
 /** The public API declaration. */
 
-#ifdef _WIN32
+#if defined(__MINGW32__)
+#   define  YAML_DECLARE(type)  type
+#elif defined(WIN32)
 #   if defined(YAML_DECLARE_STATIC)
 #       define  YAML_DECLARE(type)  type
 #   elif defined(YAML_DECLARE_EXPORT)
@@ -230,7 +232,7 @@ typedef enum yaml_token_type_e {
 
     /** A BLOCK-SEQUENCE-START token. */
     YAML_BLOCK_SEQUENCE_START_TOKEN,
-    /** A BLOCK-SEQUENCE-END token. */
+    /** A BLOCK-MAPPING-START token. */
     YAML_BLOCK_MAPPING_START_TOKEN,
     /** A BLOCK-END token. */
     YAML_BLOCK_END_TOKEN,
@@ -663,7 +665,7 @@ yaml_event_delete(yaml_event_t *event);
 
 /** The tag @c !!null with the only possible value: @c null. */
 #define YAML_NULL_TAG       "tag:yaml.org,2002:null"
-/** The tag @c !!bool with the values: @c true and @c falce. */
+/** The tag @c !!bool with the values: @c true and @c false. */
 #define YAML_BOOL_TAG       "tag:yaml.org,2002:bool"
 /** The tag @c !!str for string values. */
 #define YAML_STR_TAG        "tag:yaml.org,2002:str"
@@ -1515,6 +1517,18 @@ typedef enum yaml_emitter_state_e {
     YAML_EMIT_END_STATE
 } yaml_emitter_state_t;
 
+
+/* This is needed for C++ */
+
+typedef struct yaml_anchors_s {
+    /** The number of references. */
+    int references;
+    /** The anchor id. */
+    int anchor;
+    /** If the node has been emitted? */
+    int serialized;
+} yaml_anchors_t;
+
 /**
  * The emitter structure.
  *
@@ -1740,14 +1754,7 @@ typedef struct yaml_emitter_s {
     int closed;
 
     /** The information associated with the document nodes. */
-    struct {
-        /** The number of references. */
-        int references;
-        /** The anchor id. */
-        int anchor;
-        /** If the node has been emitted? */
-        int serialized;
-    } *anchors;
+    yaml_anchors_t *anchors;
 
     /** The last assigned anchor id. */
     int last_anchor_id;
@@ -1938,8 +1945,8 @@ yaml_emitter_close(yaml_emitter_t *emitter);
  *
  * The documen object may be generated using the yaml_parser_load() function
  * or the yaml_document_initialize() function.  The emitter takes the
- * responsibility for the document object and destoys its content after
- * it is emitted. The document object is destroyedeven if the function fails.
+ * responsibility for the document object and destroys its content after
+ * it is emitted. The document object is destroyed even if the function fails.
  *
  * @param[in,out]   emitter     An emitter object.
  * @param[in,out]   document    A document object.
