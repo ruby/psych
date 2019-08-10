@@ -10,7 +10,7 @@ jobs:
         ruby: [ 'jruby-9.2.0.0', 'jruby-9.1.17.0', 'ruby-head' ]
     steps:
     - name: Install libraries
-      run: apt install haveged
+      run: sudo apt install haveged
     - uses: actions/checkout@master
     - name: Set up RVM
       run: |

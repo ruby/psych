@@ -10,7 +10,7 @@ jobs:
         ruby: [ '2.6.x', '2.5.x', '2.4.x', '2.3.x' ]
     steps:
     - name: Install libraries
-      run: apt install haveged
+      run: sudo apt install haveged
     - uses: actions/checkout@master
     - name: Set up Ruby
       uses: actions/setup-ruby@v1
