@@ -1,0 +1,31 @@
+name: ubuntu-rvm
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: [ 'ruby-head' ]
+    steps:
+    - name: Install libraries
+      run: sudo apt install haveged
+    - uses: actions/checkout@master
+    - name: Set up RVM
+      run: |
+        curl -sSL https://get.rvm.io | bash
+    - name: Set up Ruby
+      run: |
+        source $HOME/.rvm/scripts/rvm
+        rvm install ${{ matrix.ruby }} --binary
+        rvm --default use ${{ matrix.ruby }}
+    - name: Install dependencies
+      run: |
+        source $HOME/.rvm/scripts/rvm
+        gem install bundler --no-document
+        bundle install
+    - name: Run test
+      run: |
+        source $HOME/.rvm/scripts/rvm
+        rake
