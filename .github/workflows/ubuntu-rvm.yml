@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ 'jruby-9.2.0.0', 'jruby-9.1.17.0', 'ruby-head' ]
+        ruby: [ 'ruby-head' ]
     steps:
     - name: Install libraries
       run: sudo apt install haveged
