@@ -314,15 +314,17 @@ foo:
   bar: baz
 hoge:
   - fuga: piyo
+with_null:
+  null: nullnull
     eoyml
 
     result = Psych.load(yaml)
-    assert_equal result, { "foo" => { "bar" => "baz"}, "hoge" => [{ "fuga" => "piyo" }] }
+    assert_equal result, { "foo" => { "bar" => "baz"}, "hoge" => [{ "fuga" => "piyo" }], "with_null" => { nil => "nullnull" } }
 
     result = Psych.load(yaml, symbolize_names: true)
-    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }] }
+    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }], "with_null": { nil => "nullnull" } }
 
     result = Psych.safe_load(yaml, symbolize_names: true)
-    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }] }
+    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }], "with_null": { nil => "nullnull" } }
   end
 end
