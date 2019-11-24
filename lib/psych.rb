@@ -608,7 +608,7 @@ module Psych
     case result
     when Hash
       result.keys.each do |key|
-        result[key.to_sym] = symbolize_names!(result.delete(key))
+        result[key&.to_sym] = symbolize_names!(result.delete(key))
       end
     when Array
       result.map! { |r| symbolize_names!(r) }
