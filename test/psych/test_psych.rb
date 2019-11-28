@@ -314,17 +314,47 @@ foo:
   bar: baz
 hoge:
   - fuga: piyo
-with_null:
+with_various_type:
   null: nullnull
+  1: integer
+  123.45: float
+  false: boolean
     eoyml
 
     result = Psych.load(yaml)
-    assert_equal result, { "foo" => { "bar" => "baz"}, "hoge" => [{ "fuga" => "piyo" }], "with_null" => { nil => "nullnull" } }
+    assert_equal result, {
+      "foo" => { "bar" => "baz"},
+      "hoge" => [{ "fuga" => "piyo" }],
+      "with_various_type" => {
+        nil => "nullnull",
+        1 => "integer",
+        123.45 => "float",
+        false => "boolean"
+      }
+    }
 
     result = Psych.load(yaml, symbolize_names: true)
-    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }], "with_null": { nil => "nullnull" } }
+    assert_equal result, {
+      foo: { bar: "baz" },
+      hoge: [{ fuga: "piyo" }],
+      "with_various_type": {
+        nil => "nullnull",
+        1 => "integer",
+        123.45 => "float",
+        false => "boolean"
+      }
+    }
 
     result = Psych.safe_load(yaml, symbolize_names: true)
-    assert_equal result, { foo: { bar: "baz" }, hoge: [{ fuga: "piyo" }], "with_null": { nil => "nullnull" } }
+    assert_equal result, {
+      foo: { bar: "baz" },
+      hoge: [{ fuga: "piyo" }],
+      "with_various_type": {
+        nil => "nullnull",
+        1 => "integer",
+        123.45 => "float",
+        false => "boolean"
+      }
+    }
   end
 end
