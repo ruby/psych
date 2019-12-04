@@ -12,34 +12,38 @@ module Psych
     ###
     # This class walks a YAML AST, converting each node to Ruby
     class ToRuby < Psych::Visitors::Visitor
-      def self.create
+      def self.create(symbolize_names: false, freeze: false)
         class_loader = ClassLoader.new
         scanner      = ScalarScanner.new class_loader
-        new(scanner, class_loader)
+        new(scanner, class_loader, symbolize_names: symbolize_names, freeze: freeze)
       end
 
       attr_reader :class_loader
 
-      def initialize ss, class_loader
+      def initialize ss, class_loader, symbolize_names: false, freeze: false
         super()
         @st = {}
         @ss = ss
         @domain_types = Psych.domain_types
         @class_loader = class_loader
+        @symbolize_names = symbolize_names
+        @freeze = freeze
       end
 
       def accept target
         result = super
-        return result if @domain_types.empty? || !target.tag
 
-        key = target.tag.sub(/^[!\/]*/, '').sub(/(,\d+)\//, '\1:')
-        key = "tag:#{key}" unless key =~ /^(?:tag:|x-private)/
+        unless @domain_types.empty? || !target.tag
+          key = target.tag.sub(/^[!\/]*/, '').sub(/(,\d+)\//, '\1:')
+          key = "tag:#{key}" unless key =~ /^(?:tag:|x-private)/
 
-        if @domain_types.key? key
-          value, block = @domain_types[key]
-          return block.call value, result
+          if @domain_types.key? key
+            value, block = @domain_types[key]
+            result = block.call value, result
+          end
         end
 
+        result = deduplicate(result).freeze if @freeze
         result
       end
 
@@ -336,7 +340,12 @@ module Psych
       SHOVEL = '<<'
       def revive_hash hash, o
         o.children.each_slice(2) { |k,v|
-          key = deduplicate(accept(k))
+          key = accept(k)
+          if @symbolize_names
+            key = key.to_sym
+          elsif !@freeze
+            key = deduplicate(key)
+          end
           val = accept(v)
 
           if key == SHOVEL && k.tag != "tag:yaml.org,2002:str"
@@ -371,6 +380,8 @@ module Psych
       if RUBY_VERSION < '2.7'
         def deduplicate key
           if key.is_a?(String)
+            # It is important to untaint the string, otherwise it won't
+            # be deduplicated into an fstring, but simply frozen.
             -(key.untaint)
           else
             key
