@@ -21,7 +21,7 @@ jobs:
         base: update
     - name: Install dependencies
       run: |
-        call gem update --system --no-document --conservative
+        gem update --system --no-document --conservative
         bundle install
     - name: Run test
       run: rake
