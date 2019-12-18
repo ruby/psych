@@ -92,6 +92,16 @@ module Psych
       assert_equal X, x.class
     end
 
+    def test_error_on_same_key
+      assert_raises(Psych::Exception) do
+        Psych.load <<-EOF
+        -
+          same_key: 'value'
+          same_key: 'value'
+        EOF
+      end
+    end
+
     def test_self_referential
       @hash['self'] = @hash
       assert_cycle(@hash)
