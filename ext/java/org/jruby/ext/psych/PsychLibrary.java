@@ -44,8 +44,11 @@ import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
+import org.yaml.snakeyaml.error.Mark;
 
 public class PsychLibrary implements Library {
+    private static final String DUMMY_VERSION = "0.0";
+
     public void load(final Ruby runtime, boolean wrap) {
         RubyModule psych = runtime.defineModule("Psych");
 
@@ -57,10 +60,31 @@ public class PsychLibrary implements Library {
         catch( IOException e ) {
             // ignored
         }
-        String snakeyamlVersion = props.getProperty("version", "0.0");
+        String snakeyamlVersion = props.getProperty("version", DUMMY_VERSION);
 
         if (snakeyamlVersion.endsWith("-SNAPSHOT")) {
             snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
+        }
+
+        // Try to determine if we have a new enough SnakeYAML.
+        // Versions before 1.21 removed a Mark constructor that JRuby uses.
+        // See https://github.com/bundler/bundler/issues/6878
+        if (snakeyamlVersion.equals(DUMMY_VERSION)) {
+            try {
+                // Use reflection to try to confirm we have a new enough version
+                Mark.class.getConstructor(String.class, int.class, int.class, int.class, int[].class, int.class);
+            } catch (NoSuchMethodException nsme) {
+                throw runtime.newLoadError("bad SnakeYAML version, required 1.21 or higher; check your CLASSPATH for a conflicting jar");
+            }
+        } else {
+            // Parse version string to check for 1.21+
+            String[] majorMinor = snakeyamlVersion.split("\\.");
+
+            if (majorMinor.length < 2 || Integer.parseInt(majorMinor[0]) < 1 || Integer.parseInt(majorMinor[1]) < 21) {
+                throw runtime.newLoadError(
+                        "bad SnakeYAML version " + snakeyamlVersion +
+                                ", required 1.21 or higher; check your CLASSPATH for a conflicting jar");
+            }
         }
 
         RubyString version = runtime.newString(snakeyamlVersion + ".0");
