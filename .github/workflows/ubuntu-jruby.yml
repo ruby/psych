@@ -6,27 +6,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        ruby: [ 'jruby-9.2.9.0', 'jruby-head' ]
+        ruby: [ jruby, jruby-head ]
     steps:
-    - name: Install libraries
-      run: sudo apt install haveged
-    - uses: actions/checkout@master
-    - name: Set up RVM
-      run: |
-        curl -sSL https://get.rvm.io | bash
-    - name: Set up Ruby
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        rvm install ${{ matrix.ruby }} --binary
-        rvm --default use ${{ matrix.ruby }}
-    - name: Install dependencies
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        gem install bundler --no-document
-        bundle install
-    - name: Run test
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        rake
-      continue-on-error: true
+      - uses: actions/checkout@v1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Install dependencies
+        run: |
+          gem install bundler --no-document
+          bundle install
+      - name: compile
+        run: rake compile
+      - name: test
+        continue-on-error: true
+        run: rake test
