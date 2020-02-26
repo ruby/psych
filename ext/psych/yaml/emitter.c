@@ -16,7 +16,7 @@
 #define PUT(emitter,value)                                                      \
     (FLUSH(emitter)                                                             \
      && (*(emitter->buffer.pointer++) = (yaml_char_t)(value),                   \
-         emitter->column++,                                             	\
+         emitter->column++,                                                     \
          1))
 
 /*
@@ -1227,7 +1227,7 @@ yaml_emitter_select_scalar_style(yaml_emitter_t *emitter, yaml_event_t *event)
 }
 
 /*
- * Write an achor.
+ * Write an anchor.
  */
 
 static int
