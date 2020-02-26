@@ -1,0 +1,64 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  required:
+    name: >-
+      ${{ matrix.os }} ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu, macos, windows ]
+        ruby: [ head, 2.7, 2.6, 2.5, 2.4 ]
+        include:
+          - { os: windows, ruby: mingw }
+          - { os: windows, ruby: mswin }
+        exclude:
+          - { os: windows, ruby: head }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: MSP-Greg/setup-ruby-pkgs@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          mingw: _upgrade_
+
+      - name: Install dependencies
+        run:  bundle install
+
+      - name: Compile
+        run:  rake compile
+
+      - name: Test
+        run:  rake test
+
+      - name: Install gem
+        run:  rake install        
+
+  optional:
+    name: >-
+      optional: ${{ matrix.os }} ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu, macos ]
+        ruby: [ jruby-head, jruby ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - name: Install dependencies
+        run:  bundle install
+
+      - name: Compile
+        run:  rake compile
+
+      - name: Test
+        continue-on-error: true
+        run:  rake test
