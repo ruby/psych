@@ -1,7 +1,7 @@
 /**
  * @file yaml.h
  * @brief Public interface for libyaml.
- * 
+ *
  * Include the header file with the code:
  * @code
  * #include <yaml.h>
@@ -390,7 +390,7 @@ typedef struct yaml_event_s {
 
     /** The event data. */
     union {
-        
+
         /** The stream parameters (for @c YAML_STREAM_START_EVENT). */
         struct {
             /** The document encoding. */
@@ -726,7 +726,7 @@ struct yaml_node_s {
 
     /** The node data. */
     union {
-        
+
         /** The scalar parameters (for @c YAML_SCALAR_NODE). */
         struct {
             /** The scalar value. */
@@ -1091,7 +1091,7 @@ typedef struct yaml_parser_s {
     yaml_error_type_t error;
     /** Error description. */
     const char *problem;
-    /** The byte about which the problem occured. */
+    /** The byte about which the problem occurred. */
     size_t problem_offset;
     /** The problematic value (@c -1 is none). */
     int problem_value;
@@ -1858,7 +1858,7 @@ YAML_DECLARE(void)
 yaml_emitter_set_canonical(yaml_emitter_t *emitter, int canonical);
 
 /**
- * Set the intendation increment.
+ * Set the indentation increment.
  *
  * @param[in,out]   emitter     An emitter object.
  * @param[in]       indent      The indentation increment (1 < . < 10).
