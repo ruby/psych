@@ -1,3 +1,7 @@
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -171,7 +175,7 @@ yaml_string_join(
  * Check the octet at the specified position.
  */
 
-#define CHECK_AT(string,octet,offset)                   \
+#define CHECK_AT(string,octet,offset)                                           \
     ((string).pointer[offset] == (yaml_char_t)(octet))
 
 /*
