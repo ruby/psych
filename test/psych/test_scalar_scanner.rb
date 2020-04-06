@@ -129,6 +129,8 @@ module Psych
 
       assert_equal 0x123456789abcdef, ss.tokenize('0x123456789abcdef')
       assert_equal 0x123456789abcdef, ss.tokenize('0x12_,34,_56,_789abcdef')
+
+      assert_equal 11, ss.tokenize('1____________1_________')
     end
   end
 end
