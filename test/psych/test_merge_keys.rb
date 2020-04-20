@@ -130,8 +130,8 @@ bar:
     def test_multiple_maps
       yaml = <<-eoyaml
 ---
-- &CENTER { x: 1, y: 2 }
-- &LEFT { x: 0, y: 2 }
+- &CENTER { x: 1, 'y': 2 }
+- &LEFT { x: 0, 'y': 2 }
 - &BIG { r: 10 }
 - &SMALL { r: 1 }
 
@@ -155,8 +155,8 @@ bar:
     def test_override
       yaml = <<-eoyaml
 ---
-- &CENTER { x: 1, y: 2 }
-- &LEFT { x: 0, y: 2 }
+- &CENTER { x: 1, 'y': 2 }
+- &LEFT { x: 0, 'y': 2 }
 - &BIG { r: 10 }
 - &SMALL { r: 1 }
 

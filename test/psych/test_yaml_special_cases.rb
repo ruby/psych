@@ -29,8 +29,35 @@ module Psych
       assert_equal false, Psych.safe_load(s)
     end
 
+    def test_y
+      s = "y"
+      assert_equal true, Psych.load(s)
+      assert_equal [true], Psych.load_stream(s)
+      assert_equal true, Psych.parse(s).transform
+      assert_equal [true], Psych.parse_stream(s).transform
+      assert_equal true, Psych.safe_load(s)
+    end
+
+    def test_y_str
+      s = "'y'"
+      assert_equal "y", Psych.load(s)
+      assert_equal ["y"], Psych.load_stream(s)
+      assert_equal "y", Psych.parse(s).transform
+      assert_equal ["y"], Psych.parse_stream(s).transform
+      assert_equal "y", Psych.safe_load(s)
+    end
+
     def test_n
       s = "n"
+      assert_equal false, Psych.load(s)
+      assert_equal [false], Psych.load_stream(s)
+      assert_equal false, Psych.parse(s).transform
+      assert_equal [false], Psych.parse_stream(s).transform
+      assert_equal false, Psych.safe_load(s)
+    end
+
+    def test_n_str
+      s = "'n'"
       assert_equal "n", Psych.load(s)
       assert_equal ["n"], Psych.load_stream(s)
       assert_equal "n", Psych.parse(s).transform

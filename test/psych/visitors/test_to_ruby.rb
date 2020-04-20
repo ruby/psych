@@ -223,7 +223,7 @@ description:
 
       # http://yaml.org/type/bool.html
       def test_boolean_true
-        %w{ yes Yes YES true True TRUE on On ON }.each do |t|
+        %w{ y Y yes Yes YES true True TRUE on On ON }.each do |t|
           i = Nodes::Scalar.new(t, nil, 'tag:yaml.org,2002:bool')
           assert_equal true, i.to_ruby
           assert_equal true, Nodes::Scalar.new(t).to_ruby
@@ -232,7 +232,7 @@ description:
 
       # http://yaml.org/type/bool.html
       def test_boolean_false
-        %w{ no No NO false False FALSE off Off OFF }.each do |t|
+        %w{ n N no No NO false False FALSE off Off OFF }.each do |t|
           i = Nodes::Scalar.new(t, nil, 'tag:yaml.org,2002:bool')
           assert_equal false, i.to_ruby
           assert_equal false, Nodes::Scalar.new(t).to_ruby

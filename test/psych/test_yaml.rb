@@ -751,11 +751,11 @@ EOY
 			[[{"radius"=>7, "center"=>{"x"=>73, "y"=>129}, "TYPE"=>"Shape: graph/circle"}, {"finish"=>{"x"=>89, "y"=>102}, "TYPE"=>"Shape: graph/line", "start"=>{"x"=>73, "y"=>129}}, {"TYPE"=>"Shape: graph/text", "value"=>"Pretty vector drawing.", "start"=>{"x"=>73, "y"=>129}, "color"=>16772795}, "Shape Container"]], <<EOY
 - !clarkevans.com,2002/graph/shape
   - !/graph/circle
-    center: &ORIGIN {x: 73, y: 129}
+    center: &ORIGIN {x: 73, 'y': 129}
     radius: 7
   - !/graph/line # !clarkevans.com,2002/graph/line
     start: *ORIGIN
-    finish: { x: 89, y: 102 }
+    finish: { x: 89, 'y': 102 }
   - !/graph/text
     start: *ORIGIN
     color: 0xFFEEBB

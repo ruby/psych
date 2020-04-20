@@ -41,9 +41,9 @@ module Psych
           string
         elsif string == '~' || string.match?(/^null$/i)
           nil
-        elsif string.match?(/^(yes|true|on)$/i)
+        elsif string.match?(/^(y|yes|true|on)$/i)
           true
-        elsif string.match?(/^(no|false|off)$/i)
+        elsif string.match?(/^(n|no|false|off)$/i)
           false
         else
           string
