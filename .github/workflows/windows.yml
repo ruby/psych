@@ -12,18 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
-        uses: MSP-Greg/actions-ruby@v1
+        uses: MSP-Greg/setup-ruby-pkgs@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          base: update
+          mingw: _upgrade_
       - name: Install dependencies
         run: bundle install
       - name: Run test
-        if: matrix.ruby != 'mswin'
         run: rake
-      - name: Run test
-        if: matrix.ruby == 'mswin'
-        shell: cmd
-        run: |
-          call "%VCVARS%"
-          rake
