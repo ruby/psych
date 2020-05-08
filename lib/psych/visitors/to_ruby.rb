@@ -348,6 +348,8 @@ module Psych
           end
           val = accept(v)
 
+          check_key(hash, key)
+
           if key == SHOVEL && k.tag != "tag:yaml.org,2002:str"
             case v
             when Nodes::Alias, Nodes::Mapping
@@ -375,6 +377,9 @@ module Psych
 
         }
         hash
+      end
+
+      def check_key hash, key
       end
 
       if RUBY_VERSION < '2.7'
@@ -426,6 +431,12 @@ module Psych
     class NoAliasRuby < ToRuby
       def visit_Psych_Nodes_Alias o
         raise BadAlias, "Unknown alias: #{o.anchor}"
+      end
+    end
+
+    class StrictHashKeys < ToRuby
+      def check_key hash, key
+        raise Psych::Exception if hash.key? key
       end
     end
   end

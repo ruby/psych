@@ -36,6 +36,16 @@ module Psych
       @hash = { :a => 'b' }
     end
 
+    def test_error_on_same_key
+       assert_raises(Psych::Exception) do
+         Psych.load(<<-EOF, strict_hash_keys: true)
+         -
+           same_key: 'value'
+           same_key: 'value'
+         EOF
+       end
+     end
+
     def test_hash_with_ivar
       t1 = HashWithIvar.new
       t1[:foo] = :bar

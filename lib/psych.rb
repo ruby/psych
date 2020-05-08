@@ -268,7 +268,7 @@ module Psych
   # YAML documents that are supplied via user input.  Instead, please use the
   # safe_load method.
   #
-  def self.load yaml, legacy_filename = NOT_GIVEN, filename: nil, fallback: false, symbolize_names: false, freeze: false
+  def self.load yaml, legacy_filename = NOT_GIVEN, filename: nil, fallback: false, symbolize_names: false, freeze: false, strict_hash_keys: false
     if legacy_filename != NOT_GIVEN
       warn_with_uplevel 'Passing filename with the 2nd argument of Psych.load is deprecated. Use keyword argument like Psych.load(yaml, filename: ...) instead.', uplevel: 1 if $VERBOSE
       filename = legacy_filename
@@ -276,7 +276,7 @@ module Psych
 
     result = parse(yaml, filename: filename)
     return fallback unless result
-    result = result.to_ruby(symbolize_names: symbolize_names, freeze: freeze) if result
+    result = result.to_ruby(symbolize_names: symbolize_names, freeze: freeze, strict_hash_keys: strict_hash_keys) if result
     result
   end
 
