@@ -31,10 +31,9 @@ require 'psych/class_loader'
 ###
 # = Overview
 #
-# Psych is a YAML parser and emitter.
-# Psych leverages libyaml [Home page: https://pyyaml.org/wiki/LibYAML]
-# or [HG repo: https://bitbucket.org/xi/libyaml] for its YAML parsing
-# and emitting capabilities. In addition to wrapping libyaml, Psych also
+# \Psych is a \YAML parser and emitter.
+# Psych leverages {LibYAML}[https://pyyaml.org/wiki/LibYAML] for its \YAML parsing
+# and emitting capabilities. In addition to wrapping LibYAML, \Psych also
 # knows how to serialize and de-serialize most Ruby objects to and from
 # the YAML format.
 #
@@ -49,71 +48,41 @@ require 'psych/class_loader'
 #
 # Got more time on your hands?  Keep on reading!
 #
-# == YAML Parsing
-#
-# Psych provides a range of interfaces for parsing a YAML document ranging from
-# low level to high level, depending on your parsing needs.  At the lowest
-# level, is an event based parser.  Mid level is access to the raw YAML AST,
-# and at the highest level is the ability to unmarshal YAML to Ruby objects.
-#
-# == YAML Emitting
-#
-# Psych provides a range of interfaces ranging from low to high level for
-# producing YAML documents.  Very similar to the YAML parsing interfaces, Psych
-# provides at the lowest level, an event based system, mid-level is building
-# a YAML AST, and the highest level is converting a Ruby object straight to
-# a YAML document.
+# \Psych provides a range of interfaces for parsing and emitting \YAML:
+# - {High-level API}[#module-Psych-label-High-level+API]: ability to convert directly between \YAML and Ruby objects.
+# - {Mid-level API}[#module-Psych-label-Mid-level+API]: access to the raw \YAML AST (Abstract Syntax Tree).
+# - {Low-level API}[#module-Psych-label-Low-level+API]: access to the event-based parser and emitter.
 #
 # == High-level API
 #
+# The high-level \Psych API supports direct conversion between \YAML and Ruby objects.
+#
 # === Parsing
 #
-# The high level YAML parser provided by Psych simply takes YAML as input and
-# returns a Ruby data structure.  For information on using the high level parser
-# see Psych.load
+# Use method Psych.load to convert a \YAML \String to Ruby objects:
+#   Psych.load('--- a') # => "a"
+#   Psych.load("---\n - a\n - b") # => ["a", "b"]
 #
-# ==== Reading from a string
-#
-#   Psych.load("--- a")             # => 'a'
-#   Psych.load("---\n - a\n - b")   # => ['a', 'b']
-#
-# ==== Reading from a file
-#
-#   Psych.load_file("database.yml")
-#
-# ==== Exception handling
-#
-#   begin
-#     # The second argument changes only the exception contents
-#     Psych.parse("--- `", "file.txt")
-#   rescue Psych::SyntaxError => ex
-#     ex.file    # => 'file.txt'
-#     ex.message # => "(file.txt): found character that cannot start any token"
-#   end
+# Use method Psych.load_file to parse \File content to Ruby objects:
+#   File.write('t.yml', '--- a')
+#   Psych.load_file('t.yml') # => "a"
 #
 # === Emitting
 #
-# The high level emitter has the easiest interface.  Psych simply takes a Ruby
-# data structure and converts it to a YAML document.  See Psych.dump for more
-# information on dumping a Ruby data structure.
+# Use method Psych.dump to convert Ruby objects to a \YAML \String:
+#   Psych.dump(['a', 'b']) # => "---\n- a\n- b\n"
 #
-# ==== Writing to a string
+# An optional second argument can direct the output to an \IO stream:
+#   File.open('t.yml', 'w') do |file|
+#     Psych.dump(['a', 'b'], file)
+#   end
+#   File.read('t.yml') # => "---\n- a\n- b\n"
 #
-#   # Dump an array, get back a YAML string
-#   Psych.dump(['a', 'b'])  # => "---\n- a\n- b\n"
+# There are options available for formatting the \YAML output.
+# See Psych.dump.
 #
-#   # Dump an array to an IO object
-#   Psych.dump(['a', 'b'], StringIO.new)  # => #<StringIO:0x000001009d0890>
-#
-#   # Dump an array with indentation set
-#   Psych.dump(['a', ['b']], :indentation => 3) # => "---\n- a\n-  - b\n"
-#
-#   # Dump an array to an IO with indentation set
-#   Psych.dump(['a', ['b']], StringIO.new, :indentation => 3)
-#
-# ==== Writing to a file
-#
-# Currently there is no direct API for dumping Ruby structure to file:
+# There is no direct API for dumping \YAML data to a file,
+# but you can do this:
 #
 #   File.open('database.yml', 'w') do |file|
 #     file.write(Psych.dump(['a', 'b']))
@@ -235,39 +204,44 @@ module Psych
   NOT_GIVEN = Object.new
   private_constant :NOT_GIVEN
 
-  ###
-  # Load +yaml+ in to a Ruby data structure.  If multiple documents are
-  # provided, the object contained in the first document will be returned.
-  # +filename+ will be used in the exception message if any exception
-  # is raised while parsing.  If +yaml+ is empty, it returns
-  # the specified +fallback+ return value, which defaults to +false+.
+  # :call-seq:
+  #   Psych.load(yaml_string, **options) -> object
   #
-  # Raises a Psych::SyntaxError when a YAML syntax error is detected.
-  #
-  # Example:
-  #
-  #   Psych.load("--- a")             # => 'a'
+  # Returns the Ruby object created by converting the given +yaml_string+
+  # to a Ruby object:
+  #   Psych.load('--- a')             # => 'a'
   #   Psych.load("---\n - a\n - b")   # => ['a', 'b']
   #
+  # Use option +fallback+ to specify a value to be returned if +yaml_string+ is empty;
+  # the default is +false+:
+  #   Psych.load('') # => false
+  #   Psych.load('', fallback: nil) # => nil
+  #
+  # Use option +symbolize_names+ to specify that \Hash keys should be Symbols;
+  # the default is +false+:
+  #   Psych.load('foo: 0') # => {"foo"=>0}
+  #   Psych.load('foo: 0', symbolize_names: true) # => {:foo=>0}
+  #
+  # Use option +freeze+ to specify that the returned object should be frozen;
+  # the default is +false+:
+  #   Psych.load('--- a').frozen? # => false
+  #   Psych.load('--- a', freeze: true).frozen? # => true
+  #
+  # Use option +filename+ to specify a \String to be included in the message
+  # for a raised exception:
+  # the default is +nil+:
   #   begin
-  #     Psych.load("--- `", filename: "file.txt")
+  #     Psych.load("--- `", filename: 'foo')
   #   rescue Psych::SyntaxError => ex
-  #     ex.file    # => 'file.txt'
-  #     ex.message # => "(file.txt): found character that cannot start any token"
+  #     p ex.file
+  #     p ex.message
   #   end
+  # Output:
+  # "foo"
+  # "(foo): found character that cannot start any token while scanning for the next token at line 1 column 5"
   #
-  # When the optional +symbolize_names+ keyword argument is set to a
-  # true value, returns symbols for keys in Hash objects (default: strings).
-  #
-  #   Psych.load("---\n foo: bar")                         # => {"foo"=>"bar"}
-  #   Psych.load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
-  #
-  # Raises a TypeError when `yaml` parameter is NilClass
-  #
-  # NOTE: This method *should not* be used to parse untrusted documents, such as
-  # YAML documents that are supplied via user input.  Instead, please use the
-  # safe_load method.
-  #
+  # Note: DO NOT use this method to parse untrusted documents, such as
+  # \YAML documents that are supplied via user input.  Instead, use method Psych.safe_load.
   def self.load yaml, legacy_filename = NOT_GIVEN, filename: nil, fallback: false, symbolize_names: false, freeze: false
     if legacy_filename != NOT_GIVEN
       warn_with_uplevel 'Passing filename with the 2nd argument of Psych.load is deprecated. Use keyword argument like Psych.load(yaml, filename: ...) instead.', uplevel: 1 if $VERBOSE
