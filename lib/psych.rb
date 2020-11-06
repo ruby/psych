@@ -67,34 +67,51 @@ require 'psych/class_loader'
 #
 # === Parsing
 #
+# Assume:
+#   yaml = <<-EOT
+#   ---
+#   - foo
+#   - bar
+#   - baz
+#   EOT
+#
 # Use method Psych.load to convert a \YAML \String to Ruby objects:
-#   Psych.load('--- a') # => "a"
-#   Psych.load("---\n - a\n - b") # => ["a", "b"]
+#   Psych.load(yaml) # => ["foo", "bar", "baz"]
 #
 # Use method Psych.load_file to parse \File content to Ruby objects:
-#   File.write('t.yml', '--- a')
-#   Psych.load_file('t.yml') # => "a"
+#   File.write('t.yml', yaml)
+#   Psych.load_file('t.yml') # => ["foo", "bar", "baz"]
+#
+# There is also a method for parsing multiple \YAML documents in a single \String.
+# See Psych.load_stream.
 #
 # === Emitting
 #
+# Assume:
+#   ruby = ["foo", "bar", "baz"]
+#
 # Use method Psych.dump to convert Ruby objects to a \YAML \String:
-#   Psych.dump(['a', 'b']) # => "---\n- a\n- b\n"
+#   Psych.dump(ruby) # => "---\n- foo\n- bar\n- baz\n"
 #
 # An optional second argument can direct the output to an \IO stream:
 #   File.open('t.yml', 'w') do |file|
-#     Psych.dump(['a', 'b'], file)
+#     Psych.dump(ruby, file)
 #   end
-#   File.read('t.yml') # => "---\n- a\n- b\n"
+#   File.read('t.yml') # => "---\n- foo\n- bar\n- baz\n"
 #
 # There are options available for formatting the \YAML output.
 # See Psych.dump.
 #
 # There is no direct API for dumping \YAML data to a file,
 # but you can do this:
-#
-#   File.open('database.yml', 'w') do |file|
-#     file.write(Psych.dump(['a', 'b']))
+#   File.open('t.yml', 'w') do |file|
+#     file.write(Psych.dump(ruby))
 #   end
+#   File.read('t.yml')
+#
+# There is also a method for emitting multiple Ruby objects
+# as separate \YAML documents in a single document stream.
+# See Psych.dump_stream.
 #
 # == Mid-level API
 #
