@@ -28,14 +28,22 @@ require 'psych/json/stream'
 require 'psych/handlers/document_stream'
 require 'psych/class_loader'
 
-###
+# = \YAML
+#
+# \YAML is a human- and machine-readable text format for data structures.
+#
+# Details available at website yaml.org:
+# - {Specification for YAML version 1.2}[https://yaml.org/spec/1.2/spec.html].
+# - {Conversion}[https://yaml.org/YAML_for_ruby.html] between \YAML and Ruby.
+#
 # = Overview
 #
 # \Psych is a \YAML parser and emitter.
-# Psych leverages {LibYAML}[https://pyyaml.org/wiki/LibYAML] for its \YAML parsing
-# and emitting capabilities. In addition to wrapping LibYAML, \Psych also
-# knows how to serialize and de-serialize most Ruby objects to and from
-# the YAML format.
+# that leverages {LibYAML}[https://pyyaml.org/wiki/LibYAML] for its \YAML parsing
+# and emitting capabilities:
+# - \Psych parsing can de-serializes \YAML documents into Ruby objects.
+# - \Psych emitting can serialize Ruby objects into \YAML documents.
+#
 #
 # = I NEED TO PARSE OR EMIT YAML RIGHT NOW!
 #
@@ -46,7 +54,7 @@ require 'psych/class_loader'
 #   Psych.dump("foo")     # => "--- foo\n...\n"
 #   { :a => 'b'}.to_yaml  # => "---\n:a: b\n"
 #
-# Got more time on your hands?  Keep on reading!
+# = \Psych
 #
 # \Psych provides a range of interfaces for parsing and emitting \YAML:
 # - {High-level API}[#module-Psych-label-High-level+API]: ability to convert directly between \YAML and Ruby objects.
