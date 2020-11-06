@@ -34,7 +34,7 @@ require 'psych/class_loader'
 #
 # Details available at website yaml.org:
 # - {Specification for YAML version 1.2}[https://yaml.org/spec/1.2/spec.html].
-# - {Conversion}[https://yaml.org/YAML_for_ruby.html] between \YAML and Ruby.
+# - {Details of conversions}[https://yaml.org/YAML_for_ruby.html] between \YAML and Ruby.
 #
 # = Overview
 #
@@ -221,6 +221,116 @@ require 'psych/class_loader'
 #   # You can instantiate an Emitter manually
 #   Psych::Visitors::ToRuby.new.accept(parser.handler.root.first)
 #   # => "a"
+#
+# == Options for Parsing and Emitting
+#
+# === Options for Parsing
+#
+# ==== Option +fallback+
+#
+# Use option +fallback+ to specify a value to be returned if +yaml_string+ is empty.
+#
+# Defaults:
+# - Psych.load: +false+.
+# - Psych.safe_load: +nil+.
+# - Psych.load_stream: <tt>[]</tt>.
+# Examples:
+#   Psych.load('') # => false
+#   Psych.load('', fallback: nil) # => nil
+#
+# ==== Option +symbolize+
+#
+# Use option +symbolize_names+ to specify that \Hash keys should be Symbols;
+# the default is +false+:
+#   Psych.load('foo: 0') # => {"foo"=>0}
+#   Psych.load('foo: 0', symbolize_names: true) # => {:foo=>0}
+#
+# ==== Option +freeze+
+#
+# Use option +freeze+ to specify that the returned object should be frozen;
+# the default is +false+:
+#   Psych.load('--- a').frozen? # => false
+#   Psych.load('--- a', freeze: true).frozen? # => true
+#
+# ==== Option +filename+
+#
+# Use option +filename+ to specify a \String to be included in the message
+# for a raised exception:
+# the default is +nil+:
+#   begin
+#     Psych.load("--- `", filename: 'foo')
+#   rescue Psych::SyntaxError => ex
+#     p ex.file
+#     p ex.message
+#   end
+# Output:
+#   "foo"
+#   "(foo): found character that cannot start any token while scanning for the next token at line 1 column 5"
+#
+# === Options for Emitting
+#
+# ==== Option +indentation+
+#
+# Use option +indentation+ to specify the number of spaces to be used for indentation;
+# the default is 2:
+#   ruby = ['a', ['b']]
+#   puts Psych.dump(ruby)
+# Output:
+#   ---
+#   - a
+#   - - b
+#   puts Psych.dump(ruby, indentation: 4)
+# Output:
+#   ---
+#   - a
+#   -   - b
+#
+# ==== Option +line_width+
+#
+# Use option +line_width+ to specify the maximum line width;
+# a line whose length exceeds that maximum will be wrapped;
+# the default is 80:
+#   ruby = 'word ' * 16
+#   puts Psych.dump(ruby, line_width: 20)
+# Output:
+#  --- "word word word word
+#    word word word word
+#    word word word word
+#    word word word word "
+#
+# ==== Option +canonical+
+#
+# Use option +canonical+ to specify that the \YAML output
+# is to be in the very verbose canonical form;
+# default is +false+:
+#   ruby = {a: {'b': 'c'}}
+#   puts Psych.dump(ruby)
+# Output:
+#   ---
+#   :a:
+#     b: c
+#   puts Psych.dump(ruby, canonical: true)
+# Output:
+#   ---
+#   {
+#     ? ! ":a"
+#   : {
+#     ? "b"
+#     : "c",
+#     },
+#   }
+#
+# ==== Option +header+
+#
+# Use option +header+ to specify that the \YAML version is to be included in the output;
+# default is +false+:
+#   ruby = {a: {'b': 'c'}}
+#   puts Psych.dump(ruby, header: true)
+# Output:
+#   %YAML 1.1
+#   ---
+#   :a:
+#     :b: c
 
 module Psych
   # The version of libyaml Psych is using
@@ -234,36 +344,15 @@ module Psych
   #
   # Returns the Ruby object created by converting the given +yaml_string+
   # to a Ruby object:
-  #   Psych.load('--- a')             # => 'a'
-  #   Psych.load("---\n - a\n - b")   # => ['a', 'b']
+  #   yaml = <<-EOT
+  #   ---
+  #   - foo
+  #   - bar
+  #   - baz
+  #   EOT
+  #   Psych.load(yaml) # => ["foo", "bar", "baz"]
   #
-  # Use option +fallback+ to specify a value to be returned if +yaml_string+ is empty;
-  # the default is +false+:
-  #   Psych.load('') # => false
-  #   Psych.load('', fallback: nil) # => nil
-  #
-  # Use option +symbolize_names+ to specify that \Hash keys should be Symbols;
-  # the default is +false+:
-  #   Psych.load('foo: 0') # => {"foo"=>0}
-  #   Psych.load('foo: 0', symbolize_names: true) # => {:foo=>0}
-  #
-  # Use option +freeze+ to specify that the returned object should be frozen;
-  # the default is +false+:
-  #   Psych.load('--- a').frozen? # => false
-  #   Psych.load('--- a', freeze: true).frozen? # => true
-  #
-  # Use option +filename+ to specify a \String to be included in the message
-  # for a raised exception:
-  # the default is +nil+:
-  #   begin
-  #     Psych.load("--- `", filename: 'foo')
-  #   rescue Psych::SyntaxError => ex
-  #     p ex.file
-  #     p ex.message
-  #   end
-  # Output:
-  # "foo"
-  # "(foo): found character that cannot start any token while scanning for the next token at line 1 column 5"
+  # For +options+, see {Options for Parsing}[#module-Psych-label-Options+for+Parsing].
   #
   # Note: DO NOT use this method to parse untrusted documents, such as
   # \YAML documents that are supplied via user input.  Instead, use method Psych.safe_load.
@@ -460,46 +549,34 @@ module Psych
 
   ###
   # call-seq:
-  #   Psych.dump(o)               -> string of yaml
-  #   Psych.dump(o, options)      -> string of yaml
-  #   Psych.dump(o, io)           -> io object passed in
-  #   Psych.dump(o, io, options)  -> io object passed in
+  #   Psych.dump(object, **options) -> new_yaml_string
+  #   Psych.dump(object, io, **options) -> given_io
   #
-  # Dump Ruby object +o+ to a YAML string.  Optional +options+ may be passed in
-  # to control the output format.  If an IO object is passed in, the YAML will
-  # be dumped to that IO object.
+  # For +options+, see {Options for Emitting}[#module-Psych-label-Options+for+Emitting].
   #
-  # Currently supported options are:
+  # Converts the given +object+ to a \YAML document.
   #
-  # [<tt>:indentation</tt>]   Number of space characters used to indent.
-  #                           Acceptable value should be in <tt>0..9</tt> range,
-  #                           otherwise option is ignored.
+  # With the single argument +object+,
+  # returns a new \String containing the \YAML document:
+  #   ruby = ["foo", "bar", "baz"]
+  #   puts Psych.dump(ruby)
+  # Output:
+  #   ---
+  #   - foo
+  #   - bar
+  #   - baz
   #
-  #                           Default: <tt>2</tt>.
-  # [<tt>:line_width</tt>]    Max character to wrap line at.
-  #
-  #                           Default: <tt>0</tt> (meaning "wrap at 81").
-  # [<tt>:canonical</tt>]     Write "canonical" YAML form (very verbose, yet
-  #                           strictly formal).
-  #
-  #                           Default: <tt>false</tt>.
-  # [<tt>:header</tt>]        Write <tt>%YAML [version]</tt> at the beginning of document.
-  #
-  #                           Default: <tt>false</tt>.
-  #
-  # Example:
-  #
-  #   # Dump an array, get back a YAML string
-  #   Psych.dump(['a', 'b'])  # => "---\n- a\n- b\n"
-  #
-  #   # Dump an array to an IO object
-  #   Psych.dump(['a', 'b'], StringIO.new)  # => #<StringIO:0x000001009d0890>
-  #
-  #   # Dump an array with indentation set
-  #   Psych.dump(['a', ['b']], indentation: 3) # => "---\n- a\n-  - b\n"
-  #
-  #   # Dump an array to an IO with indentation set
-  #   Psych.dump(['a', ['b']], StringIO.new, indentation: 3)
+  # With arguments +object+ and an open \IO stream +io+,
+  # writes the \YAML document to that stream and returns the stream:
+  #   File.open('t.yml', 'w') do |file|
+  #     Psych.dump(ruby, file)
+  #   end # => #<File:t.yml (closed)>
+  #   puts File.read('t.yml')
+  # Output:
+  #   ---
+  #   - foo
+  #   - bar
+  #   - baz
   def self.dump o, io = nil, options = {}
     if Hash === io
       options = io
@@ -511,12 +588,23 @@ module Psych
     visitor.tree.yaml io, options
   end
 
-  ###
-  # Dump a list of objects as separate documents to a document stream.
+  # :call-seq:
+  #   Psych.dump_stream(*objects) -> new_yaml_string
   #
-  # Example:
+  # For +options+, see {Options for Emitting}[#module-Psych-label-Options+for+Emitting].
   #
-  #   Psych.dump_stream("foo\n  ", {}) # => "--- ! \"foo\\n  \"\n--- {}\n"
+  # Returns a new \String containing the \YAML documents created by converting
+  # the given +objects+:
+  #   array = [:foo, :bar]
+  #   hash = {baz: 0, bat: 1}
+  #   puts Psych.dump_stream(array, hash)
+  # Output:
+  #   ---
+  #   - :foo
+  #   - :bar
+  #   ---
+  #   :baz: 0
+  #   :bat: 1
   def self.dump_stream *objects
     visitor = Psych::Visitors::YAMLTree.create({})
     objects.each do |o|
@@ -533,21 +621,35 @@ module Psych
     visitor.tree.yaml
   end
 
-  ###
-  # Load multiple documents given in +yaml+.  Returns the parsed documents
-  # as a list.  If a block is given, each document will be converted to Ruby
-  # and passed to the block during parsing
+  # :call-seq:
+  #   Psych.load_stream(yaml_string, **options) -> new_array
+  #   Psych.load_stream(yaml_string, **options) {|object| ... } -> new_array
   #
-  # Example:
+  # Returns a new \Array containing one element for each \YAML document
+  # found in +yaml_string+.
+  # Each element is the object created by converting a \YAML document.
   #
-  #   Psych.load_stream("--- foo\n...\n--- bar\n...") # => ['foo', 'bar']
+  # For +options+, see {Options for Parsing}[#module-Psych-label-Options+for+Parsing].
   #
+  # With no block given,
+  # returns the \Array of unmodified Ruby objects:
+  #   yaml = <<-EOT
+  #   ---
+  #   - foo
+  #   - bar
+  #   ---
+  #   - baz
+  #   - bat
+  #   EOT
+  #   Psych.load_stream(yaml) # => [["foo", "bar"], ["baz", "bat"]]
+  #
+  # With a block given, calls the block with each created Ruby object;
+  # returns a <tt>Psych::Parser</tt> object:
   #   list = []
-  #   Psych.load_stream("--- foo\n...\n--- bar\n...") do |ruby|
-  #     list << ruby
+  #   Psych.load_stream(yaml) do |object|
+  #     list << object.reverse
   #   end
-  #   list # => ['foo', 'bar']
-  #
+  #   list # => [["bar", "foo"], ["bat", "baz"]]
   def self.load_stream yaml, legacy_filename = NOT_GIVEN, filename: nil, fallback: [], **kwargs
     if legacy_filename != NOT_GIVEN
       warn_with_uplevel 'Passing filename with the 2nd argument of Psych.load_stream is deprecated. Use keyword argument like Psych.load_stream(yaml, filename: ...) instead.', uplevel: 1 if $VERBOSE
@@ -566,10 +668,21 @@ module Psych
     result
   end
 
-  ###
-  # Load the document contained in +filename+.  Returns the yaml contained in
-  # +filename+ as a Ruby object, or if the file is empty, it returns
-  # the specified +fallback+ return value, which defaults to +false+.
+  # :call-seq:
+  #   Psych.load_file(file_path, **options) -> object
+  #
+  # For +options+, see {Options for Parsing}[#module-Psych-label-Options+for+Parsing].
+  #
+  # Returns the Ruby object created by converting the content of the specified file
+  # to a Ruby object:
+  #   yaml = <<-EOT
+  #   ---
+  #   - foo
+  #   - bar
+  #   - baz
+  #   EOT
+  #   File.write('t.yml', yaml)
+  #   Psych.load_file('t.yml') # => ["foo", "bar", "baz"] # => ["foo", "bar", "baz"]
   def self.load_file filename, **kwargs
     File.open(filename, 'r:bom|utf-8') { |f|
       self.load f, filename: filename, **kwargs
