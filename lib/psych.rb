@@ -279,8 +279,7 @@ module Psych
 
     result = parse(yaml, filename: filename)
     return fallback unless result
-    result = result.to_ruby(symbolize_names: symbolize_names, freeze: freeze) if result
-    result
+    result.to_ruby(symbolize_names: symbolize_names, freeze: freeze)
   end
 
   ###
