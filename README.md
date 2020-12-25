@@ -12,8 +12,8 @@ serialize and de-serialize most Ruby objects to and from the YAML format.
 ## Examples
 
 ```ruby
-# Load YAML in to a Ruby object
-Psych.load('--- foo') # => 'foo'
+# Safely load YAML in to a Ruby object
+Psych.safe_load('--- foo') # => 'foo'
 
 # Emit YAML from a Ruby object
 Psych.dump("foo")     # => "--- foo\n...\n"
