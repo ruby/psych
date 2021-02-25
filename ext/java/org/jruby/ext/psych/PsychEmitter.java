@@ -38,6 +38,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
+import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyModule;
@@ -306,7 +307,7 @@ public class PsychEmitter extends RubyObject {
     @JRubyMethod
     public IRubyObject canonical(ThreadContext context) {
         // TODO: unclear if this affects a running emitter
-        return context.runtime.newBoolean(options.isCanonical());
+        return RubyBoolean.newBoolean(context, options.isCanonical());
     }
 
     @JRubyMethod(name = "indentation=")
