@@ -336,6 +336,9 @@ public class PsychEmitter extends RubyObject {
             if (emitter == null) throw context.runtime.newRuntimeError("uninitialized emitter");
 
             emitter.emit(event);
+
+            // flush writer after each emit
+            writer.flush();
         } catch (IOException ioe) {
             throw context.runtime.newIOErrorFromException(ioe);
         } catch (EmitterException ee) {
@@ -349,10 +352,12 @@ public class PsychEmitter extends RubyObject {
         Encoding encoding = PsychLibrary.YAMLEncoding.values()[(int)_encoding.convertToInteger().getLongValue()].encoding;
         Charset charset = context.runtime.getEncodingService().charsetForEncoding(encoding);
 
-        emitter = new Emitter(new OutputStreamWriter(new IOOutputStream(io, encoding), charset), options);
+        writer = new OutputStreamWriter(new IOOutputStream(io, encoding), charset);
+        emitter = new Emitter(writer, options);
     }
 
     Emitter emitter;
+    Writer writer;
     DumperOptions options = new DumperOptions();
     IRubyObject io;
 
