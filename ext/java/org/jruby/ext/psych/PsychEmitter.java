@@ -29,11 +29,13 @@ package org.jruby.ext.psych;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
@@ -46,6 +48,8 @@ import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IOOutputStream;
+import org.jruby.util.TypeConverter;
+import org.jruby.util.io.EncodingUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.emitter.Emitter;
 import org.yaml.snakeyaml.emitter.EmitterException;
@@ -189,21 +193,41 @@ public class PsychEmitter extends RubyObject {
         IRubyObject plain = args[3];
         IRubyObject quoted = args[4];
         IRubyObject style = args[5];
-        
-        if (!(value instanceof RubyString)) {
-            throw context.runtime.newTypeError(value, context.runtime.getString());
+
+        RubyClass stringClass = context.runtime.getString();
+
+        TypeConverter.checkType(context, value, stringClass);
+
+        RubyString valueStr = (RubyString) value;
+        Encoding encoding = UTF8Encoding.INSTANCE;
+
+        valueStr = EncodingUtils.strConvEnc(context, valueStr, valueStr.getEncoding(), encoding);
+
+        RubyString anchorStr = null;
+        if (!anchor.isNil()) {
+            TypeConverter.checkType(context, anchor, stringClass);
+            anchorStr = (RubyString) anchor;
+            anchorStr = EncodingUtils.strConvEnc(context, anchorStr, anchorStr.getEncoding(), encoding);
+        }
+
+        RubyString tagStr = null;
+        if (!tag.isNil()) {
+            TypeConverter.checkType(context, tag, stringClass);
+            tagStr = (RubyString) tag;
+            tagStr = EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), encoding);
         }
 
         ScalarEvent event = new ScalarEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
-                new ImplicitTuple(plain.isTrue(),
-                quoted.isTrue()),
-                value.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
+                new ImplicitTuple(plain.isTrue(), quoted.isTrue()),
+                valueStr.asJavaString(),
                 NULL_MARK,
                 NULL_MARK,
                 SCALAR_STYLES[style.convertToInteger().getIntValue()]);
+
         emit(context, event);
+
         return this;
     }
 
