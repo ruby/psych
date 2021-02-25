@@ -114,9 +114,7 @@ public class PsychEmitter extends RubyObject {
 
     @JRubyMethod
     public IRubyObject start_stream(ThreadContext context, IRubyObject encoding) {
-        if (!(encoding instanceof RubyFixnum)) {
-            throw context.runtime.newTypeError(encoding, context.runtime.getFixnum());
-        }
+        TypeConverter.checkType(context, encoding, context.runtime.getFixnum());
 
         initEmitter(context, encoding);
 
@@ -140,6 +138,8 @@ public class PsychEmitter extends RubyObject {
         boolean implicitBool = implicit.isTrue();
         Map<String, String> tagsMap = null;
 
+        TypeConverter.checkType(context, _version, context.runtime.getArray());
+
         RubyArray versionAry = _version.convertToArray();
         if (versionAry.size() == 2) {
             int versionInt0 = (int)versionAry.eltInternal(0).convertToInteger().getLongValue();
@@ -157,19 +157,23 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        RubyArray tagsAry = tags.convertToArray();
-        if (tagsAry.size() > 0) {
-            tagsMap = new HashMap<String, String>(tagsAry.size());
-            for (int i = 0; i < tagsAry.size(); i++) {
-                RubyArray tagsTuple = tagsAry.eltInternal(i).convertToArray();
-                if (tagsTuple.size() != 2) {
-                    throw context.runtime.newRuntimeError("tags tuple must be of length 2");
+        if (!tags.isNil()) {
+            TypeConverter.checkType(context, tags, context.runtime.getArray());
+
+            RubyArray tagsAry = tags.convertToArray();
+            if (tagsAry.size() > 0) {
+                tagsMap = new HashMap<>(tagsAry.size());
+                for (int i = 0; i < tagsAry.size(); i++) {
+                    RubyArray tagsTuple = tagsAry.eltInternal(i).convertToArray();
+                    if (tagsTuple.size() != 2) {
+                        throw context.runtime.newRuntimeError("tags tuple must be of length 2");
+                    }
+                    IRubyObject key = tagsTuple.eltInternal(0);
+                    IRubyObject value = tagsTuple.eltInternal(1);
+                    tagsMap.put(
+                            key.asJavaString(),
+                            value.asJavaString());
                 }
-                IRubyObject key = tagsTuple.eltInternal(0);
-                IRubyObject value = tagsTuple.eltInternal(1);
-                tagsMap.put(
-                        key.asJavaString(),
-                        value.asJavaString());
             }
         }
 
@@ -199,23 +203,11 @@ public class PsychEmitter extends RubyObject {
         TypeConverter.checkType(context, value, stringClass);
 
         RubyString valueStr = (RubyString) value;
-        Encoding encoding = UTF8Encoding.INSTANCE;
 
-        valueStr = EncodingUtils.strConvEnc(context, valueStr, valueStr.getEncoding(), encoding);
+        valueStr = EncodingUtils.strConvEnc(context, valueStr, valueStr.getEncoding(), UTF8Encoding.INSTANCE);
 
-        RubyString anchorStr = null;
-        if (!anchor.isNil()) {
-            TypeConverter.checkType(context, anchor, stringClass);
-            anchorStr = (RubyString) anchor;
-            anchorStr = EncodingUtils.strConvEnc(context, anchorStr, anchorStr.getEncoding(), encoding);
-        }
-
-        RubyString tagStr = null;
-        if (!tag.isNil()) {
-            TypeConverter.checkType(context, tag, stringClass);
-            tagStr = (RubyString) tag;
-            tagStr = EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), encoding);
-        }
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         ScalarEvent event = new ScalarEvent(
                 anchorStr == null ? null : anchorStr.asJavaString(),
@@ -238,11 +230,14 @@ public class PsychEmitter extends RubyObject {
         IRubyObject implicit = args[2];
         IRubyObject style = args[3];
 
-        final int SEQUENCE_BLOCK = 1; // see psych/nodes/sequence.rb
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         SequenceStartEvent event = new SequenceStartEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
@@ -265,16 +260,21 @@ public class PsychEmitter extends RubyObject {
         IRubyObject implicit = args[2];
         IRubyObject style = args[3];
 
-        final int MAPPING_BLOCK = 1; // see psych/nodes/mapping.rb
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         MappingStartEvent event = new MappingStartEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
                 FLOW_STYLES[style.convertToInteger().getIntValue()]);
+
         emit(context, event);
+
         return this;
     }
 
@@ -287,7 +287,11 @@ public class PsychEmitter extends RubyObject {
     
     @JRubyMethod
     public IRubyObject alias(ThreadContext context, IRubyObject anchor) {
-        AliasEvent event = new AliasEvent(anchor.asJavaString(), NULL_MARK, NULL_MARK);
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+
+        AliasEvent event = new AliasEvent(anchorStr.asJavaString(), NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
@@ -354,6 +358,16 @@ public class PsychEmitter extends RubyObject {
 
         writer = new OutputStreamWriter(new IOOutputStream(io, encoding), charset);
         emitter = new Emitter(writer, options);
+    }
+
+    private RubyString exportToUTF8(ThreadContext context, IRubyObject tag, RubyClass stringClass) {
+        RubyString tagStr = null;
+        if (!tag.isNil()) {
+            TypeConverter.checkType(context, tag, stringClass);
+            tagStr = (RubyString) tag;
+            tagStr = EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), UTF8Encoding.INSTANCE);
+        }
+        return tagStr;
     }
 
     Emitter emitter;
