@@ -30,6 +30,9 @@ package org.jruby.ext.psych;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.MalformedInputException;
 import java.util.Map;
 
 import org.jcodings.Encoding;
@@ -61,6 +64,7 @@ import org.jruby.util.log.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.error.MarkedYAMLException;
+import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.DocumentEndEvent;
 import org.yaml.snakeyaml.events.DocumentStartEvent;
@@ -75,6 +79,8 @@ import org.yaml.snakeyaml.parser.ParserImpl;
 import org.yaml.snakeyaml.reader.ReaderException;
 import org.yaml.snakeyaml.reader.StreamReader;
 import org.yaml.snakeyaml.scanner.ScannerException;
+
+import static org.jruby.runtime.Helpers.arrayOf;
 import static org.jruby.runtime.Helpers.invoke;
 import org.jruby.util.ByteList;
 
@@ -174,7 +180,11 @@ public class PsychParser extends RubyObject {
                 // If we can't get it from the IO or it doesn't have a charset, fall back on UTF-8
                 charset = UTF8Encoding.INSTANCE.getCharset();
             }
-            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), charset));
+            CharsetDecoder decoder = charset.newDecoder();
+            decoder.onMalformedInput(CodingErrorAction.REPORT);
+            decoder.onMalformedInput(CodingErrorAction.REPORT);
+
+            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), decoder));
         } else {
             throw runtime.newTypeError(yaml, runtime.getIO());
         }
@@ -247,6 +257,16 @@ public class PsychParser extends RubyObject {
         } catch (ReaderException re) {
             parser = null;
             raiseParserException(context, yaml, re, path);
+
+        } catch (YAMLException ye) {
+            Throwable cause = ye.getCause();
+
+            if (cause instanceof MalformedInputException) {
+                // failure due to improperly encoded input
+                raiseParserException(context, yaml, (MalformedInputException) cause, path);
+            }
+
+            throw ye;
 
         } catch (Throwable t) {
             Helpers.throwException(t);
@@ -354,6 +374,31 @@ public class PsychParser extends RubyObject {
                     (null == mye.getProblem() ? runtime.getNil() : runtime.newString(mye.getProblem())),
                     (null == mye.getContext() ? runtime.getNil() : runtime.newString(mye.getContext()))
                 },
+                Block.NULL_BLOCK);
+
+        RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
+    }
+
+    private static void raiseParserException(ThreadContext context, IRubyObject yaml, MalformedInputException mie, IRubyObject rbPath) {
+        Ruby runtime;
+        Mark mark;
+        RubyClass se;
+        IRubyObject exception;
+
+        runtime = context.runtime;
+        se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
+
+        mie.getInputLength();
+
+        exception = se.newInstance(context,
+                arrayOf(
+                        rbPath,
+                        runtime.newFixnum(-1),
+                        runtime.newFixnum(-1),
+                        runtime.newFixnum(mie.getInputLength()),
+                        runtime.getNil(),
+                        runtime.getNil()
+                ),
                 Block.NULL_BLOCK);
 
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
