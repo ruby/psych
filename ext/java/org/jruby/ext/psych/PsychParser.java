@@ -89,8 +89,7 @@ public class PsychParser extends RubyObject {
             }
         }, psych);
 
-        RubyKernel.require(runtime.getNil(),
-                runtime.newString("psych/syntax_error"), Block.NULL_BLOCK);
+        runtime.getLoadService().require("psych/syntax_error");
         psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
         psychParser.defineConstant("UTF8", runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
         psychParser.defineConstant("UTF16LE", runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
