@@ -3,8 +3,8 @@ Bundler::GemHelper.install_tasks
 
 require "rake/testtask"
 Rake::TestTask.new(:test) do |t|
-  t.libs << "test"
-  t.libs << "lib"
+  t.libs << "test/lib" << "test"
+  t.ruby_opts << "-rhelper"
   t.test_files = FileList['test/**/test_*.rb']
   t.verbose = true
   t.warning = true
@@ -29,6 +29,13 @@ if RUBY_PLATFORM =~ /java/
 else
   require 'rake/extensiontask'
   Rake::ExtensionTask.new("psych")
+end
+
+task :sync_tool do
+  require 'fileutils'
+  FileUtils.cp "../ruby/tool/lib/test/unit/core_assertions.rb", "./test/lib"
+  FileUtils.cp "../ruby/tool/lib/envutil.rb", "./test/lib"
+  FileUtils.cp "../ruby/tool/lib/find_executable.rb", "./test/lib"
 end
 
 task :default => [:compile, :test]
