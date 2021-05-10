@@ -238,7 +238,7 @@ require 'psych/class_loader'
 #   Psych.load('') # => false
 #   Psych.load('', fallback: nil) # => nil
 #
-# ==== Option +symbolize+
+# ==== Option +symbolize_names+
 #
 # Use option +symbolize_names+ to specify that \Hash keys should be Symbols;
 # the default is +false+:
