@@ -41,7 +41,7 @@ require 'psych/class_loader'
 # \Psych is a \YAML parser and emitter.
 # that leverages {LibYAML}[https://pyyaml.org/wiki/LibYAML] for its \YAML parsing
 # and emitting capabilities:
-# - \Psych parsing can de-serializes \YAML documents into Ruby objects.
+# - \Psych parsing can de-serialize \YAML documents into Ruby objects.
 # - \Psych emitting can serialize Ruby objects into \YAML documents.
 #
 #
