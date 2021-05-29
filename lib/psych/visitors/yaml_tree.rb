@@ -152,7 +152,7 @@ module Psych
 
       def visit_Object o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           klass = o.class == Object ? nil : o.class.name
           tag   = ['!ruby/object', klass].compact.join(':')
         end
@@ -168,7 +168,7 @@ module Psych
 
       def visit_Struct o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = ['!ruby/struct', o.class.name].compact.join(':')
         end
 
@@ -193,7 +193,7 @@ module Psych
 
       def visit_Regexp o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/regexp'
         end
 
@@ -208,7 +208,7 @@ module Psych
                     end
 
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/object:DateTime'
         end
 
@@ -222,7 +222,7 @@ module Psych
 
       def visit_Rational o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/object:Rational'
         end
 
@@ -240,7 +240,7 @@ module Psych
 
       def visit_Complex o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/object:Complex'
         end
 
@@ -273,7 +273,7 @@ module Psych
 
       def visit_BigDecimal o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/object:BigDecimal'
         end
 
@@ -312,7 +312,7 @@ module Psych
         ivars = is_primitive ? [] : o.instance_variables
 
         if ivars.empty?
-          unless is_primitive || @options[:noImplicitTags]
+          unless is_primitive || @options[:no_implicit_tags]
             tag = "!ruby/string:#{o.class}"
             plain = false
             quote = false
@@ -321,7 +321,7 @@ module Psych
         else
           maptag = '!ruby/string'.dup
           maptag << ":#{o.class}" unless o.class == ::String
-          maptag = nil if @options[:noImplicitTags]
+          maptag = nil if @options[:no_implicit_tags]
 
           register o, @emitter.start_mapping(nil, maptag, false, Nodes::Mapping::BLOCK)
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
@@ -337,7 +337,7 @@ module Psych
         raise TypeError, "can't dump anonymous module: #{o}" unless o.name
 
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/module'
         end
 
@@ -348,7 +348,7 @@ module Psych
         raise TypeError, "can't dump anonymous class: #{o}" unless o.name
 
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/class'
         end
 
@@ -357,7 +357,7 @@ module Psych
 
       def visit_Range o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!ruby/range'
         end
 
@@ -383,7 +383,7 @@ module Psych
 
       def visit_Psych_Set o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = '!set'
         end
 
@@ -426,7 +426,7 @@ module Psych
       def visit_BasicObject o
         tag = Psych.dump_tags[o.class]
         tag ||= "!ruby/marshalable:#{o.class.name}"
-        tag = nil if @options[:noImplicitTags]
+        tag = nil if @options[:no_implicit_tags]
 
         map = @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
         register(o, map)
@@ -444,7 +444,7 @@ module Psych
 
       def visit_array_subclass o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = "!ruby/array:#{o.class}"
         end
 
@@ -482,7 +482,7 @@ module Psych
         tag = Psych.dump_tags[o.class]
 
         if ivars.any?
-          unless @options[:noImplicitTags] || tag
+          unless @options[:no_implicit_tags] || tag
             tag = "!ruby/hash-with-ivars:#{o.class}"
           end
           node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
@@ -508,7 +508,7 @@ module Psych
 
           @emitter.end_mapping
         else
-          unless @options[:noImplicitTags] || tag
+          unless @options[:no_implicit_tags] || tag
             tag = "!ruby/hash:#{o.class}"
           end
           node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
@@ -526,7 +526,7 @@ module Psych
 
       def dump_exception o, msg
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           tag = ['!ruby/exception', o.class.name].join ':'
         end
 
@@ -561,7 +561,7 @@ module Psych
       def dump_coder o
         @coders << o
         tag = Psych.dump_tags[o.class]
-        unless @options[:noImplicitTags] || tag
+        unless @options[:no_implicit_tags] || tag
           klass = o.class == Object ? nil : o.class.name
           tag   = ['!ruby/object', klass].compact.join(':')
         end
