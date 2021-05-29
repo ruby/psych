@@ -489,6 +489,10 @@ module Psych
   #
   #                           Default: <tt>false</tt>.
   #
+  # [<tt>:no_implicit_tags]   Prevents Psych from adding implicit tags to objects.
+  #
+  #                           Default: <tt>false</tt>
+  #
   # Example:
   #
   #   # Dump an array, get back a YAML string
@@ -561,6 +565,10 @@ module Psych
   # [<tt>:header</tt>]        Write <tt>%YAML [version]</tt> at the beginning of document.
   #
   #                           Default: <tt>false</tt>.
+  #
+  # [<tt>:no_implicit_tags]   Prevents Psych from adding implicit tags to objects.
+  #
+  #                           Default: <tt>false</tt>
   #
   # Example:
   #

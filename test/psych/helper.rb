@@ -87,6 +87,11 @@ module Psych
       end
     end
 
+    def assert_no_implicit_tags( tag_regex, obj )
+      yml = Psych.dump(obj, {:no_implicit_tags => true})
+      assert_no_match(tag_regex, yml)
+    end
+
     #
     # Make a time with the time zone
     #

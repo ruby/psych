@@ -3,6 +3,7 @@ require_relative 'helper'
 
 require 'stringio'
 require 'tempfile'
+require 'date'
 
 class TestPsych < Psych::TestCase
 
@@ -43,6 +44,17 @@ class TestPsych < Psych::TestCase
   def test_header
     yml = Psych.dump({:a => {'b' => 'c'}}, {:header => true})
     assert_match(/YAML/, yml)
+  end
+
+  class MyObj; end
+
+  def test_no_implicit_tags
+    assert_no_implicit_tags(/!ruby\/struct/, { :a => Struct.new(:foo).new(6) })
+    assert_no_implicit_tags(/!ruby\/regexp/, { :a => /abc/ })
+    assert_no_implicit_tags(/!ruby\/object:DateTime/, { :a => DateTime.now() })
+    assert_no_implicit_tags(/!ruby\/object:Rational/, { :a => Rational(4, -6) })
+    assert_no_implicit_tags(/!ruby\/object:Complex/, { :a => Complex(1, 3) })
+    assert_no_implicit_tags(/!ruby\/object:TestPsych::MyObj/, { :a => MyObj.new() })
   end
 
   def test_version_array
