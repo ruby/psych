@@ -152,7 +152,7 @@ module Psych
 
       def visit_Object o
         tag = Psych.dump_tags[o.class]
-        unless tag
+        unless @options[:noImplicitTags] || tag
           klass = o.class == Object ? nil : o.class.name
           tag   = ['!ruby/object', klass].compact.join(':')
         end
@@ -167,7 +167,10 @@ module Psych
       alias :visit_Delegator :visit_Object
 
       def visit_Struct o
-        tag = ['!ruby/struct', o.class.name].compact.join(':')
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = ['!ruby/struct', o.class.name].compact.join(':')
+        end
 
         register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
         o.members.each do |member|
@@ -189,7 +192,12 @@ module Psych
       end
 
       def visit_Regexp o
-        register o, @emitter.scalar(o.inspect, nil, '!ruby/regexp', false, false, Nodes::Scalar::ANY)
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/regexp'
+        end
+
+        register o, @emitter.scalar(o.inspect, nil, tag, tag.nil?, false, Nodes::Scalar::ANY)
       end
 
       def visit_DateTime o
@@ -198,8 +206,13 @@ module Psych
                     else
                       o.strftime("%Y-%m-%d %H:%M:%S.%9N %:z".freeze)
                     end
-        tag = '!ruby/object:DateTime'
-        register o, @emitter.scalar(formatted, nil, tag, false, false, Nodes::Scalar::ANY)
+
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/object:DateTime'
+        end
+
+        register o, @emitter.scalar(formatted, nil, tag, tag.nil?, false, Nodes::Scalar::ANY)
       end
 
       def visit_Time o
@@ -208,7 +221,12 @@ module Psych
       end
 
       def visit_Rational o
-        register o, @emitter.start_mapping(nil, '!ruby/object:Rational', false, Nodes::Mapping::BLOCK)
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/object:Rational'
+        end
+
+        register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
 
         [
           'denominator', o.denominator.to_s,
@@ -221,7 +239,12 @@ module Psych
       end
 
       def visit_Complex o
-        register o, @emitter.start_mapping(nil, '!ruby/object:Complex', false, Nodes::Mapping::BLOCK)
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/object:Complex'
+        end
+
+        register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
 
         ['real', o.real.to_s, 'image', o.imag.to_s].each do |m|
           @emitter.scalar m, nil, nil, true, false, Nodes::Scalar::ANY
@@ -249,7 +272,12 @@ module Psych
       end
 
       def visit_BigDecimal o
-        @emitter.scalar o._dump, nil, '!ruby/object:BigDecimal', false, false, Nodes::Scalar::ANY
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/object:BigDecimal'
+        end
+
+        @emitter.scalar o._dump, nil, tag, tag.nil?, false, Nodes::Scalar::ANY
       end
 
       def visit_String o
@@ -284,7 +312,7 @@ module Psych
         ivars = is_primitive ? [] : o.instance_variables
 
         if ivars.empty?
-          unless is_primitive
+          unless is_primitive || @options[:noImplicitTags]
             tag = "!ruby/string:#{o.class}"
             plain = false
             quote = false
@@ -293,6 +321,7 @@ module Psych
         else
           maptag = '!ruby/string'.dup
           maptag << ":#{o.class}" unless o.class == ::String
+          maptag = nil if @options[:noImplicitTags]
 
           register o, @emitter.start_mapping(nil, maptag, false, Nodes::Mapping::BLOCK)
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
@@ -306,16 +335,33 @@ module Psych
 
       def visit_Module o
         raise TypeError, "can't dump anonymous module: #{o}" unless o.name
-        register o, @emitter.scalar(o.name, nil, '!ruby/module', false, false, Nodes::Scalar::SINGLE_QUOTED)
+
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/module'
+        end
+
+        register o, @emitter.scalar(o.name, nil, tag, tag.nil?, false, Nodes::Scalar::SINGLE_QUOTED)
       end
 
       def visit_Class o
         raise TypeError, "can't dump anonymous class: #{o}" unless o.name
-        register o, @emitter.scalar(o.name, nil, '!ruby/class', false, false, Nodes::Scalar::SINGLE_QUOTED)
+
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/class'
+        end
+
+        register o, @emitter.scalar(o.name, nil, tag, tag.nil?, false, Nodes::Scalar::SINGLE_QUOTED)
       end
 
       def visit_Range o
-        register o, @emitter.start_mapping(nil, '!ruby/range', false, Nodes::Mapping::BLOCK)
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!ruby/range'
+        end
+
+        register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
         ['begin', o.begin, 'end', o.end, 'excl', o.exclude_end?].each do |m|
           accept m
         end
@@ -336,7 +382,12 @@ module Psych
       end
 
       def visit_Psych_Set o
-        register(o, @emitter.start_mapping(nil, '!set', false, Psych::Nodes::Mapping::BLOCK))
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = '!set'
+        end
+
+        register(o, @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK))
 
         o.each do |k,v|
           accept k
@@ -375,6 +426,7 @@ module Psych
       def visit_BasicObject o
         tag = Psych.dump_tags[o.class]
         tag ||= "!ruby/marshalable:#{o.class.name}"
+        tag = nil if @options[:noImplicitTags]
 
         map = @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
         register(o, map)
@@ -391,15 +443,19 @@ module Psych
       end
 
       def visit_array_subclass o
-        tag = "!ruby/array:#{o.class}"
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = "!ruby/array:#{o.class}"
+        end
+
         ivars = o.instance_variables
         if ivars.empty?
-          node = @emitter.start_sequence(nil, tag, false, Nodes::Sequence::BLOCK)
+          node = @emitter.start_sequence(nil, tag, tag.nil?, Nodes::Sequence::BLOCK)
           register o, node
           o.each { |c| accept c }
           @emitter.end_sequence
         else
-          node = @emitter.start_mapping(nil, tag, false, Nodes::Sequence::BLOCK)
+          node = @emitter.start_mapping(nil, tag, tag.nil?, Nodes::Sequence::BLOCK)
           register o, node
 
           # Dump the internal list
@@ -423,8 +479,12 @@ module Psych
 
       def visit_hash_subclass o
         ivars = o.instance_variables
+        tag = Psych.dump_tags[o.class]
+
         if ivars.any?
-          tag = "!ruby/hash-with-ivars:#{o.class}"
+          unless @options[:noImplicitTags] || tag
+            tag = "!ruby/hash-with-ivars:#{o.class}"
+          end
           node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
           register(o, node)
 
@@ -448,7 +508,9 @@ module Psych
 
           @emitter.end_mapping
         else
-          tag = "!ruby/hash:#{o.class}"
+          unless @options[:noImplicitTags] || tag
+            tag = "!ruby/hash:#{o.class}"
+          end
           node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
           register(o, node)
           o.each do |k,v|
@@ -463,7 +525,10 @@ module Psych
       end
 
       def dump_exception o, msg
-        tag = ['!ruby/exception', o.class.name].join ':'
+        tag = Psych.dump_tags[o.class]
+        unless @options[:noImplicitTags] || tag
+          tag = ['!ruby/exception', o.class.name].join ':'
+        end
 
         @emitter.start_mapping nil, tag, false, Nodes::Mapping::BLOCK
 
@@ -496,7 +561,7 @@ module Psych
       def dump_coder o
         @coders << o
         tag = Psych.dump_tags[o.class]
-        unless tag
+        unless @options[:noImplicitTags] || tag
           klass = o.class == Object ? nil : o.class.name
           tag   = ['!ruby/object', klass].compact.join(':')
         end
