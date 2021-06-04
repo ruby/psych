@@ -29,13 +29,16 @@ package org.jruby.ext.psych;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
+import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyModule;
@@ -46,6 +49,8 @@ import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IOOutputStream;
+import org.jruby.util.TypeConverter;
+import org.jruby.util.io.EncodingUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.emitter.Emitter;
 import org.yaml.snakeyaml.emitter.EmitterException;
@@ -110,9 +115,7 @@ public class PsychEmitter extends RubyObject {
 
     @JRubyMethod
     public IRubyObject start_stream(ThreadContext context, IRubyObject encoding) {
-        if (!(encoding instanceof RubyFixnum)) {
-            throw context.runtime.newTypeError(encoding, context.runtime.getFixnum());
-        }
+        TypeConverter.checkType(context, encoding, context.runtime.getFixnum());
 
         initEmitter(context, encoding);
 
@@ -136,6 +139,8 @@ public class PsychEmitter extends RubyObject {
         boolean implicitBool = implicit.isTrue();
         Map<String, String> tagsMap = null;
 
+        TypeConverter.checkType(context, _version, context.runtime.getArray());
+
         RubyArray versionAry = _version.convertToArray();
         if (versionAry.size() == 2) {
             int versionInt0 = (int)versionAry.eltInternal(0).convertToInteger().getLongValue();
@@ -153,19 +158,23 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        RubyArray tagsAry = tags.convertToArray();
-        if (tagsAry.size() > 0) {
-            tagsMap = new HashMap<String, String>(tagsAry.size());
-            for (int i = 0; i < tagsAry.size(); i++) {
-                RubyArray tagsTuple = tagsAry.eltInternal(i).convertToArray();
-                if (tagsTuple.size() != 2) {
-                    throw context.runtime.newRuntimeError("tags tuple must be of length 2");
+        if (!tags.isNil()) {
+            TypeConverter.checkType(context, tags, context.runtime.getArray());
+
+            RubyArray tagsAry = tags.convertToArray();
+            if (tagsAry.size() > 0) {
+                tagsMap = new HashMap<>(tagsAry.size());
+                for (int i = 0; i < tagsAry.size(); i++) {
+                    RubyArray tagsTuple = tagsAry.eltInternal(i).convertToArray();
+                    if (tagsTuple.size() != 2) {
+                        throw context.runtime.newRuntimeError("tags tuple must be of length 2");
+                    }
+                    IRubyObject key = tagsTuple.eltInternal(0);
+                    IRubyObject value = tagsTuple.eltInternal(1);
+                    tagsMap.put(
+                            key.asJavaString(),
+                            value.asJavaString());
                 }
-                IRubyObject key = tagsTuple.eltInternal(0);
-                IRubyObject value = tagsTuple.eltInternal(1);
-                tagsMap.put(
-                        key.asJavaString(),
-                        value.asJavaString());
             }
         }
 
@@ -189,21 +198,29 @@ public class PsychEmitter extends RubyObject {
         IRubyObject plain = args[3];
         IRubyObject quoted = args[4];
         IRubyObject style = args[5];
-        
-        if (!(value instanceof RubyString)) {
-            throw context.runtime.newTypeError(value, context.runtime.getString());
-        }
+
+        RubyClass stringClass = context.runtime.getString();
+
+        TypeConverter.checkType(context, value, stringClass);
+
+        RubyString valueStr = (RubyString) value;
+
+        valueStr = EncodingUtils.strConvEnc(context, valueStr, valueStr.getEncoding(), UTF8Encoding.INSTANCE);
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         ScalarEvent event = new ScalarEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
-                new ImplicitTuple(plain.isTrue(),
-                quoted.isTrue()),
-                value.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
+                new ImplicitTuple(plain.isTrue(), quoted.isTrue()),
+                valueStr.asJavaString(),
                 NULL_MARK,
                 NULL_MARK,
                 SCALAR_STYLES[style.convertToInteger().getIntValue()]);
+
         emit(context, event);
+
         return this;
     }
 
@@ -214,11 +231,14 @@ public class PsychEmitter extends RubyObject {
         IRubyObject implicit = args[2];
         IRubyObject style = args[3];
 
-        final int SEQUENCE_BLOCK = 1; // see psych/nodes/sequence.rb
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         SequenceStartEvent event = new SequenceStartEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
@@ -241,16 +261,21 @@ public class PsychEmitter extends RubyObject {
         IRubyObject implicit = args[2];
         IRubyObject style = args[3];
 
-        final int MAPPING_BLOCK = 1; // see psych/nodes/mapping.rb
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        RubyString tagStr = exportToUTF8(context, tag, stringClass);
 
         MappingStartEvent event = new MappingStartEvent(
-                anchor.isNil() ? null : anchor.asJavaString(),
-                tag.isNil() ? null : tag.asJavaString(),
+                anchorStr == null ? null : anchorStr.asJavaString(),
+                tagStr == null ? null : tagStr.asJavaString(),
                 implicit.isTrue(),
                 NULL_MARK,
                 NULL_MARK,
                 FLOW_STYLES[style.convertToInteger().getIntValue()]);
+
         emit(context, event);
+
         return this;
     }
 
@@ -263,7 +288,11 @@ public class PsychEmitter extends RubyObject {
     
     @JRubyMethod
     public IRubyObject alias(ThreadContext context, IRubyObject anchor) {
-        AliasEvent event = new AliasEvent(anchor.asJavaString(), NULL_MARK, NULL_MARK);
+        RubyClass stringClass = context.runtime.getString();
+
+        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+
+        AliasEvent event = new AliasEvent(anchorStr.asJavaString(), NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
@@ -278,7 +307,7 @@ public class PsychEmitter extends RubyObject {
     @JRubyMethod
     public IRubyObject canonical(ThreadContext context) {
         // TODO: unclear if this affects a running emitter
-        return context.runtime.newBoolean(options.isCanonical());
+        return RubyBoolean.newBoolean(context, options.isCanonical());
     }
 
     @JRubyMethod(name = "indentation=")
@@ -312,6 +341,9 @@ public class PsychEmitter extends RubyObject {
             if (emitter == null) throw context.runtime.newRuntimeError("uninitialized emitter");
 
             emitter.emit(event);
+
+            // flush writer after each emit
+            writer.flush();
         } catch (IOException ioe) {
             throw context.runtime.newIOErrorFromException(ioe);
         } catch (EmitterException ee) {
@@ -325,10 +357,22 @@ public class PsychEmitter extends RubyObject {
         Encoding encoding = PsychLibrary.YAMLEncoding.values()[(int)_encoding.convertToInteger().getLongValue()].encoding;
         Charset charset = context.runtime.getEncodingService().charsetForEncoding(encoding);
 
-        emitter = new Emitter(new OutputStreamWriter(new IOOutputStream(io, encoding), charset), options);
+        writer = new OutputStreamWriter(new IOOutputStream(io, encoding), charset);
+        emitter = new Emitter(writer, options);
+    }
+
+    private RubyString exportToUTF8(ThreadContext context, IRubyObject tag, RubyClass stringClass) {
+        RubyString tagStr = null;
+        if (!tag.isNil()) {
+            TypeConverter.checkType(context, tag, stringClass);
+            tagStr = (RubyString) tag;
+            tagStr = EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), UTF8Encoding.INSTANCE);
+        }
+        return tagStr;
     }
 
     Emitter emitter;
+    Writer writer;
     DumperOptions options = new DumperOptions();
     IRubyObject io;
 

@@ -30,6 +30,9 @@ package org.jruby.ext.psych;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.MalformedInputException;
 import java.util.Map;
 
 import org.jcodings.Encoding;
@@ -61,6 +64,7 @@ import org.jruby.util.log.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.error.MarkedYAMLException;
+import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.DocumentEndEvent;
 import org.yaml.snakeyaml.events.DocumentStartEvent;
@@ -75,6 +79,8 @@ import org.yaml.snakeyaml.parser.ParserImpl;
 import org.yaml.snakeyaml.reader.ReaderException;
 import org.yaml.snakeyaml.reader.StreamReader;
 import org.yaml.snakeyaml.scanner.ScannerException;
+
+import static org.jruby.runtime.Helpers.arrayOf;
 import static org.jruby.runtime.Helpers.invoke;
 import org.jruby.util.ByteList;
 
@@ -89,8 +95,7 @@ public class PsychParser extends RubyObject {
             }
         }, psych);
 
-        RubyKernel.require(runtime.getNil(),
-                runtime.newString("psych/syntax_error"), Block.NULL_BLOCK);
+        runtime.getLoadService().require("psych/syntax_error");
         psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
         psychParser.defineConstant("UTF8", runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
         psychParser.defineConstant("UTF16LE", runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
@@ -110,13 +115,15 @@ public class PsychParser extends RubyObject {
         return parse(context, yaml, runtime.getNil());
     }
 
-    private IRubyObject stringOrNilFor(Ruby runtime, String value, boolean tainted) {
-        if (value == null) return runtime.getNil(); // No need to taint nil
+    private IRubyObject stringOrNilFor(ThreadContext context, String value, boolean tainted) {
+        if (value == null) return context.nil;
 
-        return stringFor(runtime, value, tainted);
+        return stringFor(context, value, tainted);
     }
     
-    private RubyString stringFor(Ruby runtime, String value, boolean tainted) {
+    private RubyString stringFor(ThreadContext context, String value, boolean tainted) {
+        Ruby runtime = context.runtime;
+
         Encoding encoding = runtime.getDefaultInternalEncoding();
         if (encoding == null) {
             encoding = UTF8Encoding.INSTANCE;
@@ -136,8 +143,6 @@ public class PsychParser extends RubyObject {
     }
     
     private StreamReader readerFor(ThreadContext context, IRubyObject yaml) {
-        Ruby runtime = context.runtime;
-
         if (yaml instanceof RubyString) {
             ByteList byteList = ((RubyString)yaml).getByteList();
             Encoding enc = byteList.getEncoding();
@@ -175,8 +180,14 @@ public class PsychParser extends RubyObject {
                 // If we can't get it from the IO or it doesn't have a charset, fall back on UTF-8
                 charset = UTF8Encoding.INSTANCE.getCharset();
             }
-            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), charset));
+            CharsetDecoder decoder = charset.newDecoder();
+            decoder.onMalformedInput(CodingErrorAction.REPORT);
+            decoder.onMalformedInput(CodingErrorAction.REPORT);
+
+            return new StreamReader(new InputStreamReader(new IOInputStream(yaml), decoder));
         } else {
+            Ruby runtime = context.runtime;
+
             throw runtime.newTypeError(yaml, runtime.getIO());
         }
     }
@@ -214,7 +225,7 @@ public class PsychParser extends RubyObject {
                     
                     invoke(context, handler, "end_document", notExplicit);
                 } else if (event.is(ID.Alias)) {
-                    IRubyObject alias = stringOrNilFor(runtime, ((AliasEvent)event).getAnchor(), tainted);
+                    IRubyObject alias = stringOrNilFor(context, ((AliasEvent)event).getAnchor(), tainted);
 
                     invoke(context, handler, "alias", alias);
                 } else if (event.is(ID.Scalar)) {
@@ -249,6 +260,16 @@ public class PsychParser extends RubyObject {
             parser = null;
             raiseParserException(context, yaml, re, path);
 
+        } catch (YAMLException ye) {
+            Throwable cause = ye.getCause();
+
+            if (cause instanceof MalformedInputException) {
+                // failure due to improperly encoded input
+                raiseParserException(context, yaml, (MalformedInputException) cause, path);
+            }
+
+            throw ye;
+
         } catch (Throwable t) {
             Helpers.throwException(t);
             return this;
@@ -268,8 +289,8 @@ public class PsychParser extends RubyObject {
         RubyArray tags = RubyArray.newArray(runtime);
         if (tagsMap != null && tagsMap.size() > 0) {
             for (Map.Entry<String, String> tag : tagsMap.entrySet()) {
-                IRubyObject key   = stringFor(runtime, tag.getKey(), tainted);
-                IRubyObject value = stringFor(runtime, tag.getValue(), tainted);
+                IRubyObject key   = stringFor(context, tag.getKey(), tainted);
+                IRubyObject value = stringFor(context, tag.getValue(), tainted);
 
                 tags.append(RubyArray.newArray(runtime, key, value));
             }
@@ -281,8 +302,8 @@ public class PsychParser extends RubyObject {
     
     private void handleMappingStart(ThreadContext context, MappingStartEvent mse, boolean tainted, IRubyObject handler) {
         Ruby runtime = context.runtime;
-        IRubyObject anchor = stringOrNilFor(runtime, mse.getAnchor(), tainted);
-        IRubyObject tag = stringOrNilFor(runtime, mse.getTag(), tainted);
+        IRubyObject anchor = stringOrNilFor(context, mse.getAnchor(), tainted);
+        IRubyObject tag = stringOrNilFor(context, mse.getTag(), tainted);
         IRubyObject implicit = runtime.newBoolean(mse.getImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(mse.getFlowStyle()));
 
@@ -292,12 +313,12 @@ public class PsychParser extends RubyObject {
     private void handleScalar(ThreadContext context, ScalarEvent se, boolean tainted, IRubyObject handler) {
         Ruby runtime = context.runtime;
 
-        IRubyObject anchor = stringOrNilFor(runtime, se.getAnchor(), tainted);
-        IRubyObject tag = stringOrNilFor(runtime, se.getTag(), tainted);
+        IRubyObject anchor = stringOrNilFor(context, se.getAnchor(), tainted);
+        IRubyObject tag = stringOrNilFor(context, se.getTag(), tainted);
         IRubyObject plain_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInPlainScalar());
         IRubyObject quoted_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInNonPlainScalar());
         IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
-        IRubyObject val = stringFor(runtime, se.getValue(), tainted);
+        IRubyObject val = stringFor(context, se.getValue(), tainted);
 
         invoke(context, handler, "scalar", val, anchor, tag, plain_implicit,
                 quoted_implicit, style);
@@ -305,8 +326,8 @@ public class PsychParser extends RubyObject {
     
     private void handleSequenceStart(ThreadContext context, SequenceStartEvent sse, boolean tainted, IRubyObject handler) {
         Ruby runtime = context.runtime;
-        IRubyObject anchor = stringOrNilFor(runtime, sse.getAnchor(), tainted);
-        IRubyObject tag = stringOrNilFor(runtime, sse.getTag(), tainted);
+        IRubyObject anchor = stringOrNilFor(context, sse.getAnchor(), tainted);
+        IRubyObject tag = stringOrNilFor(context, sse.getTag(), tainted);
         IRubyObject implicit = runtime.newBoolean(sse.getImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
@@ -355,6 +376,31 @@ public class PsychParser extends RubyObject {
                     (null == mye.getProblem() ? runtime.getNil() : runtime.newString(mye.getProblem())),
                     (null == mye.getContext() ? runtime.getNil() : runtime.newString(mye.getContext()))
                 },
+                Block.NULL_BLOCK);
+
+        RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
+    }
+
+    private static void raiseParserException(ThreadContext context, IRubyObject yaml, MalformedInputException mie, IRubyObject rbPath) {
+        Ruby runtime;
+        Mark mark;
+        RubyClass se;
+        IRubyObject exception;
+
+        runtime = context.runtime;
+        se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
+
+        mie.getInputLength();
+
+        exception = se.newInstance(context,
+                arrayOf(
+                        rbPath,
+                        runtime.newFixnum(-1),
+                        runtime.newFixnum(-1),
+                        runtime.newFixnum(mie.getInputLength()),
+                        runtime.getNil(),
+                        runtime.getNil()
+                ),
                 Block.NULL_BLOCK);
 
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
