@@ -170,6 +170,11 @@ string: &70121654388580 !ruby/string
       assert_match "😃", yaml
     end
 
+    def test_original_issue_unicode_string
+      yaml = Psych.dump '🇩🇪'.encode('utf-8')
+      assert_match "🇩🇪", yaml
+    end
+
     def test_nonascii_string_as_binary
       string = "hello \x80 world!".dup
       string.force_encoding 'ascii-8bit'
