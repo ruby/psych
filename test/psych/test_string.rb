@@ -165,6 +165,11 @@ string: &70121654388580 !ruby/string
       assert_equal '01:03:05', Psych.load(yaml)
     end
 
+    def test_unicode_string
+      yaml = Psych.dump '😃'.encode('utf-8')
+      assert_match "😃", yaml
+    end
+
     def test_nonascii_string_as_binary
       string = "hello \x80 world!".dup
       string.force_encoding 'ascii-8bit'
