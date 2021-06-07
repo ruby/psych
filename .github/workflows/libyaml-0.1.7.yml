@@ -1,0 +1,35 @@
+name: libyaml-0.1.7
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [ ruby-head, "3.0", 2.7, 2.6, 2.5, 2.4 ]
+    steps:
+      - name: Install libraries
+        run: sudo apt install haveged
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Set up libyaml 0.1.7
+        run: |
+          wget https://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
+          tar xzf yaml-0.1.7.tar.gz
+          cd yaml-0.1.7
+          ./configure --prefix=/tmp/local
+          make
+          make install
+      - name: Install dependencies
+        run: bundle install
+      - name: Compile
+        run: rake compile -- --with-libyaml-dir=/tmp/local
+      - name: Run test
+        run: rake
+      - name: Install gem
+        run: rake install
