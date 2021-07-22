@@ -133,5 +133,27 @@ module Psych
       assert_equal 0x123456789abcdef, ss.tokenize('0x_12_,34,_56,_789abcdef')
       assert_equal 0x123456789abcdef, ss.tokenize('0x12_,34,_56,_789abcdef__')
     end
+
+    class MatchCallCounter < String
+      attr_reader :match_call_count
+
+      def match?(pat)
+        @match_call_count ||= 0
+        @match_call_count += 1
+        super
+      end
+    end
+
+    def test_scan_ascii_matches_quickly
+      ascii = MatchCallCounter.new('abcdefghijklmnopqrstuvwxyz')
+      ss.tokenize(ascii)
+      assert_equal 1, ascii.match_call_count
+    end
+
+    def tests_scan_unicode_matches_quickly
+      unicode = MatchCallCounter.new('鳥かご関連用品')
+      ss.tokenize(unicode)
+      assert_equal 1, unicode.match_call_count
+    end
   end
 end
