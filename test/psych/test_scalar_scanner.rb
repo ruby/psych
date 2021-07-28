@@ -150,7 +150,7 @@ module Psych
       assert_equal 1, ascii.match_call_count
     end
 
-    def tests_scan_unicode_matches_quickly
+    def test_scan_unicode_matches_quickly
       unicode = MatchCallCounter.new('鳥かご関連用品')
       ss.tokenize(unicode)
       assert_equal 1, unicode.match_call_count
