@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ jruby-head ]
+        ruby: [ jruby, jruby-head ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
