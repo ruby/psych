@@ -16,7 +16,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
-        run: bundle install
+        run: gem install ruby-maven power_assert test-unit rake-compiler 
       - name: compile
         run: rake compile
       - name: test
