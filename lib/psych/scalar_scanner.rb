@@ -96,7 +96,7 @@ module Psych
         if string.match?(/\A[-+]?\.\Z/)
           string
         else
-          Float(string.gsub(/[,_]|\.([Ee]|$)/, '\1'))
+          Float(string.delete(',_').gsub(/\.([Ee]|$)/, '\1'))
         end
       elsif string.match?(integer_regex)
         parse_int string
@@ -108,7 +108,7 @@ module Psych
     ###
     # Parse and return an int from +string+
     def parse_int string
-      Integer(string.gsub(/[,_]/, ''))
+      Integer(string.delete(',_'))
     end
 
     ###
