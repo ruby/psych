@@ -4,37 +4,20 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ mingw, mswin, 3.1, "3.0", 2.7, 2.6, 2.5, 2.4 ]
+        ruby: [ ucrt, mingw, mswin, 3.1, "3.0", 2.7, 2.6, 2.5, 2.4 ]
+        os: [ windows-latest ]
     steps:
       - uses: actions/checkout@v3
-      - name: Install libraries with vcpkg
-        id: vcpkg
-        run: |
-          vcpkg --triplet x64-windows install libyaml
-        if: ${{ matrix.ruby == 'mswin' }}
-      - name: link libraries
-        run: |
-          for %%I in (C:\vcpkg\installed\x64-windows\bin\*.dll) do (
-            mklink %%~nxI %%I
-          )
-        if: ${{ steps.vcpkg.conclusion == 'success' }}
       - name: Set up Ruby
         uses: MSP-Greg/setup-ruby-pkgs@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          mingw: _upgrade_ libyaml
+          vcpkg: libyaml
       - name: Install dependencies
         run: bundle install
-      - name: Compile
-        run: rake compile -- --with-libyaml-dir=C:/vcpkg/installed/x64-windows
-        if: ${{ matrix.ruby == 'mswin' }}
       - name: Run test
         run: rake
-
-defaults:
-  run:
-    shell: cmd
