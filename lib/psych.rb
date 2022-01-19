@@ -273,7 +273,6 @@ module Psych
     return fallback unless result
     result.to_ruby(symbolize_names: symbolize_names, freeze: freeze, strict_integer: strict_integer)
   end
-  class << self; alias :load :unsafe_load; end
 
   ###
   # Safely load the yaml string in +yaml+.  By default, only the following
