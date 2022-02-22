@@ -31,6 +31,3 @@ jobs:
         run: rake compile -- --with-libyaml-dir=/tmp/local
       - name: Run test
         run: rake
-      - name: Install gem
-        run: rake install
-        if: ${{ matrix.ruby != 'ruby-head' }}
