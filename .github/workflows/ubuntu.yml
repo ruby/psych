@@ -11,7 +11,7 @@ jobs:
         ruby: [ ruby-head, "3.0", 2.7, 2.6, 2.5, 2.4 ]
     steps:
       - name: Install libraries
-        run: sudo apt install haveged
+        run: sudo apt install haveged libyaml-dev
       - uses: actions/checkout@v2
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
