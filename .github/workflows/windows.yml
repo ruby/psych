@@ -17,7 +17,7 @@ jobs:
       - name: link libraries
         run: |
           for %%I in (C:\vcpkg\installed\x64-windows\bin\*.dll) do (
-            if not %%~nI == readline mklink %%~nxI %%I
+           mklink %%~nxI %%I
           )
       - name: Set up Ruby
         uses: MSP-Greg/setup-ruby-pkgs@v1
