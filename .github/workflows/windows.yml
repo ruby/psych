@@ -30,3 +30,7 @@ jobs:
         run: rake compile -- --with-libyaml-dir=C:/vcpkg/installed/x64-windows
       - name: Run test
         run: rake
+
+defaults:
+  run:
+    shell: cmd
