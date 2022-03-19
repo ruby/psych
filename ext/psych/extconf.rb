@@ -9,6 +9,14 @@ end
 yaml_source = with_config("libyaml-source-dir") || enable_config("bundled-libyaml", false)
 if yaml_source == true
   yaml_source = Dir.glob("#{$srcdir}/yaml{,-*}/").max_by {|n| File.basename(n).scan(/\d+/).map(&:to_i)}
+  unless yaml_source
+    require_relative '../../tool/extlibs.rb'
+    extlibs = ExtLibs.new(cache_dir: File.expand_path("../../tmp/download_cache", $srcdir))
+    unless extlibs.process_under($srcdir)
+      raise "failed to download libyaml source"
+    end
+    yaml_source, = Dir.glob("#{$srcdir}/yaml-*/")
+  end
 elsif yaml_source
   yaml_source = yaml_source.gsub(/\$\((\w+)\)|\$\{(\w+)\}/) {ENV[$1||$2]}
 end
