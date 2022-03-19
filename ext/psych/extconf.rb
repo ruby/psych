@@ -1,43 +1,47 @@
 # -*- coding: us-ascii -*-
 # frozen_string_literal: true
 require 'mkmf'
-require 'fileutils'
 
-# :stopdoc:
+if $mswin or $mingw or $cygwin
+  $CPPFLAGS << " -DYAML_DECLARE_STATIC"
+end
 
-dir_config 'libyaml'
-
-if enable_config("bundled-libyaml", false) || !pkg_config('yaml-0.1') && !(find_header('yaml.h') && find_library('yaml', 'yaml_get_version'))
-  # Embed libyaml since we could not find it.
-
-  $VPATH << "$(srcdir)/yaml"
-  $INCFLAGS << " -I$(srcdir)/yaml"
-
-  $srcs = Dir.glob("#{$srcdir}/{,yaml/}*.c").map {|n| File.basename(n)}.sort
-
-  header = 'yaml/yaml.h'
-  header = "{$(VPATH)}#{header}" if $nmake
-  if have_macro("_WIN32")
-    $CPPFLAGS << " -DYAML_DECLARE_STATIC -DHAVE_CONFIG_H"
+yaml_source = with_config("libyaml-source-dir") || enable_config("bundled-libyaml", false)
+if yaml_source == true
+  yaml_source = Dir.glob("#{$srcdir}/yaml{,-*}/").max_by {|n| File.basename(n).scan(/\d+/).map(&:to_i)}
+elsif yaml_source
+  yaml_source = yaml_source.gsub(/\$\((\w+)\)|\$\{(\w+)\}/) {ENV[$1||$2]}
+end
+if yaml_source
+  yaml_configure = "#{File.expand_path(yaml_source)}/configure"
+  unless File.exist?(yaml_configure)
+    raise "Configure script not found in #{yaml_source.quote}"
   end
 
-  have_header 'dlfcn.h'
-  have_header 'inttypes.h'
-  have_header 'memory.h'
-  have_header 'stdint.h'
-  have_header 'stdlib.h'
-  have_header 'strings.h'
-  have_header 'string.h'
-  have_header 'sys/stat.h'
-  have_header 'sys/types.h'
-  have_header 'unistd.h'
-
-  find_header 'yaml.h'
-  have_header 'config.h'
+  puts("Configuring libyaml source in #{yaml_source.quote}")
+  yaml = "libyaml"
+  Dir.mkdir(yaml) unless File.directory?(yaml)
+  unless system(yaml_configure, "-q",
+                "--enable-#{$enable_shared || !$static ? 'shared' : 'static'}",
+                chdir: yaml)
+    raise "failed to configure libyaml"
+  end
+  Logging.message("libyaml configured\n")
+  inc = yaml_source.start_with?("#$srcdir/") ? "$(srcdir)#{yaml_source[$srcdir.size..-1]}" : yaml_source
+  $INCFLAGS << " -I#{yaml}/include -I#{inc}/include"
+  Logging.message("INCLFAG=#$INCLFAG\n")
+  libyaml = "#{yaml}/src/.libs/libyaml.#$LIBEXT"
+  $LOCAL_LIBS.prepend("$(LIBYAML) ")
+else
+  pkg_config('yaml-0.1')
+  dir_config('libyaml')
+  unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
+    raise "libyaml not found"
+  end
 end
 
 create_makefile 'psych' do |mk|
-  mk << "YAML_H = #{header}".strip << "\n"
+  mk << "LIBYAML = #{libyaml}".strip << "\n"
 end
 
 # :startdoc:
