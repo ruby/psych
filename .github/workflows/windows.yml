@@ -23,7 +23,7 @@ jobs:
         uses: MSP-Greg/setup-ruby-pkgs@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          mingw: [_upgrade_, "libyaml"]
+          mingw: _upgrade_ libyaml
       - name: Install dependencies
         run: bundle install
       - name: Compile
