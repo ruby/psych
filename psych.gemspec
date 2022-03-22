@@ -63,5 +63,7 @@ DESCRIPTION
     s.add_dependency 'jar-dependencies', '>= 0.1.7'
   else
     s.extensions = ["ext/psych/extconf.rb"]
+    s.add_dependency 'stringio'
   end
+
 end

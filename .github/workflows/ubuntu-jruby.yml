@@ -10,15 +10,13 @@ jobs:
       matrix:
         ruby: [ jruby, jruby-head ]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
-        run: |
-          gem install bundler --no-document
-          bundle install
+        run: gem install ruby-maven power_assert test-unit rake-compiler 
       - name: compile
         run: rake compile
       - name: test
