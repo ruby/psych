@@ -9,6 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby: [ ruby-head, "3.0", 2.7, 2.6, 2.5, 2.4 ]
+        libyaml: [0.1.7 0.2.5]
     steps:
       - name: Install libraries
         run: sudo apt install haveged
@@ -17,11 +18,11 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - name: Set up libyaml 0.1.7
+      - name: Set up libyaml ${{ matrix.libyaml }}
         run: |
-          wget https://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
-          tar xzf yaml-0.1.7.tar.gz
-          cd yaml-0.1.7
+          wget https://pyyaml.org/download/libyaml/yaml-${{ matrix.libyaml }}.tar.gz
+          tar xzf yaml-${{ matrix.libyaml }}.tar.gz
+          cd yaml-${{ matrix.libyaml }}
           ./configure --prefix=/tmp/local
           make
           make install
