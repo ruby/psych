@@ -33,5 +33,7 @@ jobs:
       - name: Run test
         run: rake
       - name: Install gem
-        run: rake install
+        run: |
+          rake build
+          gem install pkg/psych-*.gem -- --with-libyaml-dir=/tmp/local
         if: ${{ matrix.ruby != 'ruby-head' }}
