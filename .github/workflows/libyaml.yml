@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby: [ ruby-head, "3.0", 2.7, 2.6, 2.5, 2.4 ]
-        libyaml: [0.1.7 0.2.5]
+        libyaml: [0.1.7, 0.2.5]
     steps:
       - name: Install libraries
         run: sudo apt install haveged
