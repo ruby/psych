@@ -23,4 +23,4 @@ jobs:
         run: rake
       - name: Install gem
         run: rake install
-        if: ${{ matrix.ruby != 'head' }}
+        if: ${{ matrix.ruby != 'head' || matrix.ruby != '3.1' }}
