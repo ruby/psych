@@ -1,4 +1,4 @@
-name: libyaml-0.1.7
+name: libyaml
 
 on: [push, pull_request]
 
