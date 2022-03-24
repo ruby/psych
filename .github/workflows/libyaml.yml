@@ -36,4 +36,4 @@ jobs:
         run: |
           rake build
           gem install pkg/psych-*.gem -- --with-libyaml-dir=/tmp/local
-        if: ${{ matrix.ruby != 'ruby-head' }}
+        if: ${{ matrix.ruby != 'head' }}
