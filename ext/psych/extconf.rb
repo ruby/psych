@@ -47,6 +47,11 @@ else
   unless find_header('yaml.h') && find_library('yaml', 'yaml_get_version')
     raise "libyaml not found"
   end
+
+  unless File.exist?("#{$srcdir}/yaml")
+    puts "failed to build psych because no libyaml is available"
+    exit
+  end
 end
 
 create_makefile 'psych' do |mk|
