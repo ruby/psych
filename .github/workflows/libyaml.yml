@@ -26,14 +26,10 @@ jobs:
         run: |
           wget https://pyyaml.org/download/libyaml/yaml-${{ matrix.libyaml }}.tar.gz
           tar xzf yaml-${{ matrix.libyaml }}.tar.gz
-        working-directory: ext/psych
-      - name: Build libyaml ${{ matrix.libyaml }}
-        run: |
           cd yaml-${{ matrix.libyaml }}
           ./configure --prefix=${{ matrix.libyaml-prefix }}
           make
           make install
-        working-directory: ext/psych
         if: ${{ matrix.libyaml-prefix != '' }}
       - name: Install dependencies
         run: bundle install
