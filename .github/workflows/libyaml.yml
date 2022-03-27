@@ -38,7 +38,11 @@ jobs:
       - name: Install dependencies
         run: bundle install
       - name: Compile
-        run: rake compile -- ${{ matrix.libyaml-prefix != '' && '--with-libyaml-dir=' || '' }}${{ matrix.libyaml-prefix }}
+        run: >-
+          rake compile --
+          ${{ matrix.libyaml-prefix != '' && '--with-libyaml-dir='
+            || '--with-libyaml-source-dir'
+          }}${{ matrix.libyaml-prefix }}
       - name: Run test
         run: rake
       - name: Install gem
