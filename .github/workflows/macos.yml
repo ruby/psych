@@ -21,3 +21,6 @@ jobs:
         run: bundle install
       - name: Run test
         run: rake
+      - name: Install gem
+        run: rake install
+        if: ${{ matrix.ruby != 'head' }}

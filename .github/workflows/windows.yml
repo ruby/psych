@@ -21,3 +21,8 @@ jobs:
         run: bundle install
       - name: Run test
         run: rake
+      - name: Install gem
+        run: rake install
+        # use all possible head strings
+        if: |
+          !(contains('ucrt mingw mswin head', matrix.ruby))
