@@ -112,6 +112,24 @@ eoyml
       assert_equal({"foo"=>{"hello"=>"world"}, "bar"=>{"hello"=>"world"}}, hash)
     end
 
+    def test_recursive_hash
+      h = { }
+      h["recursive_reference"] = h
+
+      loaded = Psych.load(Psych.dump(h), aliases: true)
+
+      assert_same loaded, loaded.fetch("recursive_reference")
+    end
+
+    def test_recursive_hash_uses_alias
+      h = { }
+      h["recursive_reference"] = h
+
+      assert_raise(BadAlias) do
+        Psych.load(Psych.dump(h), aliases: false)
+      end
+    end
+
     def test_key_deduplication
       unless String.method_defined?(:-@) && (-("a" * 20)).equal?((-("a" * 20)))
         pend "This Ruby implementation doesn't support string deduplication"
