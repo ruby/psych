@@ -102,14 +102,36 @@ module Psych
     end
 
     def test_ref_append
-      hash = Psych.unsafe_load(<<-eoyml)
----
-foo: &foo
-  hello: world
-bar:
-  <<: *foo
-eoyml
+      hash = Psych.unsafe_load(<<~eoyml)
+        ---
+        foo: &foo
+          hello: world
+        bar:
+          <<: *foo
+      eoyml
       assert_equal({"foo"=>{"hello"=>"world"}, "bar"=>{"hello"=>"world"}}, hash)
+    end
+
+    def test_anchor_reuse
+      hash = Psych.unsafe_load(<<~eoyml)
+        ---
+        foo: &foo
+          hello: world
+        bar: *foo
+      eoyml
+      assert_equal({"foo"=>{"hello"=>"world"}, "bar"=>{"hello"=>"world"}}, hash)
+      assert_same(hash.fetch("foo"), hash.fetch("bar"))
+    end
+
+    def test_raises_if_anchor_not_defined
+      assert_raise(Psych::AnchorNotDefined) do
+        Psych.unsafe_load(<<~eoyml)
+          ---
+          foo: &foo
+            hello: world
+          bar: *not_foo
+        eoyml
+      end
     end
 
     def test_recursive_hash
@@ -135,11 +157,11 @@ eoyml
         pend "This Ruby implementation doesn't support string deduplication"
       end
 
-      hashes = Psych.load(<<-eoyml)
----
-- unique_identifier: 1
-- unique_identifier: 2
-eoyml
+      hashes = Psych.load(<<~eoyml)
+        ---
+        - unique_identifier: 1
+        - unique_identifier: 2
+      eoyml
 
       assert_same hashes[0].keys.first, hashes[1].keys.first
     end
