@@ -108,13 +108,6 @@ public class PsychParser extends RubyObject {
         super(runtime, klass);
     }
 
-    @JRubyMethod
-    public IRubyObject parse(ThreadContext context, IRubyObject yaml) {
-        Ruby runtime = context.runtime;
-
-        return parse(context, yaml, runtime.getNil());
-    }
-
     private IRubyObject stringOrNilFor(ThreadContext context, String value, boolean tainted) {
         if (value == null) return context.nil;
 
@@ -192,8 +185,8 @@ public class PsychParser extends RubyObject {
         }
     }
 
-    @JRubyMethod
-    public IRubyObject parse(ThreadContext context, IRubyObject yaml, IRubyObject path) {
+    @JRubyMethod(name = "_native_parse")
+    public IRubyObject parse(ThreadContext context, IRubyObject handler, IRubyObject yaml, IRubyObject path) {
         Ruby runtime = context.runtime;
         boolean tainted = yaml.isTaint() || yaml instanceof RubyIO;
 
@@ -203,8 +196,6 @@ public class PsychParser extends RubyObject {
             if (path.isNil() && yaml.respondsTo("path")) {
                 path = yaml.callMethod(context, "path");
             }
-
-            IRubyObject handler = getInstanceVariable("@handler");
 
             while (true) {
                 event = parser.getEvent();
