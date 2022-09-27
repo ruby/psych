@@ -20,5 +20,4 @@ jobs:
       - name: compile
         run: bundle exec rake compile
       - name: test
-        continue-on-error: true
         run: bundle exec rake test
