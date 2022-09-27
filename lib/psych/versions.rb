@@ -5,6 +5,6 @@ module Psych
   VERSION = '4.0.5'
 
   if RUBY_ENGINE == 'jruby'
-    DEFAULT_SNAKEYAML_VERSION = '1.31'.freeze
+    DEFAULT_SNAKEYAML_VERSION = '1.33'.freeze
   end
 end
