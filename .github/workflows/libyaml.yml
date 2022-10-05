@@ -31,12 +31,12 @@ jobs:
         if: ${{ matrix.libyaml-prefix != '' }}
       - name: Install dependencies
         run: bundle install
-      - name: Compile
-        run: >-
-          rake compile --
-          ${{ matrix.libyaml-prefix != '' && '--with-libyaml-dir='
-            || '--with-libyaml-source-dir'
-          }}${{ matrix.libyaml-prefix }}
+      - name: Compile with libyaml
+        run: rake compile -- --with-libyaml-dir=${{ matrix.libyaml-prefix }}
+        if: ${{ matrix.libyaml-prefix != '' }}
+      - name: Compile with libyaml source
+        run: rake compile -- --with-libyaml-source-dir=yaml-${{ matrix.libyaml }}
+        if: ${{ matrix.libyaml-prefix == '' }}
       - name: Run test
         run: rake
       - name: Install gem
