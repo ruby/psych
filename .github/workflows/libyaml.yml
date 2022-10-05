@@ -37,7 +37,7 @@ jobs:
         run: rake compile -- --with-libyaml-dir=${{ matrix.libyaml-prefix }}
         if: ${{ matrix.libyaml-prefix != '' }}
       - name: Compile with libyaml source
-        run: rake compile -- --with-libyaml-source-dir=yaml-${{ matrix.libyaml }}
+        run: rake compile -- --with-libyaml-source-dir=$(pwd)/yaml-${{ matrix.libyaml }}
         if: ${{ matrix.libyaml-prefix == '' }}
       - name: Run test
         run: rake
