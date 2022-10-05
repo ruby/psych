@@ -24,6 +24,8 @@ jobs:
         run: |
           wget https://pyyaml.org/download/libyaml/yaml-${{ matrix.libyaml }}.tar.gz
           tar xzf yaml-${{ matrix.libyaml }}.tar.gz
+      - name: Compile libyaml ${{ matrix.libyaml }}
+        run: |
           cd yaml-${{ matrix.libyaml }}
           ./configure --prefix=${{ matrix.libyaml-prefix }}
           make
