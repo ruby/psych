@@ -1,6 +1,7 @@
 # Psych
 
 *   https://github.com/ruby/psych
+*   https://docs.ruby-lang.org/en/master/Psych.html
 
 ## Description
 
