@@ -32,6 +32,11 @@ If you want a newer gem release of Psych, you can use rubygems:
 
     gem install psych
 
+
+Psych supported the static build with specific version of libyaml sources. You can build psych with libyaml-0.2.5 like this.
+
+    ```gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
+
 In order to use the gem release in your app, and not the stdlib version,
 you'll need the following:
 
@@ -43,7 +48,6 @@ Or if you use Bundler add this to your `Gemfile`:
     gem 'psych'
 
 JRuby ships with a pure Java implementation of Psych.
-
 
 ## License
 
