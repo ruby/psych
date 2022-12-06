@@ -35,7 +35,7 @@ If you want a newer gem release of Psych, you can use rubygems:
 
 Psych supported the static build with specific version of libyaml sources. You can build psych with libyaml-0.2.5 like this.
 
-    ```gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
+    gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
 
 In order to use the gem release in your app, and not the stdlib version,
 you'll need the following:
