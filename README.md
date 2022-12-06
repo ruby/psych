@@ -44,10 +44,6 @@ Or if you use Bundler add this to your `Gemfile`:
 
 JRuby ships with a pure Java implementation of Psych.
 
-If you're on Rubinius, Psych is available in 1.9 mode, please refer to the
-Language Modes section of the [Rubinius
-README](https://github.com/rubinius/rubinius#readme) for more information on
-building and 1.9 mode.
 
 ## License
 
