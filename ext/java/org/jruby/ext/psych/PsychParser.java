@@ -129,44 +129,29 @@ public class PsychParser extends RubyObject {
     
     private StreamReader readerFor(ThreadContext context, IRubyObject yaml) {
         if (yaml instanceof RubyString) {
-            ByteList byteList = ((RubyString)yaml).getByteList();
-            Encoding enc = byteList.getEncoding();
-
-            // if not unicode, transcode to UTF8
-            if (!(enc instanceof UnicodeEncoding)) {
-                byteList = EncodingUtils.strConvEnc(context, byteList, enc, UTF8Encoding.INSTANCE);
-                enc = UTF8Encoding.INSTANCE;
-            }
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(byteList.getUnsafeBytes(), byteList.getBegin(), byteList.getRealSize());
-
-            Charset charset = enc.getCharset();
-
-            assert charset != null : "charset for encoding " + enc + " should not be null";
-
-            InputStreamReader isr = new InputStreamReader(bais, charset);
-
-            return new StreamReader(isr);
+            return readerForString(context, (RubyString) yaml);
         }
 
         // fall back on IOInputStream, using default charset
-        if (yaml.respondsTo("read")) {
-            Charset charset = null;
-            if (yaml instanceof RubyIO) {
+        return readerForIO(context, yaml);
+    }
+
+    private static StreamReader readerForIO(ThreadContext context, IRubyObject yaml) {
+        boolean isIO = yaml instanceof RubyIO;
+        if (isIO || yaml.respondsTo("read")) {
+            // default to UTF8 unless RubyIO has UTF16 as encoding
+            Charset charset = RubyEncoding.UTF8;
+            
+            if (isIO) {
                 Encoding enc = ((RubyIO) yaml).getReadEncoding();
-                charset = enc.getCharset();
 
                 // libyaml treats non-utf encodings as utf-8 and hopes for the best.
-                if (!(enc instanceof UTF8Encoding)  && !(enc instanceof UTF16LEEncoding) && !(enc instanceof UTF16BEEncoding)) {
-                    charset = UTF8Encoding.INSTANCE.getCharset();
+                if (enc instanceof UTF16LEEncoding || enc instanceof UTF16BEEncoding) {
+                    charset = enc.getCharset();
                 }
             }
-            if (charset == null) {
-                // If we can't get it from the IO or it doesn't have a charset, fall back on UTF-8
-                charset = UTF8Encoding.INSTANCE.getCharset();
-            }
+
             CharsetDecoder decoder = charset.newDecoder();
-            decoder.onMalformedInput(CodingErrorAction.REPORT);
             decoder.onMalformedInput(CodingErrorAction.REPORT);
 
             return new StreamReader(new InputStreamReader(new IOInputStream(yaml), decoder));
@@ -175,6 +160,27 @@ public class PsychParser extends RubyObject {
 
             throw runtime.newTypeError(yaml, runtime.getIO());
         }
+    }
+
+    private static StreamReader readerForString(ThreadContext context, RubyString string) {
+        ByteList byteList = string.getByteList();
+        Encoding enc = byteList.getEncoding();
+
+        // if not unicode, transcode to UTF8
+        if (!(enc instanceof UnicodeEncoding)) {
+            byteList = EncodingUtils.strConvEnc(context, byteList, enc, UTF8Encoding.INSTANCE);
+            enc = UTF8Encoding.INSTANCE;
+        }
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(byteList.getUnsafeBytes(), byteList.getBegin(), byteList.getRealSize());
+
+        Charset charset = enc.getCharset();
+
+        assert charset != null : "charset for encoding " + enc + " should not be null";
+
+        InputStreamReader isr = new InputStreamReader(bais, charset);
+
+        return new StreamReader(isr);
     }
 
     @JRubyMethod(name = "_native_parse")
