@@ -105,7 +105,6 @@ public class PsychLibrary implements Library {
         PsychParser.initPsychParser(runtime, psych);
         PsychEmitter.initPsychEmitter(runtime, psych);
         PsychToRuby.initPsychToRuby(runtime, psych);
-        PsychYamlTree.initPsychYamlTree(runtime, psych);
     }
 
     public enum YAMLEncoding {

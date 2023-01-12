@@ -73,11 +73,7 @@ import static org.jruby.runtime.Visibility.*;
 public class PsychEmitter extends RubyObject {
     public static void initPsychEmitter(Ruby runtime, RubyModule psych) {
         RubyClass psychHandler = runtime.defineClassUnder("Handler", runtime.getObject(), runtime.getObject().getAllocator(), psych);
-        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", psychHandler, new ObjectAllocator() {
-            public IRubyObject allocate(Ruby runtime, RubyClass klazz) {
-                return new PsychEmitter(runtime, klazz);
-            }
-        }, psych);
+        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", psychHandler, PsychEmitter::new, psych);
 
         psychEmitter.defineAnnotatedMethods(PsychEmitter.class);
     }
@@ -135,16 +131,19 @@ public class PsychEmitter extends RubyObject {
 
     @JRubyMethod
     public IRubyObject start_document(ThreadContext context, IRubyObject _version, IRubyObject tags, IRubyObject implicit) {
+        Ruby runtime = context.runtime;
+
         DumperOptions.Version version = null;
         boolean implicitBool = implicit.isTrue();
         Map<String, String> tagsMap = null;
 
-        TypeConverter.checkType(context, _version, context.runtime.getArray());
+        RubyClass arrayClass = runtime.getArray();
+        TypeConverter.checkType(context, _version, arrayClass);
 
         RubyArray versionAry = _version.convertToArray();
         if (versionAry.size() == 2) {
-            int versionInt0 = (int)versionAry.eltInternal(0).convertToInteger().getLongValue();
-            int versionInt1 = (int)versionAry.eltInternal(1).convertToInteger().getLongValue();
+            int versionInt0 = versionAry.eltInternal(0).convertToInteger().getIntValue();
+            int versionInt1 = versionAry.eltInternal(1).convertToInteger().getIntValue();
 
             if (versionInt0 == 1) {
                 if (versionInt1 == 0) {
@@ -154,12 +153,12 @@ public class PsychEmitter extends RubyObject {
                 }
             }
             if (version == null) {
-                throw context.runtime.newArgumentError("invalid YAML version: " + versionAry);
+                throw runtime.newArgumentError("invalid YAML version: " + versionAry);
             }
         }
 
         if (!tags.isNil()) {
-            TypeConverter.checkType(context, tags, context.runtime.getArray());
+            TypeConverter.checkType(context, tags, arrayClass);
 
             RubyArray tagsAry = tags.convertToArray();
             if (tagsAry.size() > 0) {
@@ -167,7 +166,7 @@ public class PsychEmitter extends RubyObject {
                 for (int i = 0; i < tagsAry.size(); i++) {
                     RubyArray tagsTuple = tagsAry.eltInternal(i).convertToArray();
                     if (tagsTuple.size() != 2) {
-                        throw context.runtime.newRuntimeError("tags tuple must be of length 2");
+                        throw runtime.newRuntimeError("tags tuple must be of length 2");
                     }
                     IRubyObject key = tagsTuple.eltInternal(0);
                     IRubyObject value = tagsTuple.eltInternal(1);
