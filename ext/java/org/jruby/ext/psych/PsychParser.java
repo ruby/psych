@@ -229,7 +229,7 @@ public class PsychParser extends RubyObject {
             }
         } catch (ParserException pe) {
             parser = null;
-            raiseParserException(context, yaml, pe, path);
+            raiseParserException(context, pe, path);
 
         } catch (ScannerException se) {
             parser = null;
@@ -237,18 +237,18 @@ public class PsychParser extends RubyObject {
             if (se.getProblemMark() != null) {
                 message.append(se.getProblemMark().toString());
             }
-            raiseParserException(context, yaml, se, path);
+            raiseParserException(context, se, path);
 
         } catch (ReaderException re) {
             parser = null;
-            raiseParserException(context, yaml, re, path);
+            raiseParserException(context, re, path);
 
         } catch (YAMLException ye) {
             Throwable cause = ye.getCause();
 
             if (cause instanceof MalformedInputException) {
                 // failure due to improperly encoded input
-                raiseParserException(context, yaml, (MalformedInputException) cause, path);
+                raiseParserException(context, (MalformedInputException) cause, path);
             }
 
             throw ye;
@@ -317,7 +317,7 @@ public class PsychParser extends RubyObject {
         invoke(context, handler, "start_sequence", anchor, tag, implicit, style);
     }
 
-    private static void raiseParserException(ThreadContext context, IRubyObject yaml, ReaderException re, IRubyObject rbPath) {
+    private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
         Ruby runtime;
         RubyClass se;
         IRubyObject exception;
@@ -339,7 +339,7 @@ public class PsychParser extends RubyObject {
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
-    private static void raiseParserException(ThreadContext context, IRubyObject yaml, MarkedYAMLException mye, IRubyObject rbPath) {
+    private static void raiseParserException(ThreadContext context, MarkedYAMLException mye, IRubyObject rbPath) {
         Ruby runtime;
         Mark mark;
         RubyClass se;
@@ -364,9 +364,8 @@ public class PsychParser extends RubyObject {
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
-    private static void raiseParserException(ThreadContext context, IRubyObject yaml, MalformedInputException mie, IRubyObject rbPath) {
-        Ruby runtime;
-        Mark mark;
+    private static void raiseParserException(ThreadContext context, MalformedInputException mie, IRubyObject rbPath) {
+        Ruby runtime;;
         RubyClass se;
         IRubyObject exception;
 
