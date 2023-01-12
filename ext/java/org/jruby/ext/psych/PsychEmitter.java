@@ -73,11 +73,7 @@ import static org.jruby.runtime.Visibility.*;
 public class PsychEmitter extends RubyObject {
     public static void initPsychEmitter(Ruby runtime, RubyModule psych) {
         RubyClass psychHandler = runtime.defineClassUnder("Handler", runtime.getObject(), runtime.getObject().getAllocator(), psych);
-        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", psychHandler, new ObjectAllocator() {
-            public IRubyObject allocate(Ruby runtime, RubyClass klazz) {
-                return new PsychEmitter(runtime, klazz);
-            }
-        }, psych);
+        RubyClass psychEmitter = runtime.defineClassUnder("Emitter", psychHandler, PsychEmitter::new, psych);
 
         psychEmitter.defineAnnotatedMethods(PsychEmitter.class);
     }

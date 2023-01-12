@@ -87,11 +87,7 @@ import org.jruby.util.ByteList;
 public class PsychParser extends RubyObject {
     
     public static void initPsychParser(Ruby runtime, RubyModule psych) {
-        RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), new ObjectAllocator() {
-            public IRubyObject allocate(Ruby runtime, RubyClass klazz) {
-                return new PsychParser(runtime, klazz);
-            }
-        }, psych);
+        RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), PsychParser::new, psych);
 
         runtime.getLoadService().require("psych/syntax_error");
         psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
