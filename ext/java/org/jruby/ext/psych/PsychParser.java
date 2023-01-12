@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.MalformedInputException;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.jcodings.Encoding;
@@ -57,6 +58,8 @@ import org.jruby.runtime.Helpers;
 import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.runtime.callsite.CachingCallSite;
+import org.jruby.runtime.callsite.FunctionalCachingCallSite;
 import org.jruby.util.IOInputStream;
 import org.jruby.util.io.EncodingUtils;
 import org.jruby.util.log.Logger;
@@ -85,9 +88,23 @@ import static org.jruby.runtime.Helpers.invoke;
 import org.jruby.util.ByteList;
 
 public class PsychParser extends RubyObject {
-    
+
+    public static final String JRUBY_CALL_SITES = "_jruby_call_sites";
+
+    private enum Call {
+        path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream
+    }
+
+    final CachingCallSite[] sites;
+
     public static void initPsychParser(Ruby runtime, RubyModule psych) {
         RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), PsychParser::new, psych);
+
+        CachingCallSite[] sites =
+                Arrays.stream(Call.values())
+                .map((call) -> new FunctionalCachingCallSite(call.name()))
+                .toArray(CachingCallSite[]::new);
+        psychParser.setInternalVariable(JRUBY_CALL_SITES, sites);
 
         runtime.getLoadService().require("psych/syntax_error");
         psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
@@ -100,6 +117,8 @@ public class PsychParser extends RubyObject {
 
     public PsychParser(Ruby runtime, RubyClass klass) {
         super(runtime, klass);
+
+        this.sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
     }
 
     private IRubyObject stringOrNilFor(ThreadContext context, String value) {
@@ -141,7 +160,7 @@ public class PsychParser extends RubyObject {
         if (isIO || yaml.respondsTo("read")) {
             // default to UTF8 unless RubyIO has UTF16 as encoding
             Charset charset = RubyEncoding.UTF8;
-            
+
             if (isIO) {
                 Encoding enc = ((RubyIO) yaml).getReadEncoding();
 
@@ -186,49 +205,52 @@ public class PsychParser extends RubyObject {
     @JRubyMethod(name = "_native_parse")
     public IRubyObject parse(ThreadContext context, IRubyObject handler, IRubyObject yaml, IRubyObject path) {
         Ruby runtime = context.runtime;
-        boolean tainted = yaml.isTaint() || yaml instanceof RubyIO;
 
         try {
             parser = new ParserImpl(readerFor(context, yaml));
 
             if (path.isNil() && yaml.respondsTo("path")) {
-                path = yaml.callMethod(context, "path");
+                path = sites[Call.path.ordinal()].call(context, this, yaml);
             }
 
             while (true) {
                 event = parser.getEvent();
 
-                IRubyObject start_line = runtime.newFixnum(event.getStartMark().getLine());
-                IRubyObject start_column = runtime.newFixnum(event.getStartMark().getColumn());
-                IRubyObject end_line = runtime.newFixnum(event.getEndMark().getLine());
-                IRubyObject end_column = runtime.newFixnum(event.getEndMark().getColumn());
-                invoke(context, handler, "event_location", start_line, start_column, end_line, end_column);
+                Mark start = event.getStartMark();
+                IRubyObject start_line = runtime.newFixnum(start.getLine());
+                IRubyObject start_column = runtime.newFixnum(start.getColumn());
+
+                Mark end = event.getEndMark();
+                IRubyObject end_line = runtime.newFixnum(end.getLine());
+                IRubyObject end_column = runtime.newFixnum(end.getColumn());
+
+                sites[Call.event_location.ordinal()].call(context, this, handler, start_line, start_column, end_line, end_column);
 
                 // FIXME: Event should expose a getID, so it can be switched
                 if (event.is(ID.StreamStart)) {
-                    invoke(context, handler, "start_stream", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+                    sites[Call.start_stream.ordinal()].call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
                 } else if (event.is(ID.DocumentStart)) {
                     handleDocumentStart(context, (DocumentStartEvent) event, handler);
                 } else if (event.is(ID.DocumentEnd)) {
                     IRubyObject notExplicit = runtime.newBoolean(!((DocumentEndEvent) event).getExplicit());
-                    
-                    invoke(context, handler, "end_document", notExplicit);
+
+                    sites[Call.end_document.ordinal()].call(context, this, handler, notExplicit);
                 } else if (event.is(ID.Alias)) {
                     IRubyObject alias = stringOrNilFor(context, ((AliasEvent)event).getAnchor());
 
-                    invoke(context, handler, "alias", alias);
+                    sites[Call.alias.ordinal()].call(context, this, handler, alias);
                 } else if (event.is(ID.Scalar)) {
                     handleScalar(context, (ScalarEvent) event, handler);
                 } else if (event.is(ID.SequenceStart)) {
-                    handleSequenceStart(context,(SequenceStartEvent) event, handler);
+                    handleSequenceStart(context, (SequenceStartEvent) event, handler);
                 } else if (event.is(ID.SequenceEnd)) {
-                    invoke(context, handler, "end_sequence");
+                    sites[Call.end_sequence.ordinal()].call(context, this, handler);
                 } else if (event.is(ID.MappingStart)) {
                     handleMappingStart(context, (MappingStartEvent) event, handler);
                 } else if (event.is(ID.MappingEnd)) {
-                    invoke(context, handler, "end_mapping");
+                    sites[Call.end_mapping.ordinal()].call(context, this, handler);
                 } else if (event.is(ID.StreamEnd)) {
-                    invoke(context, handler, "end_stream");
+                    sites[Call.end_stream.ordinal()].call(context, this, handler);
                     
                     break;
                 }
@@ -296,7 +318,7 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(mse.getImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(mse.getFlowStyle()));
 
-        invoke(context, handler, "start_mapping", anchor, tag, implicit, style);
+        sites[Call.start_mapping.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
     }
         
     private void handleScalar(ThreadContext context, ScalarEvent se, IRubyObject handler) {
@@ -309,7 +331,7 @@ public class PsychParser extends RubyObject {
         IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
         IRubyObject val = stringFor(context, se.getValue());
 
-        invoke(context, handler, "scalar", val, anchor, tag, plain_implicit,
+        sites[Call.scalar.ordinal()].call(context, this, handler, val, anchor, tag, plain_implicit,
                 quoted_implicit, style);
     }
     
@@ -320,7 +342,7 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(sse.getImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
-        invoke(context, handler, "start_sequence", anchor, tag, implicit, style);
+        sites[Call.start_sequence.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
     }
 
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
