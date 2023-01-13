@@ -149,7 +149,6 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        SpecVersion version = new SpecVersion(1, 2);
         Map<String, String> tagsMap = new HashMap<>();
 
         if (!tags.isNil()) {
@@ -172,7 +171,7 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        DocumentStartEvent event = new DocumentStartEvent(!implicitBool, Optional.ofNullable(version), tagsMap, NULL_MARK, NULL_MARK);
+        DocumentStartEvent event = new DocumentStartEvent(!implicitBool, Optional.empty(), tagsMap, NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
