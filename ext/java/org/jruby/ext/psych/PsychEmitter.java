@@ -140,13 +140,18 @@ public class PsychEmitter extends RubyObject {
         TypeConverter.checkType(context, _version, arrayClass);
 
         RubyArray versionAry = _version.convertToArray();
+        Optional<SpecVersion> specVersion;
         if (versionAry.size() == 2) {
             int versionInt0 = versionAry.eltInternal(0).convertToInteger().getIntValue();
             int versionInt1 = versionAry.eltInternal(1).convertToInteger().getIntValue();
 
-            if (versionInt0 != 1 || versionInt1 != 2) {
-//                throw runtime.newArgumentError("invalid YAML version: " + versionAry);
+            if (versionInt0 != 1) {
+                throw runtime.newArgumentError("invalid YAML version: " + versionAry);
             }
+
+            specVersion = Optional.of(new SpecVersion(versionInt0, versionInt1));
+        } else {
+            specVersion = Optional.empty();
         }
 
         Map<String, String> tagsMap = new HashMap<>();
@@ -171,7 +176,7 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        DocumentStartEvent event = new DocumentStartEvent(!implicitBool, Optional.empty(), tagsMap, NULL_MARK, NULL_MARK);
+        DocumentStartEvent event = new DocumentStartEvent(!implicitBool, specVersion, tagsMap, NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
