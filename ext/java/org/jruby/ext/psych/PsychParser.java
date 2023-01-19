@@ -116,7 +116,19 @@ public class PsychParser extends RubyObject {
     public PsychParser(Ruby runtime, RubyClass klass) {
         super(runtime, klass);
 
-        this.sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
+        CachingCallSite[] sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
+        this.path = sites[Call.path.ordinal()];
+        this.event_location = sites[Call.event_location.ordinal()];
+        this.start_stream = sites[Call.start_stream.ordinal()];
+        this.start_document = sites[Call.start_document.ordinal()];
+        this.end_document = sites[Call.end_document.ordinal()];
+        this.alias = sites[Call.alias.ordinal()];
+        this.scalar = sites[Call.scalar.ordinal()];
+        this.start_sequence = sites[Call.start_sequence.ordinal()];
+        this.end_sequence = sites[Call.end_sequence.ordinal()];
+        this.start_mapping = sites[Call.start_mapping.ordinal()];
+        this.end_mapping = sites[Call.end_mapping.ordinal()];
+        this.end_stream = sites[Call.end_stream.ordinal()];
         this.loadSettingsBuilder = LoadSettings.builder().setSchema(new CoreSchema());
     }
 
@@ -216,7 +228,7 @@ public class PsychParser extends RubyObject {
             parser = new ParserImpl(loadSettings, new ScannerImpl(loadSettings, readerFor(context, yaml, loadSettings)));
 
             if (path.isNil() && yaml.respondsTo("path")) {
-                path = sites[Call.path.ordinal()].call(context, this, yaml);
+                path = this.path.call(context, this, yaml);
             }
 
             while (parser.hasNext()) {
@@ -230,11 +242,11 @@ public class PsychParser extends RubyObject {
                 IRubyObject end_line = runtime.newFixnum(end.getLine());
                 IRubyObject end_column = runtime.newFixnum(end.getColumn());
 
-                sites[Call.event_location.ordinal()].call(context, this, handler, start_line, start_column, end_line, end_column);
+                event_location.call(context, this, handler, start_line, start_column, end_line, end_column);
 
                 switch (event.getEventId()) {
                     case StreamStart:
-                        sites[Call.start_stream.ordinal()].call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+                        start_stream.call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
                         break;
                     case DocumentStart:
                         handleDocumentStart(context, (DocumentStartEvent) event, handler);
@@ -242,12 +254,12 @@ public class PsychParser extends RubyObject {
                     case DocumentEnd:
                         IRubyObject notExplicit = runtime.newBoolean(!((DocumentEndEvent) event).isExplicit());
 
-                        sites[Call.end_document.ordinal()].call(context, this, handler, notExplicit);
+                        end_document.call(context, this, handler, notExplicit);
                         break;
                     case Alias:
                         IRubyObject alias = stringOrNilForAnchor(context, ((AliasEvent) event).getAnchor());
 
-                        sites[Call.alias.ordinal()].call(context, this, handler, alias);
+                        this.alias.call(context, this, handler, alias);
                         break;
                     case Scalar:
                         handleScalar(context, (ScalarEvent) event, handler);
@@ -256,16 +268,16 @@ public class PsychParser extends RubyObject {
                         handleSequenceStart(context, (SequenceStartEvent) event, handler);
                         break;
                     case SequenceEnd:
-                        sites[Call.end_sequence.ordinal()].call(context, this, handler);
+                        end_sequence.call(context, this, handler);
                         break;
                     case MappingStart:
                         handleMappingStart(context, (MappingStartEvent) event, handler);
                         break;
                     case MappingEnd:
-                        sites[Call.end_mapping.ordinal()].call(context, this, handler);
+                        end_mapping.call(context, this, handler);
                         break;
                     case StreamEnd:
-                        sites[Call.end_stream.ordinal()].call(context, this, handler);
+                        end_stream.call(context, this, handler);
                         break;
                 }
             }
@@ -333,7 +345,7 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(mse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(mse.getFlowStyle()));
 
-        sites[Call.start_mapping.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
+        start_mapping.call(context, this, handler, anchor, tag, implicit, style);
     }
         
     private void handleScalar(ThreadContext context, ScalarEvent se, IRubyObject handler) {
@@ -346,7 +358,7 @@ public class PsychParser extends RubyObject {
         IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
         IRubyObject val = stringFor(context, se.getValue());
 
-        sites[Call.scalar.ordinal()].call(context, this, handler, val, anchor, tag, plain_implicit,
+        scalar.call(context, this, handler, val, anchor, tag, plain_implicit,
                 quoted_implicit, style);
     }
     
@@ -357,7 +369,7 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(sse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
-        sites[Call.start_sequence.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
+        start_sequence.call(context, this, handler, anchor, tag, implicit, style);
     }
 
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
@@ -500,5 +512,5 @@ public class PsychParser extends RubyObject {
         path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream
     }
 
-    final CachingCallSite[] sites;
+    private final CachingCallSite path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream;
 }
