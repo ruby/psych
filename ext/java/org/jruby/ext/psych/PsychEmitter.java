@@ -33,12 +33,14 @@ import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
+import org.jruby.RubyEncoding;
 import org.jruby.RubyModule;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.ByteList;
 import org.jruby.util.IOOutputStream;
 import org.jruby.util.TypeConverter;
 import org.jruby.util.io.EncodingUtils;
@@ -375,8 +377,9 @@ public class PsychEmitter extends RubyObject {
 
         TypeConverter.checkType(context, tag, stringClass);
         tagStr = (RubyString) tag;
+        ByteList bytes = tagStr.getByteList();
 
-        return EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), UTF8Encoding.INSTANCE).asJavaString();
+        return RubyEncoding.decodeUTF8(bytes.unsafeBytes(), bytes.begin(), bytes.realSize());
     }
 
     Emitter emitter;
