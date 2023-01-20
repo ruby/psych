@@ -27,10 +27,6 @@
  ***** END LICENSE BLOCK *****/
 package org.jruby.ext.psych;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF16BEEncoding;
 import org.jcodings.specific.UTF16LEEncoding;
@@ -44,7 +40,10 @@ import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
-import org.yaml.snakeyaml.error.Mark;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class PsychLibrary implements Library {
     private static final String DUMMY_VERSION = "0.0";
@@ -54,7 +53,7 @@ public class PsychLibrary implements Library {
 
         // load version from properties packed with the jar
         Properties props = new Properties();
-        try( InputStream is = runtime.getJRubyClassLoader().getResourceAsStream("META-INF/maven/org.yaml/snakeyaml/pom.properties") ) {
+        try( InputStream is = runtime.getJRubyClassLoader().getResourceAsStream("META-INF/maven/org.snakeyaml/snakeyaml-engine/pom.properties") ) {
             props.load(is);
         }
         catch( IOException e ) {
@@ -64,27 +63,6 @@ public class PsychLibrary implements Library {
 
         if (snakeyamlVersion.endsWith("-SNAPSHOT")) {
             snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
-        }
-
-        // Try to determine if we have a new enough SnakeYAML.
-        // Versions before 1.21 removed a Mark constructor that JRuby uses.
-        // See https://github.com/bundler/bundler/issues/6878
-        if (snakeyamlVersion.equals(DUMMY_VERSION)) {
-            try {
-                // Use reflection to try to confirm we have a new enough version
-                Mark.class.getConstructor(String.class, int.class, int.class, int.class, int[].class, int.class);
-            } catch (NoSuchMethodException nsme) {
-                throw runtime.newLoadError("bad SnakeYAML version, required 1.21 or higher; check your CLASSPATH for a conflicting jar");
-            }
-        } else {
-            // Parse version string to check for 1.21+
-            String[] majorMinor = snakeyamlVersion.split("\\.");
-
-            if (majorMinor.length < 2 || Integer.parseInt(majorMinor[0]) < 1 || Integer.parseInt(majorMinor[1]) < 21) {
-                throw runtime.newLoadError(
-                        "bad SnakeYAML version " + snakeyamlVersion +
-                                ", required 1.21 or higher; check your CLASSPATH for a conflicting jar");
-            }
         }
 
         RubyString version = runtime.newString(snakeyamlVersion + ".0");

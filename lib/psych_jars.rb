@@ -2,4 +2,4 @@
 require 'psych.jar'
 
 require 'jar-dependencies'
-require_jar('org.yaml', 'snakeyaml', Psych::DEFAULT_SNAKEYAML_VERSION)
+require_jar('org.snakeyaml', 'snakeyaml-engine', Psych::DEFAULT_SNAKEYAML_VERSION)

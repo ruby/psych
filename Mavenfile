@@ -1,6 +1,6 @@
 #-*- mode: ruby -*-
 
-jar 'org.yaml:snakeyaml:${snakeyaml.version}'
+jar 'org.snakeyaml:snakeyaml-engine:${snakeyaml.version}'
 
 plugin :dependency, '2.8', :outputFile => 'pkg/classpath'
 

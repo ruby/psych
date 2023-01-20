@@ -27,48 +27,54 @@
  ***** END LICENSE BLOCK *****/
 package org.jruby.ext.psych;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
-import org.jruby.RubyFixnum;
+import org.jruby.RubyEncoding;
 import org.jruby.RubyModule;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
-import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.ByteList;
 import org.jruby.util.IOOutputStream;
 import org.jruby.util.TypeConverter;
 import org.jruby.util.io.EncodingUtils;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.emitter.Emitter;
-import org.yaml.snakeyaml.emitter.EmitterException;
-import org.yaml.snakeyaml.error.Mark;
-import org.yaml.snakeyaml.events.AliasEvent;
-import org.yaml.snakeyaml.events.DocumentEndEvent;
-import org.yaml.snakeyaml.events.DocumentStartEvent;
-import org.yaml.snakeyaml.events.Event;
-import org.yaml.snakeyaml.events.ImplicitTuple;
-import org.yaml.snakeyaml.events.MappingEndEvent;
-import org.yaml.snakeyaml.events.MappingStartEvent;
-import org.yaml.snakeyaml.events.ScalarEvent;
-import org.yaml.snakeyaml.events.SequenceEndEvent;
-import org.yaml.snakeyaml.events.SequenceStartEvent;
-import org.yaml.snakeyaml.events.StreamEndEvent;
-import org.yaml.snakeyaml.events.StreamStartEvent;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
+import org.snakeyaml.engine.v2.api.StreamDataWriter;
+import org.snakeyaml.engine.v2.api.YamlOutputStreamWriter;
+import org.snakeyaml.engine.v2.common.Anchor;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.common.SpecVersion;
+import org.snakeyaml.engine.v2.emitter.Emitter;
+import org.snakeyaml.engine.v2.events.AliasEvent;
+import org.snakeyaml.engine.v2.events.DocumentEndEvent;
+import org.snakeyaml.engine.v2.events.DocumentStartEvent;
+import org.snakeyaml.engine.v2.events.Event;
+import org.snakeyaml.engine.v2.events.ImplicitTuple;
+import org.snakeyaml.engine.v2.events.MappingEndEvent;
+import org.snakeyaml.engine.v2.events.MappingStartEvent;
+import org.snakeyaml.engine.v2.events.ScalarEvent;
+import org.snakeyaml.engine.v2.events.SequenceEndEvent;
+import org.snakeyaml.engine.v2.events.SequenceStartEvent;
+import org.snakeyaml.engine.v2.events.StreamEndEvent;
+import org.snakeyaml.engine.v2.events.StreamStartEvent;
+import org.snakeyaml.engine.v2.exceptions.EmitterException;
+import org.snakeyaml.engine.v2.exceptions.Mark;
 
-import static org.jruby.runtime.Visibility.*;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.jruby.runtime.Visibility.PRIVATE;
 
 public class PsychEmitter extends RubyObject {
     public static void initPsychEmitter(Ruby runtime, RubyModule psych) {
@@ -84,8 +90,7 @@ public class PsychEmitter extends RubyObject {
 
     @JRubyMethod(visibility = PRIVATE)
     public IRubyObject initialize(ThreadContext context, IRubyObject io) {
-        options = new DumperOptions();
-        options.setIndent(2);
+        dumpSettingsBuilder.setIndent(2);
 
         this.io = io;
 
@@ -98,10 +103,8 @@ public class PsychEmitter extends RubyObject {
         IRubyObject canonical = rbOptions.callMethod(context, "canonical");
         IRubyObject level     = rbOptions.callMethod(context, "indentation");
 
-        options = new DumperOptions();
-
-        options.setCanonical(canonical.isTrue());
-        options.setIndent((int)level.convertToInteger().getLongValue());
+        dumpSettingsBuilder.setCanonical(canonical.isTrue());
+        dumpSettingsBuilder.setIndent((int)level.convertToInteger().getLongValue());
         line_width_set(context, width);
 
         this.io = io;
@@ -115,17 +118,14 @@ public class PsychEmitter extends RubyObject {
 
         initEmitter(context, encoding);
 
-        StreamStartEvent event = new StreamStartEvent(NULL_MARK, NULL_MARK);
-
-        emit(context, event);
+        emit(context, NULL_STREAM_START_EVENT);
 
         return this;
     }
 
     @JRubyMethod
     public IRubyObject end_stream(ThreadContext context) {
-        StreamEndEvent event = new StreamEndEvent(NULL_MARK, NULL_MARK);
-        emit(context, event);
+        emit(context, NULL_STREAM_START_EVENT);
         return this;
     }
 
@@ -133,29 +133,27 @@ public class PsychEmitter extends RubyObject {
     public IRubyObject start_document(ThreadContext context, IRubyObject _version, IRubyObject tags, IRubyObject implicit) {
         Ruby runtime = context.runtime;
 
-        DumperOptions.Version version = null;
         boolean implicitBool = implicit.isTrue();
-        Map<String, String> tagsMap = null;
 
         RubyClass arrayClass = runtime.getArray();
         TypeConverter.checkType(context, _version, arrayClass);
 
         RubyArray versionAry = _version.convertToArray();
+        Optional<SpecVersion> specVersion;
         if (versionAry.size() == 2) {
             int versionInt0 = versionAry.eltInternal(0).convertToInteger().getIntValue();
             int versionInt1 = versionAry.eltInternal(1).convertToInteger().getIntValue();
 
-            if (versionInt0 == 1) {
-                if (versionInt1 == 0) {
-                    version = DumperOptions.Version.V1_0;
-                } else if (versionInt1 == 1) {
-                    version = DumperOptions.Version.V1_1;
-                }
-            }
-            if (version == null) {
+            if (versionInt0 != 1) {
                 throw runtime.newArgumentError("invalid YAML version: " + versionAry);
             }
+
+            specVersion = Optional.of(new SpecVersion(versionInt0, versionInt1));
+        } else {
+            specVersion = Optional.empty();
         }
+
+        Map<String, String> tagsMap = new HashMap<>();
 
         if (!tags.isNil()) {
             TypeConverter.checkType(context, tags, arrayClass);
@@ -177,14 +175,14 @@ public class PsychEmitter extends RubyObject {
             }
         }
 
-        DocumentStartEvent event = new DocumentStartEvent(NULL_MARK, NULL_MARK, !implicitBool, version, tagsMap);
+        DocumentStartEvent event = new DocumentStartEvent(!implicitBool, specVersion, tagsMap, NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
 
     @JRubyMethod
     public IRubyObject end_document(ThreadContext context, IRubyObject implicit) {
-        DocumentEndEvent event = new DocumentEndEvent(NULL_MARK, NULL_MARK, !implicit.isTrue());
+        DocumentEndEvent event = new DocumentEndEvent(!implicit.isTrue(), NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
@@ -206,17 +204,17 @@ public class PsychEmitter extends RubyObject {
 
         valueStr = EncodingUtils.strConvEnc(context, valueStr, valueStr.getEncoding(), UTF8Encoding.INSTANCE);
 
-        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
-        RubyString tagStr = exportToUTF8(context, tag, stringClass);
+        String anchorStr = exportToUTF8(context, anchor, stringClass);
+        String tagStr = exportToUTF8(context, tag, stringClass);
 
         ScalarEvent event = new ScalarEvent(
-                anchorStr == null ? null : anchorStr.asJavaString(),
-                tagStr == null ? null : tagStr.asJavaString(),
+                Optional.ofNullable(anchorStr == null ? null : new Anchor(anchorStr)),
+                Optional.ofNullable(tagStr),
                 new ImplicitTuple(plain.isTrue(), quoted.isTrue()),
                 valueStr.asJavaString(),
+                SCALAR_STYLES[style.convertToInteger().getIntValue()],
                 NULL_MARK,
-                NULL_MARK,
-                SCALAR_STYLES[style.convertToInteger().getIntValue()]);
+                NULL_MARK);
 
         emit(context, event);
 
@@ -232,16 +230,16 @@ public class PsychEmitter extends RubyObject {
 
         RubyClass stringClass = context.runtime.getString();
 
-        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
-        RubyString tagStr = exportToUTF8(context, tag, stringClass);
+        String anchorStr = exportToUTF8(context, anchor, stringClass);
+        String tagStr = exportToUTF8(context, tag, stringClass);
 
         SequenceStartEvent event = new SequenceStartEvent(
-                anchorStr == null ? null : anchorStr.asJavaString(),
-                tagStr == null ? null : tagStr.asJavaString(),
+                Optional.ofNullable(anchorStr == null ? null : new Anchor(anchorStr)),
+                Optional.ofNullable(tagStr),
                 implicit.isTrue(),
+                FLOW_STYLES[style.convertToInteger().getIntValue()],
                 NULL_MARK,
-                NULL_MARK,
-                FLOW_STYLES[style.convertToInteger().getIntValue()]);
+                NULL_MARK);
         emit(context, event);
         return this;
     }
@@ -262,16 +260,16 @@ public class PsychEmitter extends RubyObject {
 
         RubyClass stringClass = context.runtime.getString();
 
-        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
-        RubyString tagStr = exportToUTF8(context, tag, stringClass);
+        String anchorStr = exportToUTF8(context, anchor, stringClass);
+        String tagStr = exportToUTF8(context, tag, stringClass);
 
         MappingStartEvent event = new MappingStartEvent(
-                anchorStr == null ? null : anchorStr.asJavaString(),
-                tagStr == null ? null : tagStr.asJavaString(),
+                Optional.ofNullable(anchorStr == null ? null : new Anchor(anchorStr)),
+                Optional.ofNullable(tagStr),
                 implicit.isTrue(),
+                FLOW_STYLES[style.convertToInteger().getIntValue()],
                 NULL_MARK,
-                NULL_MARK,
-                FLOW_STYLES[style.convertToInteger().getIntValue()]);
+                NULL_MARK);
 
         emit(context, event);
 
@@ -289,9 +287,9 @@ public class PsychEmitter extends RubyObject {
     public IRubyObject alias(ThreadContext context, IRubyObject anchor) {
         RubyClass stringClass = context.runtime.getString();
 
-        RubyString anchorStr = exportToUTF8(context, anchor, stringClass);
+        String anchorStr = exportToUTF8(context, anchor, stringClass);
 
-        AliasEvent event = new AliasEvent(anchorStr.asJavaString(), NULL_MARK, NULL_MARK);
+        AliasEvent event = new AliasEvent(Optional.of(new Anchor(anchorStr)), NULL_MARK, NULL_MARK);
         emit(context, event);
         return this;
     }
@@ -299,40 +297,40 @@ public class PsychEmitter extends RubyObject {
     @JRubyMethod(name = "canonical=")
     public IRubyObject canonical_set(ThreadContext context, IRubyObject canonical) {
         // TODO: unclear if this affects a running emitter
-        options.setCanonical(canonical.isTrue());
+        dumpSettingsBuilder.setCanonical(canonical.isTrue());
         return canonical;
     }
 
     @JRubyMethod
     public IRubyObject canonical(ThreadContext context) {
         // TODO: unclear if this affects a running emitter
-        return RubyBoolean.newBoolean(context, options.isCanonical());
+        return RubyBoolean.newBoolean(context, buildDumpSettings().isCanonical());
     }
 
     @JRubyMethod(name = "indentation=")
     public IRubyObject indentation_set(ThreadContext context, IRubyObject level) {
         // TODO: unclear if this affects a running emitter
-        options.setIndent((int)level.convertToInteger().getLongValue());
+        dumpSettingsBuilder.setIndent(level.convertToInteger().getIntValue());
         return level;
     }
 
     @JRubyMethod
     public IRubyObject indentation(ThreadContext context) {
         // TODO: unclear if this affects a running emitter
-        return context.runtime.newFixnum(options.getIndent());
+        return context.runtime.newFixnum(buildDumpSettings().getIndent());
     }
 
     @JRubyMethod(name = "line_width=")
     public IRubyObject line_width_set(ThreadContext context, IRubyObject width) {
-        int newWidth = (int)width.convertToInteger().getLongValue();
+        int newWidth = width.convertToInteger().getIntValue();
         if (newWidth <= 0) newWidth = Integer.MAX_VALUE;
-        options.setWidth(newWidth);
+        dumpSettingsBuilder.setWidth(newWidth);
         return width;
     }
 
     @JRubyMethod
     public IRubyObject line_width(ThreadContext context) {
-        return context.runtime.newFixnum(options.getWidth());
+        return context.runtime.newFixnum(buildDumpSettings().getWidth());
     }
 
     private void emit(ThreadContext context, Event event) {
@@ -343,8 +341,6 @@ public class PsychEmitter extends RubyObject {
 
             // flush writer after each emit
             writer.flush();
-        } catch (IOException ioe) {
-            throw context.runtime.newIOErrorFromException(ioe);
         } catch (EmitterException ee) {
             throw context.runtime.newRuntimeError(ee.toString());
         }
@@ -356,41 +352,55 @@ public class PsychEmitter extends RubyObject {
         Encoding encoding = PsychLibrary.YAMLEncoding.values()[(int)_encoding.convertToInteger().getLongValue()].encoding;
         Charset charset = context.runtime.getEncodingService().charsetForEncoding(encoding);
 
-        writer = new OutputStreamWriter(new IOOutputStream(io, encoding), charset);
-        emitter = new Emitter(writer, options);
+        writer = new YamlOutputStreamWriter(new IOOutputStream(io, encoding), charset) {
+            @Override
+            public void processIOException(IOException ioe) {
+                throw context.runtime.newIOErrorFromException(ioe);
+            }
+        };
+        emitter = new Emitter(buildDumpSettings(), writer);
     }
 
-    private RubyString exportToUTF8(ThreadContext context, IRubyObject tag, RubyClass stringClass) {
-        RubyString tagStr = null;
-        if (!tag.isNil()) {
-            TypeConverter.checkType(context, tag, stringClass);
-            tagStr = (RubyString) tag;
-            tagStr = EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), UTF8Encoding.INSTANCE);
+    private DumpSettings buildDumpSettings() {
+        return dumpSettingsBuilder.build();
+    }
+
+    private String exportToUTF8(ThreadContext context, IRubyObject maybeString, RubyClass stringClass) {
+        if (maybeString.isNil()) {
+            return null;
         }
-        return tagStr;
+
+        RubyString string;
+
+        TypeConverter.checkType(context, maybeString, stringClass);
+        string = (RubyString) maybeString;
+        ByteList bytes = string.getByteList();
+
+        return RubyEncoding.decodeUTF8(bytes.unsafeBytes(), bytes.begin(), bytes.realSize());
     }
 
     Emitter emitter;
-    Writer writer;
-    DumperOptions options = new DumperOptions();
+    StreamDataWriter writer;
+    final DumpSettingsBuilder dumpSettingsBuilder = DumpSettings.builder();
     IRubyObject io;
 
-    private static final Mark NULL_MARK = new Mark("", 0, 0, 0, new int[0], 0);
+    private static final Optional<Mark> NULL_MARK = Optional.empty();
+    private static final StreamStartEvent NULL_STREAM_START_EVENT = new StreamStartEvent(NULL_MARK, NULL_MARK);
 
     // Map style constants from Psych values (ANY = 0 ... FOLDED = 5)
     // to SnakeYaml values; see psych/nodes/scalar.rb.
-    private static final DumperOptions.ScalarStyle[] SCALAR_STYLES = {
-            DumperOptions.ScalarStyle.PLAIN, // ANY
-            DumperOptions.ScalarStyle.PLAIN,
-            DumperOptions.ScalarStyle.SINGLE_QUOTED,
-            DumperOptions.ScalarStyle.DOUBLE_QUOTED,
-            DumperOptions.ScalarStyle.LITERAL,
-            DumperOptions.ScalarStyle.FOLDED
+    private static final ScalarStyle[] SCALAR_STYLES = {
+            ScalarStyle.PLAIN, // ANY
+            ScalarStyle.PLAIN,
+            ScalarStyle.SINGLE_QUOTED,
+            ScalarStyle.DOUBLE_QUOTED,
+            ScalarStyle.LITERAL,
+            ScalarStyle.FOLDED
     };
 
-    private static final DumperOptions.FlowStyle[] FLOW_STYLES = {
-            DumperOptions.FlowStyle.AUTO,
-            DumperOptions.FlowStyle.BLOCK,
-            DumperOptions.FlowStyle.FLOW
+    private static final FlowStyle[] FLOW_STYLES = {
+            FlowStyle.AUTO,
+            FlowStyle.BLOCK,
+            FlowStyle.FLOW
     };
 }

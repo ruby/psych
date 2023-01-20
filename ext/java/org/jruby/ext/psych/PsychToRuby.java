@@ -29,14 +29,15 @@ package org.jruby.ext.psych;
 
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
+import org.jruby.RubyException;
 import org.jruby.RubyModule;
 import org.jruby.RubyObject;
-import org.jruby.RubyException;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.exceptions.RaiseException;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
-import static org.jruby.runtime.Visibility.*;
+
+import static org.jruby.runtime.Visibility.PRIVATE;
 
 public class PsychToRuby {
     public static void initPsychToRuby(Ruby runtime, RubyModule psych) {
