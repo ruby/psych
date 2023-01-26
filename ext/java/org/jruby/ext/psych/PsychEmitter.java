@@ -33,12 +33,14 @@ import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
+import org.jruby.RubyEncoding;
 import org.jruby.RubyModule;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.ByteList;
 import org.jruby.util.IOOutputStream;
 import org.jruby.util.TypeConverter;
 import org.jruby.util.io.EncodingUtils;
@@ -116,17 +118,14 @@ public class PsychEmitter extends RubyObject {
 
         initEmitter(context, encoding);
 
-        StreamStartEvent event = new StreamStartEvent(NULL_MARK, NULL_MARK);
-
-        emit(context, event);
+        emit(context, NULL_STREAM_START_EVENT);
 
         return this;
     }
 
     @JRubyMethod
     public IRubyObject end_stream(ThreadContext context) {
-        StreamEndEvent event = new StreamEndEvent(NULL_MARK, NULL_MARK);
-        emit(context, event);
+        emit(context, NULL_STREAM_START_EVENT);
         return this;
     }
 
@@ -366,17 +365,18 @@ public class PsychEmitter extends RubyObject {
         return dumpSettingsBuilder.build();
     }
 
-    private String exportToUTF8(ThreadContext context, IRubyObject tag, RubyClass stringClass) {
-        if (tag.isNil()) {
+    private String exportToUTF8(ThreadContext context, IRubyObject maybeString, RubyClass stringClass) {
+        if (maybeString.isNil()) {
             return null;
         }
 
-        RubyString tagStr;
+        RubyString string;
 
-        TypeConverter.checkType(context, tag, stringClass);
-        tagStr = (RubyString) tag;
+        TypeConverter.checkType(context, maybeString, stringClass);
+        string = (RubyString) maybeString;
+        ByteList bytes = string.getByteList();
 
-        return EncodingUtils.strConvEnc(context, tagStr, tagStr.getEncoding(), UTF8Encoding.INSTANCE).asJavaString();
+        return RubyEncoding.decodeUTF8(bytes.unsafeBytes(), bytes.begin(), bytes.realSize());
     }
 
     Emitter emitter;
@@ -385,6 +385,7 @@ public class PsychEmitter extends RubyObject {
     IRubyObject io;
 
     private static final Optional<Mark> NULL_MARK = Optional.empty();
+    private static final StreamStartEvent NULL_STREAM_START_EVENT = new StreamStartEvent(NULL_MARK, NULL_MARK);
 
     // Map style constants from Psych values (ANY = 0 ... FOLDED = 5)
     // to SnakeYaml values; see psych/nodes/scalar.rb.

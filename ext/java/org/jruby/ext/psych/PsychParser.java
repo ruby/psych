@@ -63,6 +63,7 @@ import org.snakeyaml.engine.v2.events.AliasEvent;
 import org.snakeyaml.engine.v2.events.DocumentEndEvent;
 import org.snakeyaml.engine.v2.events.DocumentStartEvent;
 import org.snakeyaml.engine.v2.events.Event;
+import org.snakeyaml.engine.v2.events.ImplicitTuple;
 import org.snakeyaml.engine.v2.events.MappingStartEvent;
 import org.snakeyaml.engine.v2.events.ScalarEvent;
 import org.snakeyaml.engine.v2.events.SequenceStartEvent;
@@ -117,7 +118,19 @@ public class PsychParser extends RubyObject {
     public PsychParser(Ruby runtime, RubyClass klass) {
         super(runtime, klass);
 
-        this.sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
+        CachingCallSite[] sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
+        this.path = sites[Call.path.ordinal()];
+        this.event_location = sites[Call.event_location.ordinal()];
+        this.start_stream = sites[Call.start_stream.ordinal()];
+        this.start_document = sites[Call.start_document.ordinal()];
+        this.end_document = sites[Call.end_document.ordinal()];
+        this.alias = sites[Call.alias.ordinal()];
+        this.scalar = sites[Call.scalar.ordinal()];
+        this.start_sequence = sites[Call.start_sequence.ordinal()];
+        this.end_sequence = sites[Call.end_sequence.ordinal()];
+        this.start_mapping = sites[Call.start_mapping.ordinal()];
+        this.end_mapping = sites[Call.end_mapping.ordinal()];
+        this.end_stream = sites[Call.end_stream.ordinal()];
         this.loadSettingsBuilder = LoadSettings.builder().setSchema(new CoreSchema());
     }
 
@@ -136,17 +149,26 @@ public class PsychParser extends RubyObject {
     private IRubyObject stringFor(ThreadContext context, String value) {
         Ruby runtime = context.runtime;
 
+        boolean isUTF8 = true;
+        Charset charset = RubyEncoding.UTF8;
+
         Encoding encoding = runtime.getDefaultInternalEncoding();
         if (encoding == null) {
             encoding = UTF8Encoding.INSTANCE;
+            charset = RubyEncoding.UTF8;
+        } else {
+            Charset encodingCharset = encoding.getCharset();
+            if (encodingCharset != null) {
+                isUTF8 = encodingCharset == RubyEncoding.UTF8;
+                charset = encodingCharset;
+            }
         }
 
-        Charset charset = RubyEncoding.UTF8;
-        if (encoding.getCharset() != null) {
-            charset = encoding.getCharset();
-        }
-
-        ByteList bytes = new ByteList(value.getBytes(charset), encoding);
+        ByteList bytes = new ByteList(
+                isUTF8 ?
+                        RubyEncoding.encodeUTF8(value) :
+                        RubyEncoding.encode(value, charset),
+                encoding);
         RubyString string = RubyString.newString(runtime, bytes);
         
         return string;
@@ -217,7 +239,7 @@ public class PsychParser extends RubyObject {
             parser = new ParserImpl(loadSettings, new ScannerImpl(loadSettings, readerFor(context, yaml, loadSettings)));
 
             if (path.isNil() && yaml.respondsTo("path")) {
-                path = sites[Call.path.ordinal()].call(context, this, yaml);
+                path = this.path.call(context, this, yaml);
             }
 
             while (parser.hasNext()) {
@@ -231,11 +253,11 @@ public class PsychParser extends RubyObject {
                 IRubyObject end_line = runtime.newFixnum(end.getLine());
                 IRubyObject end_column = runtime.newFixnum(end.getColumn());
 
-                sites[Call.event_location.ordinal()].call(context, this, handler, start_line, start_column, end_line, end_column);
+                event_location.call(context, this, handler, start_line, start_column, end_line, end_column);
 
                 switch (event.getEventId()) {
                     case StreamStart:
-                        sites[Call.start_stream.ordinal()].call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+                        start_stream.call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
                         break;
                     case DocumentStart:
                         handleDocumentStart(context, (DocumentStartEvent) event, handler);
@@ -243,12 +265,12 @@ public class PsychParser extends RubyObject {
                     case DocumentEnd:
                         IRubyObject notExplicit = runtime.newBoolean(!((DocumentEndEvent) event).isExplicit());
 
-                        sites[Call.end_document.ordinal()].call(context, this, handler, notExplicit);
+                        end_document.call(context, this, handler, notExplicit);
                         break;
                     case Alias:
                         IRubyObject alias = stringOrNilForAnchor(context, ((AliasEvent) event).getAnchor());
 
-                        sites[Call.alias.ordinal()].call(context, this, handler, alias);
+                        this.alias.call(context, this, handler, alias);
                         break;
                     case Scalar:
                         handleScalar(context, (ScalarEvent) event, handler);
@@ -257,16 +279,16 @@ public class PsychParser extends RubyObject {
                         handleSequenceStart(context, (SequenceStartEvent) event, handler);
                         break;
                     case SequenceEnd:
-                        sites[Call.end_sequence.ordinal()].call(context, this, handler);
+                        end_sequence.call(context, this, handler);
                         break;
                     case MappingStart:
                         handleMappingStart(context, (MappingStartEvent) event, handler);
                         break;
                     case MappingEnd:
-                        sites[Call.end_mapping.ordinal()].call(context, this, handler);
+                        end_mapping.call(context, this, handler);
                         break;
                     case StreamEnd:
-                        sites[Call.end_stream.ordinal()].call(context, this, handler);
+                        end_stream.call(context, this, handler);
                         break;
                 }
             }
@@ -313,18 +335,23 @@ public class PsychParser extends RubyObject {
                 RubyArray.newEmptyArray(runtime);
 
         Map<String, String> tagsMap = dse.getTags();
-        RubyArray tags = RubyArray.newArray(runtime);
-        if (tagsMap != null && tagsMap.size() > 0) {
+        RubyArray tags;
+        int size;
+        if (tagsMap != null  && (size = tagsMap.size()) > 0) {
+            tags = RubyArray.newArray(runtime, size);
             for (Map.Entry<String, String> tag : tagsMap.entrySet()) {
-                IRubyObject key   = stringFor(context, tag.getKey());
+                IRubyObject key = stringFor(context, tag.getKey());
                 IRubyObject value = stringFor(context, tag.getValue());
 
                 tags.append(RubyArray.newArray(runtime, key, value));
             }
+        } else {
+            tags = RubyArray.newEmptyArray(runtime);
         }
+
         IRubyObject notExplicit = runtime.newBoolean(!dse.isExplicit());
 
-        invoke(context, handler, "start_document", version, tags, notExplicit);
+        start_document.call(context, this, handler, version, tags, notExplicit);
     }
     
     private void handleMappingStart(ThreadContext context, MappingStartEvent mse, IRubyObject handler) {
@@ -334,7 +361,7 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(mse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(mse.getFlowStyle()));
 
-        sites[Call.start_mapping.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
+        start_mapping.call(context, this, handler, anchor, tag, implicit, style);
     }
         
     private void handleScalar(ThreadContext context, ScalarEvent se, IRubyObject handler) {
@@ -342,12 +369,13 @@ public class PsychParser extends RubyObject {
 
         IRubyObject anchor = stringOrNilForAnchor(context, se.getAnchor());
         IRubyObject tag = stringOrNilFor(context, se.getTag());
-        IRubyObject plain_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInPlainScalar());
-        IRubyObject quoted_implicit = runtime.newBoolean(se.getImplicit().canOmitTagInNonPlainScalar());
+        ImplicitTuple implicit = se.getImplicit();
+        IRubyObject plain_implicit = runtime.newBoolean(implicit.canOmitTagInPlainScalar());
+        IRubyObject quoted_implicit = runtime.newBoolean(implicit.canOmitTagInNonPlainScalar());
         IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
         IRubyObject val = stringFor(context, se.getValue());
 
-        sites[Call.scalar.ordinal()].call(context, this, handler, val, anchor, tag, plain_implicit,
+        scalar.call(context, this, handler, val, anchor, tag, plain_implicit,
                 quoted_implicit, style);
     }
     
@@ -358,25 +386,24 @@ public class PsychParser extends RubyObject {
         IRubyObject implicit = runtime.newBoolean(sse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
-        sites[Call.start_sequence.ordinal()].call(context, this, handler, anchor, tag, implicit, style);
+        start_sequence.call(context, this, handler, anchor, tag, implicit, style);
     }
 
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
-        Ruby runtime;
+        Ruby runtime = context.runtime;
         RubyClass se;
         IRubyObject exception;
 
-        runtime = context.runtime;
-        se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
+        se = (RubyClass) runtime.getModule("Psych").getConstant("SyntaxError");
 
         exception = se.newInstance(context,
                 new IRubyObject[] {
                     rbPath,
-                    runtime.newFixnum(0),
-                    runtime.newFixnum(0),
+                    RubyFixnum.zero(runtime),
+                    RubyFixnum.zero(runtime),
                     runtime.newFixnum(re.getPosition()),
-                    (null == re.getName() ? runtime.getNil() : runtime.newString(re.getName())),
-                    (null == re.toString() ? runtime.getNil() : runtime.newString(re.toString()))
+                    (null == re.getName() ? context.nil : runtime.newString(re.getName())),
+                    (null == re.toString() ? context.nil : runtime.newString(re.toString()))
                 },
                 Block.NULL_BLOCK);
 
@@ -384,12 +411,11 @@ public class PsychParser extends RubyObject {
     }
 
     private static void raiseParserException(ThreadContext context, MarkedYamlEngineException mye, IRubyObject rbPath) {
-        Ruby runtime;
+        Ruby runtime = context.runtime;
         Mark mark;
         RubyClass se;
         IRubyObject exception;
 
-        runtime = context.runtime;
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mark = mye.getProblemMark().get();
@@ -400,8 +426,8 @@ public class PsychParser extends RubyObject {
                     runtime.newFixnum(mark.getLine() + 1),
                     runtime.newFixnum(mark.getColumn() + 1),
                     runtime.newFixnum(mark.getIndex()),
-                    (null == mye.getProblem() ? runtime.getNil() : runtime.newString(mye.getProblem())),
-                    (null == mye.getContext() ? runtime.getNil() : runtime.newString(mye.getContext()))
+                    (null == mye.getProblem() ? context.nil : runtime.newString(mye.getProblem())),
+                    (null == mye.getContext() ? context.nil : runtime.newString(mye.getContext()))
                 },
                 Block.NULL_BLOCK);
 
@@ -409,11 +435,10 @@ public class PsychParser extends RubyObject {
     }
 
     private static void raiseParserException(ThreadContext context, MalformedInputException mie, IRubyObject rbPath) {
-        Ruby runtime;;
+        Ruby runtime = context.runtime;
         RubyClass se;
         IRubyObject exception;
 
-        runtime = context.runtime;
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mie.getInputLength();
@@ -421,11 +446,11 @@ public class PsychParser extends RubyObject {
         exception = se.newInstance(context,
                 arrayOf(
                         rbPath,
-                        runtime.newFixnum(-1),
-                        runtime.newFixnum(-1),
+                        RubyFixnum.minus_one(runtime),
+                        RubyFixnum.minus_one(runtime),
                         runtime.newFixnum(mie.getInputLength()),
-                        runtime.getNil(),
-                        runtime.getNil()
+                        context.nil,
+                        context.nil
                 ),
                 Block.NULL_BLOCK);
 
@@ -460,6 +485,7 @@ public class PsychParser extends RubyObject {
 
         Event event = null;
 
+        Parser parser = this.parser;
         if (parser != null) {
             if (parser.hasNext()) {
                 event = parser.peekEvent();
@@ -469,7 +495,7 @@ public class PsychParser extends RubyObject {
         }
 
         if (event == null) {
-            return ((RubyClass)context.runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
+            return ((RubyClass) runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
                     context,
                     RubyFixnum.zero(runtime),
                     RubyFixnum.zero(runtime),
@@ -480,7 +506,7 @@ public class PsychParser extends RubyObject {
 
         Mark mark = event.getStartMark().orElseThrow(RuntimeException::new);
 
-        return ((RubyClass)context.runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
+        return ((RubyClass) runtime.getClassFromPath("Psych::Parser::Mark")).newInstance(
                 context,
                 RubyFixnum.zero(runtime),
                 runtime.newFixnum(mark.getLine()),
@@ -549,5 +575,5 @@ public class PsychParser extends RubyObject {
         path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream
     }
 
-    final CachingCallSite[] sites;
+    private final CachingCallSite path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream;
 }
