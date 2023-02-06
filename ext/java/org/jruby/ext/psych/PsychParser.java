@@ -34,6 +34,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
+import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyEncoding;
 import org.jruby.RubyFixnum;
@@ -512,6 +513,54 @@ public class PsychParser extends RubyObject {
                 runtime.newFixnum(mark.getColumn()),
                 Block.NULL_BLOCK
         );
+    }
+
+    @JRubyMethod(name = "max_aliases_for_collections=")
+    public IRubyObject max_aliases_for_collections_set(IRubyObject max) {
+        loadSettingsBuilder.setMaxAliasesForCollections(max.convertToInteger().getIntValue());
+
+        return max;
+    }
+
+    @JRubyMethod(name = "max_aliases_for_collections")
+    public IRubyObject max_aliases_for_collections(ThreadContext context) {
+        return context.runtime.newFixnum(buildSettings().getMaxAliasesForCollections());
+    }
+
+    @JRubyMethod(name = "allow_duplicate_keys=")
+    public IRubyObject allow_duplicate_keys_set(IRubyObject allow) {
+        loadSettingsBuilder.setAllowDuplicateKeys(allow.isTrue());
+
+        return allow;
+    }
+
+    @JRubyMethod(name = "allow_duplicate_keys")
+    public IRubyObject allow_duplicate_keys(ThreadContext context) {
+        return RubyBoolean.newBoolean(context, buildSettings().getAllowDuplicateKeys());
+    }
+
+    @JRubyMethod(name = "allow_recursive_keys=")
+    public IRubyObject allow_recursive_keys_set(IRubyObject allow) {
+        loadSettingsBuilder.setAllowRecursiveKeys(allow.isTrue());
+
+        return allow;
+    }
+
+    @JRubyMethod(name = "allow_recursive_keys")
+    public IRubyObject allow_recursive_keys(ThreadContext context) {
+        return RubyBoolean.newBoolean(context, buildSettings().getAllowRecursiveKeys());
+    }
+
+    @JRubyMethod(name = "code_point_limit=")
+    public IRubyObject code_point_limit_set(IRubyObject limit) {
+        loadSettingsBuilder.setCodePointLimit(limit.convertToInteger().getIntValue());
+
+        return limit;
+    }
+
+    @JRubyMethod(name = "code_point_limit")
+    public IRubyObject code_point_limit(ThreadContext context) {
+        return context.runtime.newFixnum(buildSettings().getCodePointLimit());
     }
 
     private LoadSettings buildSettings() {
