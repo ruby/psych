@@ -1,4 +1,4 @@
-name: ubuntu
+name: test
 
 on: [push, pull_request]
 
@@ -9,7 +9,7 @@ jobs:
       engine: cruby-jruby
       min_version: 2.4
 
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
