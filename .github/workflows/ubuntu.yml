@@ -3,12 +3,18 @@ name: ubuntu
 on: [push, pull_request]
 
 jobs:
+  ruby-versions:
+    uses: ruby/actions/.github/workflows/ruby_versions.yml@master
+    with:
+      engine: cruby
+      min_version: 2.4
+
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ head, 3.1, "3.0", 2.7, 2.6, 2.5, 2.4 ]
+        ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
     steps:
       - name: Install libraries
         run: sudo apt install haveged libyaml-dev
