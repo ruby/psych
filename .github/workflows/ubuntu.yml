@@ -22,13 +22,14 @@ jobs:
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
     steps:
-      - name: Install libraries
-        run: sudo apt install haveged libyaml-dev
       - uses: actions/checkout@v3
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby-pkgs@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          apt-get: "haveged libyaml-dev"
+          brew: libyaml
+          vcpkg: libyaml
       - name: Install dependencies
         run: bundle install
       - name: Run test
