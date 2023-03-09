@@ -10,11 +10,12 @@ jobs:
       min_version: 2.4
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+        os: [ ubuntu-latest, macos-latest ]
     steps:
       - name: Install libraries
         run: sudo apt install haveged libyaml-dev
