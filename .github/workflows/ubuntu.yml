@@ -31,7 +31,7 @@ jobs:
           brew: libyaml
           vcpkg: libyaml
       - name: Install dependencies
-        run: bundle install
+        run: bundle install --jobs 1
       - name: Run test
         run: rake
       - name: Install gem
