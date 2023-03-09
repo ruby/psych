@@ -10,6 +10,7 @@ jobs:
       min_version: 2.4
 
   test:
+    needs: ruby-versions
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
