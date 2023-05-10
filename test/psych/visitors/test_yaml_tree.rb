@@ -167,9 +167,19 @@ module Psych
       end
 
       def test_string
+        # YAML 1.1 int Base 8
         assert_match(/'017'/, Psych.dump({'a' => '017'}))
         assert_match(/'019'/, Psych.dump({'a' => '019'}))
         assert_match(/'01818'/, Psych.dump({'a' => '01818'}))
+
+        # YAML 1.2 int Base 8
+        assert_match(/'0o17'/, Psych.dump({'a' => '0o17'}))
+        assert_match(/'0o111'/, Psych.dump({'a' => '0o111'}))
+
+        # YAML 1.2 float Number
+        assert_match(/'12e03'/, Psych.dump({'a' => '12e03'}))
+        assert_match(/'1.2e3'/, Psych.dump({'a' => '1.2e3'}))
+        assert_match(/".2e3"/, Psych.dump({'a' => '.2e3'}))
       end
 
       # http://yaml.org/type/null.html
