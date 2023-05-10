@@ -274,7 +274,7 @@ module Psych
           style = Nodes::Scalar::FOLDED
         elsif o.match?(/^[^[:word:]][^"]*$/)
           style = Nodes::Scalar::DOUBLE_QUOTED
-        elsif not String === @ss.tokenize(o) or /\A0[0-7]*[89]/.match?(o)
+        elsif not String === @ss.tokenize(o) or may_be_confused_as_yaml12?(o)
           style = Nodes::Scalar::SINGLE_QUOTED
         end
 
@@ -386,6 +386,19 @@ module Psych
 
       def binary? string
         string.encoding == Encoding::ASCII_8BIT && !string.ascii_only?
+      end
+
+      def may_be_confused_as_yaml12? string
+        case string
+        when /\A0[0-7]*[89]\z/ # YAML 1.1 int (Base 8)
+          true
+        when /\A0o[0-7]+\z/ # YAML 1.2 int (Base 8)
+          true
+        when /\A[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?\z/ # YAML 1.1/1.2 float (Number)
+          true
+        else
+          false
+        end
       end
 
       def visit_array_subclass o
