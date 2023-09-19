@@ -368,6 +368,7 @@ public class PsychParser extends RubyObject {
     
     private void handleMappingStart(ThreadContext context, MappingStartEvent mse, IRubyObject handler) {
         Ruby runtime = context.runtime;
+
         IRubyObject anchor = stringOrNilForAnchor(context, mse.getAnchor());
         IRubyObject tag = stringOrNilFor(context, mse.getTag());
         IRubyObject implicit = runtime.newBoolean(mse.isImplicit());
@@ -393,6 +394,7 @@ public class PsychParser extends RubyObject {
     
     private void handleSequenceStart(ThreadContext context, SequenceStartEvent sse, IRubyObject handler) {
         Ruby runtime = context.runtime;
+
         IRubyObject anchor = stringOrNilForAnchor(context, sse.getAnchor());
         IRubyObject tag = stringOrNilFor(context, sse.getTag());
         IRubyObject implicit = runtime.newBoolean(sse.isImplicit());
@@ -403,6 +405,7 @@ public class PsychParser extends RubyObject {
 
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         RubyClass se;
         RubyException exception;
 
@@ -426,6 +429,7 @@ public class PsychParser extends RubyObject {
 
     private static void raiseParserException(ThreadContext context, MarkedYamlEngineException mye, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         Mark mark;
         RubyClass se;
         RubyException exception;
@@ -452,6 +456,7 @@ public class PsychParser extends RubyObject {
 
     private static void raiseParserException(ThreadContext context, MalformedInputException mie, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         RubyClass se;
         RubyException exception;
 
