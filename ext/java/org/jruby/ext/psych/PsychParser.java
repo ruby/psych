@@ -37,6 +37,7 @@ import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyEncoding;
+import org.jruby.RubyException;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyIO;
 import org.jruby.RubyKernel;
@@ -45,6 +46,7 @@ import org.jruby.RubyNumeric;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
+import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.Helpers;
 import org.jruby.runtime.ThreadContext;
@@ -408,11 +410,11 @@ public class PsychParser extends RubyObject {
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass) runtime.getModule("Psych").getConstant("SyntaxError");
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 new IRubyObject[] {
                     rbPath,
                     RubyFixnum.zero(runtime),
@@ -423,6 +425,8 @@ public class PsychParser extends RubyObject {
                 },
                 Block.NULL_BLOCK);
 
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, re));
+
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
@@ -430,13 +434,13 @@ public class PsychParser extends RubyObject {
         Ruby runtime = context.runtime;
         Mark mark;
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mark = mye.getProblemMark().get();
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 new IRubyObject[] {
                     rbPath,
                     runtime.newFixnum(mark.getLine() + 1),
@@ -447,19 +451,21 @@ public class PsychParser extends RubyObject {
                 },
                 Block.NULL_BLOCK);
 
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, mye));
+
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
     private static void raiseParserException(ThreadContext context, MalformedInputException mie, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mie.getInputLength();
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 arrayOf(
                         rbPath,
                         RubyFixnum.minus_one(runtime),
@@ -469,6 +475,8 @@ public class PsychParser extends RubyObject {
                         context.nil
                 ),
                 Block.NULL_BLOCK);
+
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, mie));
 
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
