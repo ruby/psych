@@ -37,6 +37,7 @@ import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyEncoding;
+import org.jruby.RubyException;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyIO;
 import org.jruby.RubyKernel;
@@ -45,8 +46,10 @@ import org.jruby.RubyNumeric;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
+import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.Helpers;
+import org.jruby.runtime.JavaSites;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.callsite.CachingCallSite;
@@ -97,56 +100,48 @@ import static org.jruby.runtime.Helpers.invoke;
 public class PsychParser extends RubyObject {
 
     public static final String JRUBY_CALL_SITES = "_jruby_call_sites";
+    public static final String ENCODING_ANY = "ANY";
+    public static final String ENCODING_UTF8 = "UTF8";
+    public static final String ENCODING_UTF16LE = "UTF16LE";
+    public static final String ENCODING_UTF16BE = "UTF16BE";
+    public static final String MAX_ALIASES_FOR_COLLECTIONS = "max_aliases_for_collections";
+    public static final String ALLOW_DUPLICATE_KEYS = "allow_duplicate_keys";
+    public static final String ALLOW_RECURSIVE_KEYS = "allow_recursive_keys";
+    public static final String CODE_POINT_LIMIT = "code_point_limit";
 
     public static void initPsychParser(Ruby runtime, RubyModule psych) {
         RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), PsychParser::new, psych);
 
-        CachingCallSite[] sites =
-                Arrays.stream(Call.values())
-                .map((call) -> new FunctionalCachingCallSite(call.name()))
-                .toArray(CachingCallSite[]::new);
-        psychParser.setInternalVariable(JRUBY_CALL_SITES, sites);
+        psychParser.setInternalVariable(JRUBY_CALL_SITES, new CallSites());
 
         runtime.getLoadService().require("psych/syntax_error");
-        psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF8", runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF16LE", runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF16BE", runtime.newFixnum(YAML_UTF16BE_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_ANY, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF8, runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF16LE, runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF16BE, runtime.newFixnum(YAML_UTF16BE_ENCODING.ordinal()));
 
         psychParser.defineAnnotatedMethods(PsychParser.class);
 
         // defaults for SnakeYAML load settings
         LoadSettings defaults = LoadSettings.builder().build();
-        psychParser.setInternalVariable("max_aliases_for_collections", runtime.newFixnum(defaults.getMaxAliasesForCollections()));
-        psychParser.setInternalVariable("allow_duplicate_keys", runtime.newBoolean(defaults.getAllowDuplicateKeys()));
-        psychParser.setInternalVariable("allow_recursive_keys", runtime.newBoolean(defaults.getAllowRecursiveKeys()));
-        psychParser.setInternalVariable("code_point_limit", runtime.newFixnum(defaults.getCodePointLimit()));
+        psychParser.setInternalVariable(MAX_ALIASES_FOR_COLLECTIONS, runtime.newFixnum(defaults.getMaxAliasesForCollections()));
+        psychParser.setInternalVariable(ALLOW_DUPLICATE_KEYS, runtime.newBoolean(defaults.getAllowDuplicateKeys()));
+        psychParser.setInternalVariable(ALLOW_RECURSIVE_KEYS, runtime.newBoolean(defaults.getAllowRecursiveKeys()));
+        psychParser.setInternalVariable(CODE_POINT_LIMIT, runtime.newFixnum(defaults.getCodePointLimit()));
     }
 
     public PsychParser(Ruby runtime, RubyClass klass) {
         super(runtime, klass);
 
-        CachingCallSite[] sites = (CachingCallSite[]) klass.getInternalVariable(JRUBY_CALL_SITES);
-        this.path = sites[Call.path.ordinal()];
-        this.event_location = sites[Call.event_location.ordinal()];
-        this.start_stream = sites[Call.start_stream.ordinal()];
-        this.start_document = sites[Call.start_document.ordinal()];
-        this.end_document = sites[Call.end_document.ordinal()];
-        this.alias = sites[Call.alias.ordinal()];
-        this.scalar = sites[Call.scalar.ordinal()];
-        this.start_sequence = sites[Call.start_sequence.ordinal()];
-        this.end_sequence = sites[Call.end_sequence.ordinal()];
-        this.start_mapping = sites[Call.start_mapping.ordinal()];
-        this.end_mapping = sites[Call.end_mapping.ordinal()];
-        this.end_stream = sites[Call.end_stream.ordinal()];
+        this.sites = (CallSites) klass.getInternalVariable(JRUBY_CALL_SITES);
 
         // prepare settings builder and apply global defaults
         LoadSettingsBuilder lsb = LoadSettings.builder();
         lsb.setSchema(new CoreSchema());
-        lsb.setMaxAliasesForCollections(((IRubyObject) klass.getInternalVariable("max_aliases_for_collections")).convertToInteger().getIntValue());
-        lsb.setAllowDuplicateKeys(((IRubyObject) klass.getInternalVariable("allow_duplicate_keys")).isTrue());
-        lsb.setAllowRecursiveKeys(((IRubyObject) klass.getInternalVariable("allow_recursive_keys")).isTrue());
-        lsb.setCodePointLimit(((IRubyObject) klass.getInternalVariable("code_point_limit")).convertToInteger().getIntValue());
+        lsb.setMaxAliasesForCollections(((IRubyObject) klass.getInternalVariable(MAX_ALIASES_FOR_COLLECTIONS)).convertToInteger().getIntValue());
+        lsb.setAllowDuplicateKeys(((IRubyObject) klass.getInternalVariable(ALLOW_DUPLICATE_KEYS)).isTrue());
+        lsb.setAllowRecursiveKeys(((IRubyObject) klass.getInternalVariable(ALLOW_RECURSIVE_KEYS)).isTrue());
+        lsb.setCodePointLimit(((IRubyObject) klass.getInternalVariable(CODE_POINT_LIMIT)).convertToInteger().getIntValue());
         this.loadSettingsBuilder = lsb;
     }
 
@@ -254,8 +249,9 @@ public class PsychParser extends RubyObject {
             LoadSettings loadSettings = loadSettingsBuilder.build();
             parser = new ParserImpl(loadSettings, new ScannerImpl(loadSettings, readerFor(context, yaml, loadSettings)));
 
-            if (path.isNil() && yaml.respondsTo("path")) {
-                path = this.path.call(context, this, yaml);
+            JavaSites.CheckedSites pathSites = sites.path;
+            if (path.isNil() && pathSites.respond_to_X.respondsTo(context, yaml, yaml)) {
+                path = pathSites.site.call(context, this, yaml);
             }
 
             while (parser.hasNext()) {
@@ -269,11 +265,11 @@ public class PsychParser extends RubyObject {
                 IRubyObject end_line = runtime.newFixnum(end.getLine());
                 IRubyObject end_column = runtime.newFixnum(end.getColumn());
 
-                event_location.call(context, this, handler, start_line, start_column, end_line, end_column);
+                sites.event_location.call(context, this, handler, start_line, start_column, end_line, end_column);
 
                 switch (event.getEventId()) {
                     case StreamStart:
-                        start_stream.call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+                        sites.start_stream.call(context, this, handler, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
                         break;
                     case DocumentStart:
                         handleDocumentStart(context, (DocumentStartEvent) event, handler);
@@ -281,12 +277,12 @@ public class PsychParser extends RubyObject {
                     case DocumentEnd:
                         IRubyObject notExplicit = runtime.newBoolean(!((DocumentEndEvent) event).isExplicit());
 
-                        end_document.call(context, this, handler, notExplicit);
+                        sites.end_document.call(context, this, handler, notExplicit);
                         break;
                     case Alias:
                         IRubyObject alias = stringOrNilForAnchor(context, ((AliasEvent) event).getAnchor());
 
-                        this.alias.call(context, this, handler, alias);
+                        sites.alias.call(context, this, handler, alias);
                         break;
                     case Scalar:
                         handleScalar(context, (ScalarEvent) event, handler);
@@ -295,16 +291,16 @@ public class PsychParser extends RubyObject {
                         handleSequenceStart(context, (SequenceStartEvent) event, handler);
                         break;
                     case SequenceEnd:
-                        end_sequence.call(context, this, handler);
+                        sites.end_sequence.call(context, this, handler);
                         break;
                     case MappingStart:
                         handleMappingStart(context, (MappingStartEvent) event, handler);
                         break;
                     case MappingEnd:
-                        end_mapping.call(context, this, handler);
+                        sites.end_mapping.call(context, this, handler);
                         break;
                     case StreamEnd:
-                        end_stream.call(context, this, handler);
+                        sites.end_stream.call(context, this, handler);
                         break;
                 }
             }
@@ -367,17 +363,18 @@ public class PsychParser extends RubyObject {
 
         IRubyObject notExplicit = runtime.newBoolean(!dse.isExplicit());
 
-        start_document.call(context, this, handler, version, tags, notExplicit);
+        sites.start_document.call(context, this, handler, version, tags, notExplicit);
     }
     
     private void handleMappingStart(ThreadContext context, MappingStartEvent mse, IRubyObject handler) {
         Ruby runtime = context.runtime;
+
         IRubyObject anchor = stringOrNilForAnchor(context, mse.getAnchor());
         IRubyObject tag = stringOrNilFor(context, mse.getTag());
         IRubyObject implicit = runtime.newBoolean(mse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(mse.getFlowStyle()));
 
-        start_mapping.call(context, this, handler, anchor, tag, implicit, style);
+        sites.start_mapping.call(context, this, handler, anchor, tag, implicit, style);
     }
         
     private void handleScalar(ThreadContext context, ScalarEvent se, IRubyObject handler) {
@@ -391,28 +388,30 @@ public class PsychParser extends RubyObject {
         IRubyObject style = runtime.newFixnum(translateStyle(se.getScalarStyle()));
         IRubyObject val = stringFor(context, se.getValue());
 
-        scalar.call(context, this, handler, val, anchor, tag, plain_implicit,
+        sites.scalar.call(context, this, handler, val, anchor, tag, plain_implicit,
                 quoted_implicit, style);
     }
     
     private void handleSequenceStart(ThreadContext context, SequenceStartEvent sse, IRubyObject handler) {
         Ruby runtime = context.runtime;
+
         IRubyObject anchor = stringOrNilForAnchor(context, sse.getAnchor());
         IRubyObject tag = stringOrNilFor(context, sse.getTag());
         IRubyObject implicit = runtime.newBoolean(sse.isImplicit());
         IRubyObject style = runtime.newFixnum(translateFlowStyle(sse.getFlowStyle()));
 
-        start_sequence.call(context, this, handler, anchor, tag, implicit, style);
+        sites.start_sequence.call(context, this, handler, anchor, tag, implicit, style);
     }
 
     private static void raiseParserException(ThreadContext context, ReaderException re, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass) runtime.getModule("Psych").getConstant("SyntaxError");
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 new IRubyObject[] {
                     rbPath,
                     RubyFixnum.zero(runtime),
@@ -423,20 +422,23 @@ public class PsychParser extends RubyObject {
                 },
                 Block.NULL_BLOCK);
 
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, re));
+
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
     private static void raiseParserException(ThreadContext context, MarkedYamlEngineException mye, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         Mark mark;
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mark = mye.getProblemMark().get();
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 new IRubyObject[] {
                     rbPath,
                     runtime.newFixnum(mark.getLine() + 1),
@@ -447,19 +449,22 @@ public class PsychParser extends RubyObject {
                 },
                 Block.NULL_BLOCK);
 
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, mye));
+
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
 
     private static void raiseParserException(ThreadContext context, MalformedInputException mie, IRubyObject rbPath) {
         Ruby runtime = context.runtime;
+
         RubyClass se;
-        IRubyObject exception;
+        RubyException exception;
 
         se = (RubyClass)runtime.getModule("Psych").getConstant("SyntaxError");
 
         mie.getInputLength();
 
-        exception = se.newInstance(context,
+        exception = (RubyException) se.newInstance(context,
                 arrayOf(
                         rbPath,
                         RubyFixnum.minus_one(runtime),
@@ -469,6 +474,8 @@ public class PsychParser extends RubyObject {
                         context.nil
                 ),
                 Block.NULL_BLOCK);
+
+        exception.setCause(JavaUtil.convertJavaToUsableRubyObject(runtime, mie));
 
         RubyKernel.raise(context, runtime.getKernel(), new IRubyObject[] { exception }, Block.NULL_BLOCK);
     }
@@ -538,7 +545,7 @@ public class PsychParser extends RubyObject {
         return max;
     }
 
-    @JRubyMethod(name = "max_aliases_for_collections")
+    @JRubyMethod(name = MAX_ALIASES_FOR_COLLECTIONS)
     public IRubyObject max_aliases_for_collections(ThreadContext context) {
         return context.runtime.newFixnum(buildSettings().getMaxAliasesForCollections());
     }
@@ -550,7 +557,7 @@ public class PsychParser extends RubyObject {
         return allow;
     }
 
-    @JRubyMethod(name = "allow_duplicate_keys")
+    @JRubyMethod(name = ALLOW_DUPLICATE_KEYS)
     public IRubyObject allow_duplicate_keys(ThreadContext context) {
         return RubyBoolean.newBoolean(context, buildSettings().getAllowDuplicateKeys());
     }
@@ -562,7 +569,7 @@ public class PsychParser extends RubyObject {
         return allow;
     }
 
-    @JRubyMethod(name = "allow_recursive_keys")
+    @JRubyMethod(name = ALLOW_RECURSIVE_KEYS)
     public IRubyObject allow_recursive_keys(ThreadContext context) {
         return RubyBoolean.newBoolean(context, buildSettings().getAllowRecursiveKeys());
     }
@@ -574,7 +581,7 @@ public class PsychParser extends RubyObject {
         return limit;
     }
 
-    @JRubyMethod(name = "code_point_limit")
+    @JRubyMethod(name = CODE_POINT_LIMIT)
     public IRubyObject code_point_limit(ThreadContext context) {
         return context.runtime.newFixnum(buildSettings().getCodePointLimit());
     }
@@ -589,38 +596,38 @@ public class PsychParser extends RubyObject {
             throw context.runtime.newRangeError("max_aliases_for_collections must be positive");
         }
 
-        self.getInternalVariables().setInternalVariable("max_aliases_for_collections", max);
+        self.getInternalVariables().setInternalVariable(MAX_ALIASES_FOR_COLLECTIONS, max);
 
         return max;
     }
 
-    @JRubyMethod(name = "max_aliases_for_collections")
+    @JRubyMethod(name = MAX_ALIASES_FOR_COLLECTIONS)
     public static IRubyObject max_aliases_for_collections(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("max_aliases_for_collections");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(MAX_ALIASES_FOR_COLLECTIONS);
     }
 
     @JRubyMethod(name = "allow_duplicate_keys=", meta = true)
     public static IRubyObject allow_duplicate_keys_set(IRubyObject self, IRubyObject allow) {
-        self.getInternalVariables().setInternalVariable("allow_duplicate_keys", allow);
+        self.getInternalVariables().setInternalVariable(ALLOW_DUPLICATE_KEYS, allow);
 
         return allow;
     }
 
-    @JRubyMethod(name = "allow_duplicate_keys", meta = true)
+    @JRubyMethod(name = ALLOW_DUPLICATE_KEYS, meta = true)
     public static IRubyObject allow_duplicate_keys(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("allow_duplicate_keys");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(ALLOW_DUPLICATE_KEYS);
     }
 
     @JRubyMethod(name = "allow_recursive_keys=", meta = true)
     public static IRubyObject allow_recursive_keys_set(IRubyObject self, IRubyObject allow) {
-        self.getInternalVariables().setInternalVariable("allow_recursive_keys", allow);
+        self.getInternalVariables().setInternalVariable(ALLOW_RECURSIVE_KEYS, allow);
 
         return allow;
     }
 
-    @JRubyMethod(name = "allow_recursive_keys", meta = true)
+    @JRubyMethod(name = ALLOW_RECURSIVE_KEYS, meta = true)
     public static IRubyObject allow_recursive_keys(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("allow_recursive_keys");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(ALLOW_RECURSIVE_KEYS);
     }
 
     @JRubyMethod(name = "code_point_limit=", meta = true)
@@ -631,14 +638,14 @@ public class PsychParser extends RubyObject {
             throw context.runtime.newRangeError("code_point_limit must be positive");
         }
 
-        self.getInternalVariables().setInternalVariable("code_point_limit", limit);
+        self.getInternalVariables().setInternalVariable(CODE_POINT_LIMIT, limit);
 
         return limit;
     }
 
-    @JRubyMethod(name = "code_point_limit", meta = true)
+    @JRubyMethod(name = CODE_POINT_LIMIT, meta = true)
     public static IRubyObject code_point_limit(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("code_point_limit");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(CODE_POINT_LIMIT);
     }
 
     private LoadSettings buildSettings() {
@@ -648,10 +655,21 @@ public class PsychParser extends RubyObject {
     private Parser parser;
     private Event event;
     private final LoadSettingsBuilder loadSettingsBuilder;
+    private final CallSites sites;
 
-    private enum Call {
-        path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream
+    private static class CallSites {
+        private final JavaSites.CheckedSites path = new JavaSites.CheckedSites("path");
+        private final CachingCallSite event_location = new FunctionalCachingCallSite("event_location");
+        private final CachingCallSite start_stream = new FunctionalCachingCallSite("start_stream");
+        private final CachingCallSite start_document = new FunctionalCachingCallSite("start_document");
+        private final CachingCallSite end_document = new FunctionalCachingCallSite("end_document");
+        private final CachingCallSite alias = new FunctionalCachingCallSite("alias");
+        private final CachingCallSite scalar = new FunctionalCachingCallSite("scalar");
+        private final CachingCallSite start_sequence = new FunctionalCachingCallSite("start_sequence");
+        private final CachingCallSite end_sequence = new FunctionalCachingCallSite("end_sequence");
+        private final CachingCallSite start_mapping = new FunctionalCachingCallSite("start_mapping");
+        private final CachingCallSite end_mapping = new FunctionalCachingCallSite("end_mapping");
+        private final CachingCallSite end_stream = new FunctionalCachingCallSite("end_stream");
     }
 
-    private final CachingCallSite path, event_location, start_stream, start_document, end_document, alias, scalar, start_sequence, end_sequence, start_mapping, end_mapping, end_stream;
 }
