@@ -49,6 +49,7 @@ import org.jruby.anno.JRubyMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.Helpers;
+import org.jruby.runtime.JavaSites;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.callsite.CachingCallSite;
@@ -248,8 +249,9 @@ public class PsychParser extends RubyObject {
             LoadSettings loadSettings = loadSettingsBuilder.build();
             parser = new ParserImpl(loadSettings, new ScannerImpl(loadSettings, readerFor(context, yaml, loadSettings)));
 
-            if (path.isNil() && yaml.respondsTo("path")) {
-                path = sites.path.call(context, this, yaml);
+            JavaSites.CheckedSites pathSites = sites.path;
+            if (path.isNil() && pathSites.respond_to_X.respondsTo(context, yaml, yaml)) {
+                path = pathSites.site.call(context, this, yaml);
             }
 
             while (parser.hasNext()) {
@@ -651,7 +653,7 @@ public class PsychParser extends RubyObject {
     private final CallSites sites;
 
     private static class CallSites {
-        private final CachingCallSite path = new FunctionalCachingCallSite("path");
+        private final JavaSites.CheckedSites path = new JavaSites.CheckedSites("path");
         private final CachingCallSite event_location = new FunctionalCachingCallSite("event_location");
         private final CachingCallSite start_stream = new FunctionalCachingCallSite("start_stream");
         private final CachingCallSite start_document = new FunctionalCachingCallSite("start_document");
