@@ -99,6 +99,14 @@ import static org.jruby.runtime.Helpers.invoke;
 public class PsychParser extends RubyObject {
 
     public static final String JRUBY_CALL_SITES = "_jruby_call_sites";
+    public static final String ENCODING_ANY = "ANY";
+    public static final String ENCODING_UTF8 = "UTF8";
+    public static final String ENCODING_UTF16LE = "UTF16LE";
+    public static final String ENCODING_UTF16BE = "UTF16BE";
+    public static final String MAX_ALIASES_FOR_COLLECTIONS = "max_aliases_for_collections";
+    public static final String ALLOW_DUPLICATE_KEYS = "allow_duplicate_keys";
+    public static final String ALLOW_RECURSIVE_KEYS = "allow_recursive_keys";
+    public static final String CODE_POINT_LIMIT = "code_point_limit";
 
     public static void initPsychParser(Ruby runtime, RubyModule psych) {
         RubyClass psychParser = runtime.defineClassUnder("Parser", runtime.getObject(), PsychParser::new, psych);
@@ -106,19 +114,19 @@ public class PsychParser extends RubyObject {
         psychParser.setInternalVariable(JRUBY_CALL_SITES, new CallSites());
 
         runtime.getLoadService().require("psych/syntax_error");
-        psychParser.defineConstant("ANY", runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF8", runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF16LE", runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
-        psychParser.defineConstant("UTF16BE", runtime.newFixnum(YAML_UTF16BE_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_ANY, runtime.newFixnum(YAML_ANY_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF8, runtime.newFixnum(YAML_UTF8_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF16LE, runtime.newFixnum(YAML_UTF16LE_ENCODING.ordinal()));
+        psychParser.defineConstant(ENCODING_UTF16BE, runtime.newFixnum(YAML_UTF16BE_ENCODING.ordinal()));
 
         psychParser.defineAnnotatedMethods(PsychParser.class);
 
         // defaults for SnakeYAML load settings
         LoadSettings defaults = LoadSettings.builder().build();
-        psychParser.setInternalVariable("max_aliases_for_collections", runtime.newFixnum(defaults.getMaxAliasesForCollections()));
-        psychParser.setInternalVariable("allow_duplicate_keys", runtime.newBoolean(defaults.getAllowDuplicateKeys()));
-        psychParser.setInternalVariable("allow_recursive_keys", runtime.newBoolean(defaults.getAllowRecursiveKeys()));
-        psychParser.setInternalVariable("code_point_limit", runtime.newFixnum(defaults.getCodePointLimit()));
+        psychParser.setInternalVariable(MAX_ALIASES_FOR_COLLECTIONS, runtime.newFixnum(defaults.getMaxAliasesForCollections()));
+        psychParser.setInternalVariable(ALLOW_DUPLICATE_KEYS, runtime.newBoolean(defaults.getAllowDuplicateKeys()));
+        psychParser.setInternalVariable(ALLOW_RECURSIVE_KEYS, runtime.newBoolean(defaults.getAllowRecursiveKeys()));
+        psychParser.setInternalVariable(CODE_POINT_LIMIT, runtime.newFixnum(defaults.getCodePointLimit()));
     }
 
     public PsychParser(Ruby runtime, RubyClass klass) {
@@ -129,10 +137,10 @@ public class PsychParser extends RubyObject {
         // prepare settings builder and apply global defaults
         LoadSettingsBuilder lsb = LoadSettings.builder();
         lsb.setSchema(new CoreSchema());
-        lsb.setMaxAliasesForCollections(((IRubyObject) klass.getInternalVariable("max_aliases_for_collections")).convertToInteger().getIntValue());
-        lsb.setAllowDuplicateKeys(((IRubyObject) klass.getInternalVariable("allow_duplicate_keys")).isTrue());
-        lsb.setAllowRecursiveKeys(((IRubyObject) klass.getInternalVariable("allow_recursive_keys")).isTrue());
-        lsb.setCodePointLimit(((IRubyObject) klass.getInternalVariable("code_point_limit")).convertToInteger().getIntValue());
+        lsb.setMaxAliasesForCollections(((IRubyObject) klass.getInternalVariable(MAX_ALIASES_FOR_COLLECTIONS)).convertToInteger().getIntValue());
+        lsb.setAllowDuplicateKeys(((IRubyObject) klass.getInternalVariable(ALLOW_DUPLICATE_KEYS)).isTrue());
+        lsb.setAllowRecursiveKeys(((IRubyObject) klass.getInternalVariable(ALLOW_RECURSIVE_KEYS)).isTrue());
+        lsb.setCodePointLimit(((IRubyObject) klass.getInternalVariable(CODE_POINT_LIMIT)).convertToInteger().getIntValue());
         this.loadSettingsBuilder = lsb;
     }
 
@@ -530,7 +538,7 @@ public class PsychParser extends RubyObject {
         return max;
     }
 
-    @JRubyMethod(name = "max_aliases_for_collections")
+    @JRubyMethod(name = MAX_ALIASES_FOR_COLLECTIONS)
     public IRubyObject max_aliases_for_collections(ThreadContext context) {
         return context.runtime.newFixnum(buildSettings().getMaxAliasesForCollections());
     }
@@ -542,7 +550,7 @@ public class PsychParser extends RubyObject {
         return allow;
     }
 
-    @JRubyMethod(name = "allow_duplicate_keys")
+    @JRubyMethod(name = ALLOW_DUPLICATE_KEYS)
     public IRubyObject allow_duplicate_keys(ThreadContext context) {
         return RubyBoolean.newBoolean(context, buildSettings().getAllowDuplicateKeys());
     }
@@ -554,7 +562,7 @@ public class PsychParser extends RubyObject {
         return allow;
     }
 
-    @JRubyMethod(name = "allow_recursive_keys")
+    @JRubyMethod(name = ALLOW_RECURSIVE_KEYS)
     public IRubyObject allow_recursive_keys(ThreadContext context) {
         return RubyBoolean.newBoolean(context, buildSettings().getAllowRecursiveKeys());
     }
@@ -566,7 +574,7 @@ public class PsychParser extends RubyObject {
         return limit;
     }
 
-    @JRubyMethod(name = "code_point_limit")
+    @JRubyMethod(name = CODE_POINT_LIMIT)
     public IRubyObject code_point_limit(ThreadContext context) {
         return context.runtime.newFixnum(buildSettings().getCodePointLimit());
     }
@@ -581,38 +589,38 @@ public class PsychParser extends RubyObject {
             throw context.runtime.newRangeError("max_aliases_for_collections must be positive");
         }
 
-        self.getInternalVariables().setInternalVariable("max_aliases_for_collections", max);
+        self.getInternalVariables().setInternalVariable(MAX_ALIASES_FOR_COLLECTIONS, max);
 
         return max;
     }
 
-    @JRubyMethod(name = "max_aliases_for_collections")
+    @JRubyMethod(name = MAX_ALIASES_FOR_COLLECTIONS)
     public static IRubyObject max_aliases_for_collections(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("max_aliases_for_collections");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(MAX_ALIASES_FOR_COLLECTIONS);
     }
 
     @JRubyMethod(name = "allow_duplicate_keys=", meta = true)
     public static IRubyObject allow_duplicate_keys_set(IRubyObject self, IRubyObject allow) {
-        self.getInternalVariables().setInternalVariable("allow_duplicate_keys", allow);
+        self.getInternalVariables().setInternalVariable(ALLOW_DUPLICATE_KEYS, allow);
 
         return allow;
     }
 
-    @JRubyMethod(name = "allow_duplicate_keys", meta = true)
+    @JRubyMethod(name = ALLOW_DUPLICATE_KEYS, meta = true)
     public static IRubyObject allow_duplicate_keys(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("allow_duplicate_keys");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(ALLOW_DUPLICATE_KEYS);
     }
 
     @JRubyMethod(name = "allow_recursive_keys=", meta = true)
     public static IRubyObject allow_recursive_keys_set(IRubyObject self, IRubyObject allow) {
-        self.getInternalVariables().setInternalVariable("allow_recursive_keys", allow);
+        self.getInternalVariables().setInternalVariable(ALLOW_RECURSIVE_KEYS, allow);
 
         return allow;
     }
 
-    @JRubyMethod(name = "allow_recursive_keys", meta = true)
+    @JRubyMethod(name = ALLOW_RECURSIVE_KEYS, meta = true)
     public static IRubyObject allow_recursive_keys(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("allow_recursive_keys");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(ALLOW_RECURSIVE_KEYS);
     }
 
     @JRubyMethod(name = "code_point_limit=", meta = true)
@@ -623,14 +631,14 @@ public class PsychParser extends RubyObject {
             throw context.runtime.newRangeError("code_point_limit must be positive");
         }
 
-        self.getInternalVariables().setInternalVariable("code_point_limit", limit);
+        self.getInternalVariables().setInternalVariable(CODE_POINT_LIMIT, limit);
 
         return limit;
     }
 
-    @JRubyMethod(name = "code_point_limit", meta = true)
+    @JRubyMethod(name = CODE_POINT_LIMIT, meta = true)
     public static IRubyObject code_point_limit(ThreadContext context, IRubyObject self) {
-        return (IRubyObject) self.getInternalVariables().getInternalVariable("code_point_limit");
+        return (IRubyObject) self.getInternalVariables().getInternalVariable(CODE_POINT_LIMIT);
     }
 
     private LoadSettings buildSettings() {
