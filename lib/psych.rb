@@ -319,7 +319,7 @@ module Psych
   #   Psych.safe_load("---\n foo: bar")                         # => {"foo"=>"bar"}
   #   Psych.safe_load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
   #
-  def self.safe_load yaml, permitted_classes: [], permitted_symbols: [], aliases: false, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
+  def self.safe_load yaml, permitted_classes: [], permitted_symbols: [], aliases: true, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
     result = parse(yaml, filename: filename)
     return fallback unless result
 
@@ -365,7 +365,7 @@ module Psych
   # Raises a TypeError when `yaml` parameter is NilClass.  This method is
   # similar to `safe_load` except that `Symbol` objects are allowed by default.
   #
-  def self.load yaml, permitted_classes: [Symbol], permitted_symbols: [], aliases: false, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
+  def self.load yaml, permitted_classes: [Symbol], permitted_symbols: [], aliases: true, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
     safe_load yaml, permitted_classes: permitted_classes,
                     permitted_symbols: permitted_symbols,
                     aliases: aliases,
