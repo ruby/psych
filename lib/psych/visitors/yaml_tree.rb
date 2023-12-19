@@ -17,19 +17,15 @@ module Psych
         def initialize
           @obj_to_id   = {}.compare_by_identity
           @obj_to_node = {}.compare_by_identity
-          @targets     = []
           @counter     = 0
         end
 
         def register target, node
-          @targets << target
           @obj_to_node[target] = node
         end
 
         def key? target
           @obj_to_node.key? target
-        rescue NoMethodError
-          false
         end
 
         def id_for target
