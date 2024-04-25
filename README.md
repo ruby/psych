@@ -38,6 +38,11 @@ Psych supported the static build with specific version of libyaml sources. You c
 
     gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
 
+For MacPorts users:
+
+    sudo port install yaml-cpp libyaml
+    gem install psych -- --with-opt-include=/opt/local/include --with-opt-lib=/opt/local/lib
+
 In order to use the gem release in your app, and not the stdlib version,
 you'll need the following:
 
