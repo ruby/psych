@@ -21,6 +21,9 @@ jobs:
           - { os: windows-latest, ruby: ucrt }
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
+          - { os: macos-13, ruby: 2.5 }
+        exclude:
+          - { os: macos-latest, ruby: 2.5 }
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
@@ -30,6 +33,10 @@ jobs:
           apt-get: "haveged libyaml-dev"
           brew: libyaml
           vcpkg: libyaml
+      - name: Set JRuby ENV vars
+        run: |
+          echo 'JAVA_OPTS=-Xmx1g' >> $GITHUB_ENV
+        if: ${{ ! startsWith(matrix.os, 'windows') }}
       - name: Install dependencies
         run: bundle install --jobs 1
       - name: Run test
