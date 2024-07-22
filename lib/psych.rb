@@ -363,9 +363,10 @@ module Psych
   #   Psych.load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
   #
   # Raises a TypeError when `yaml` parameter is NilClass.  This method is
-  # similar to `safe_load` except that `Symbol` objects are allowed by default.
+  # similar to `safe_load` except that `Symbol`, Date, DateTime and Time objects
+  # are allowed by default.
   #
-  def self.load yaml, permitted_classes: [Symbol], permitted_symbols: [], aliases: false, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
+  def self.load yaml, permitted_classes: [Symbol, Date, DateTime, Time], permitted_symbols: [], aliases: false, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
     safe_load yaml, permitted_classes: permitted_classes,
                     permitted_symbols: permitted_symbols,
                     aliases: aliases,

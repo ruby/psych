@@ -17,6 +17,7 @@ module Psych
     REGEXP      = 'Regexp'
     STRUCT      = 'Struct'
     SYMBOL      = 'Symbol'
+    TIME        = 'Time'
 
     def initialize
       @cache = CACHE.dup
