@@ -21,6 +21,9 @@ jobs:
           - { os: windows-latest, ruby: ucrt }
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
+        exclude:
+          # CRuby < 2.6 does not support macos-arm64
+          - { os: macos-latest, ruby: 2.5 }
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
