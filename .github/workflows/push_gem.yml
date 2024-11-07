@@ -39,7 +39,10 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
 
         # https://github.com/rubygems/rubygems/issues/5882
-      - run: gem update --system
+      - name: Install dependencies for JRuby
+        run: |
+          sudo apt install maven
+          gem update --system
         if: matrix.ruby == 'jruby'
 
       - run: bundle install --jobs 4 --retry 3
