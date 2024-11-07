@@ -49,7 +49,6 @@ jobs:
 
       - name: Install dependencies
         run: bundle install --jobs 4 --retry 3
-        if: matrix.ruby != 'jruby'
 
       - name: Publish to RubyGems
         uses: rubygems/release-gem@612653d273a73bdae1df8453e090060bb4db5f31 # v1
