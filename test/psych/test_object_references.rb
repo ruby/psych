@@ -36,6 +36,8 @@ module Psych
       assert_match(/\*-?\d+/, yml)
       begin
         data = Psych.load yml
+      rescue Psych::AliasesNotEnabled
+        data = Psych.load yml, aliases: true
       rescue Psych::DisallowedClass
         data = Psych.unsafe_load yml
       end
