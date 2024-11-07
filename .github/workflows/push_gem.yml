@@ -39,6 +39,10 @@ jobs:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
 
+        # https://github.com/rubygems/rubygems/issues/5882
+      - run: gem update --system
+        if: matrix.ruby == 'jruby'
+
       - name: Publish to RubyGems
         uses: rubygems/release-gem@612653d273a73bdae1df8453e090060bb4db5f31 # v1
 
