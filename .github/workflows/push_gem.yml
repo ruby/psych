@@ -36,12 +36,13 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # v1.190.0
         with:
-          bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
 
         # https://github.com/rubygems/rubygems/issues/5882
       - run: gem update --system
         if: matrix.ruby == 'jruby'
+
+      - run: bundle install --jobs 4 --retry 3
 
       - name: Publish to RubyGems
         uses: rubygems/release-gem@612653d273a73bdae1df8453e090060bb4db5f31 # v1
