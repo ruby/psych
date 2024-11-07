@@ -10,12 +10,12 @@ permissions:
 
 jobs:
   push:
-    if: github.repository == 'ruby/etc'
+    if: github.repository == 'ruby/psych'
     runs-on: ubuntu-latest
 
     environment:
       name: rubygems.org
-      url: https://rubygems.org/gems/etc
+      url: https://rubygems.org/gems/psych
 
     permissions:
       contents: write
