@@ -220,7 +220,8 @@ module Psych
             revive_data_members(members, o)
           end
           data ||= allocate_anon_data(o, members)
-          data.send(:initialize, **members)
+          init_struct(data, **members)
+          data.freeze
           data
 
         when /^!ruby\/object:?(.*)?$/
