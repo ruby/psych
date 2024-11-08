@@ -36,20 +36,23 @@ module Psych
       assert_equal so, Psych.unsafe_load(Psych.dump(so))
     end
 
-    class DataSubclass < Data.define(:foo)
-      def initialize(foo:)
-        @bar = "hello #{foo}"
-        super(foo:)
+    if defined?(::Data.define)
+      class DataSubclass < Data.define(:foo)
+        def initialize(foo:)
+          @bar = "hello #{foo}"
+          super(foo: foo)
+        end
+
+        def == other
+          super(other) && @bar == other.instance_eval{ @bar }
+        end
       end
 
-      def == other
-        super(other) && @bar == other.instance_eval{ @bar }
+      def test_data_subclass
+        so = DataSubclass.new('foo')
+        assert_equal so, Psych.unsafe_load(Psych.dump(so))
       end
     end
 
-    def test_data_subclass
-      so = DataSubclass.new('foo')
-      assert_equal so, Psych.unsafe_load(Psych.dump(so))
-    end
   end
 end

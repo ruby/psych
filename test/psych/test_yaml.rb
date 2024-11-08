@@ -7,7 +7,7 @@ require 'ostruct'
 # [ruby-core:01946]
 module Psych_Tests
     StructTest = Struct::new( :c )
-    DataTest   = Data.define( :c )
+    DataTest   = Data.define( :c ) if defined?(::Data.define)
 end
 
 class Psych_Unit_Tests < Psych::TestCase
@@ -1067,16 +1067,17 @@ EOY
 
     end
 
-    def test_ruby_data
-        Object.remove_const :MyBookData if Object.const_defined?(:MyBookData)
-        # Ruby Data value objects
-        book_class = Data.define(:author, :title, :year, :isbn)
-        Object.const_set(:MyBookData, book_class)
-        assert_to_yaml(
-            [ book_class.new( "Yukihiro Matsumoto", "Ruby in a Nutshell", 2002, "0-596-00214-9" ),
-              book_class.new( [ 'Dave Thomas', 'Andy Hunt' ], "The Pickaxe", 2002,
-                book_class.new( "This should be the ISBN", "but I have more data here", 2002, "None" )
-              ) ], <<EOY
+    if defined?(::Data.define)
+      def test_ruby_data
+          Object.remove_const :MyBookData if Object.const_defined?(:MyBookData)
+          # Ruby Data value objects
+          book_class = Data.define(:author, :title, :year, :isbn)
+          Object.const_set(:MyBookData, book_class)
+          assert_to_yaml(
+              [ book_class.new( "Yukihiro Matsumoto", "Ruby in a Nutshell", 2002, "0-596-00214-9" ),
+                book_class.new( [ 'Dave Thomas', 'Andy Hunt' ], "The Pickaxe", 2002,
+                  book_class.new( "This should be the ISBN", "but I have more data here", 2002, "None" )
+                ) ], <<EOY
 - !ruby/data:MyBookData
   author: Yukihiro Matsumoto
   title: Ruby in a Nutshell
@@ -1094,13 +1095,14 @@ EOY
     year: 2002
     isbn: None
 EOY
-        )
+          )
 
-        assert_to_yaml( Psych_Tests::DataTest.new( 123 ), <<EOY )
+          assert_to_yaml( Psych_Tests::DataTest.new( 123 ), <<EOY )
 --- !ruby/data:Psych_Tests::DataTest
 c: 123
 EOY
 
+      end
     end
 
     def test_ruby_rational

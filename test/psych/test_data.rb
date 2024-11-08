@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 require_relative 'helper'
 
-return unless defined?(::Data)
+return unless defined?(::Data.define)
 
 class PsychDataWithIvar < Data.define(:foo)
   attr_reader :bar
-  def initialize(...)
+  def initialize(**)
     @bar = 'hello'
     super
   end

@@ -31,8 +31,10 @@ module Psych
       assert_reference_trip Struct.new(:foo).new(1)
     end
 
-    def test_data_has_references
-      assert_reference_trip Data.define(:foo).new(1)
+    if defined?(::Data.define)
+      def test_data_has_references
+        assert_reference_trip Data.define(:foo).new(1)
+      end
     end
 
     def assert_reference_trip obj
