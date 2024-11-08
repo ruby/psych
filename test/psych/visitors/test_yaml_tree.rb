@@ -73,6 +73,26 @@ module Psych
         assert_equal s.method, obj.method
       end
 
+      if defined?(::Data.define)
+        D = Data.define(:foo)
+
+        def test_data
+          assert_cycle D.new('bar')
+        end
+
+        def test_data_anon
+          d = Data.define(:foo).new('bar')
+          obj =  Psych.unsafe_load(Psych.dump(d))
+          assert_equal d.foo, obj.foo
+        end
+
+        def test_data_override_method
+          d = Data.define(:method).new('override')
+          obj =  Psych.unsafe_load(Psych.dump(d))
+          assert_equal d.method, obj.method
+        end
+      end
+
       def test_exception
         ex = Exception.new 'foo'
         loaded = Psych.unsafe_load(Psych.dump(ex))

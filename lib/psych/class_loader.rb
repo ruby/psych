@@ -6,6 +6,7 @@ module Psych
   class ClassLoader # :nodoc:
     BIG_DECIMAL = 'BigDecimal'
     COMPLEX     = 'Complex'
+    DATA        = 'Data'
     DATE        = 'Date'
     DATE_TIME   = 'DateTime'
     EXCEPTION   = 'Exception'
