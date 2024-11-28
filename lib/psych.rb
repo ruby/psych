@@ -321,20 +321,10 @@ module Psych
   #   Psych.safe_load("---\n foo: bar")                         # => {"foo"=>"bar"}
   #   Psych.safe_load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
   #
-  def self.safe_load yaml, permitted_classes: [], permitted_symbols: [], aliases: false, filename: nil, fallback: nil, symbolize_names: false, freeze: false, strict_integer: false
+  def self.safe_load yaml, filename: nil, fallback: nil, **kwargs
     result = parse(yaml, filename: filename)
     return fallback unless result
-
-    class_loader = ClassLoader::Restricted.new(permitted_classes.map(&:to_s),
-                                               permitted_symbols.map(&:to_s))
-    scanner      = ScalarScanner.new class_loader, strict_integer: strict_integer
-    visitor = if aliases
-                Visitors::ToRuby.new scanner, class_loader, symbolize_names: symbolize_names, freeze: freeze
-              else
-                Visitors::NoAliasRuby.new scanner, class_loader, symbolize_names: symbolize_names, freeze: freeze
-              end
-    result = visitor.accept result
-    result
+    result.to_safe_ruby(**kwargs)
   end
 
   ###
