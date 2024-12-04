@@ -31,6 +31,12 @@ module Psych
       assert_reference_trip Struct.new(:foo).new(1)
     end
 
+    unless RUBY_VERSION < "3.1.0"
+      def test_data_has_references
+        assert_reference_trip Data.define(:foo).new(1)
+      end
+    end
+
     def assert_reference_trip obj
       yml = Psych.dump([obj, obj])
       assert_match(/\*-?\d+/, yml)
