@@ -1,7 +1,7 @@
 # Psych
 
-*   https://github.com/ruby/psych
-*   https://docs.ruby-lang.org/en/master/Psych.html
+* https://github.com/ruby/psych
+* https://docs.ruby-lang.org/en/master/Psych.html
 
 ## Description
 
@@ -22,31 +22,38 @@ Psych.dump("foo")     # => "--- foo\n...\n"
 
 ## Dependencies
 
-*   libyaml
+* libyaml
 
 ## Installation
 
 Psych has been included with MRI since 1.9.2, and is the default YAML parser
 in 1.9.3.
 
-If you want a newer gem release of Psych, you can use rubygems:
+If you want a newer gem release of Psych, you can use RubyGems:
 
-    gem install psych
-
+```bash
+gem install psych
+```
 
 Psych supported the static build with specific version of libyaml sources. You can build psych with libyaml-0.2.5 like this.
 
-    gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
+```bash
+gem install psych -- --with-libyaml-source-dir=/path/to/libyaml-0.2.5
+```
 
 In order to use the gem release in your app, and not the stdlib version,
 you'll need the following:
 
-    gem 'psych'
-    require 'psych'
+```ruby
+gem 'psych'
+require 'psych'
+```
 
 Or if you use Bundler add this to your `Gemfile`:
 
-    gem 'psych'
+```ruby
+gem 'psych'
+```
 
 JRuby ships with a pure Java implementation of Psych.
 
