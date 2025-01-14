@@ -2,6 +2,9 @@ name: test
 
 on: [push, pull_request]
 
+env:
+  JAVA_OPTS: '-Xms60M -Xmx1G'
+
 jobs:
   ruby-versions:
     uses: ruby/actions/.github/workflows/ruby_versions.yml@master
