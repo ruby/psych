@@ -41,11 +41,15 @@ import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
 
+import org.snakeyaml.engine.v2.common.SpecVersion;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 public class PsychLibrary implements Library {
+
+    private static final String POM_PROPERTIES = "META-INF/maven/org.snakeyaml/snakeyaml-engine/pom.properties";
     private static final String DUMMY_VERSION = "0.0";
 
     public void load(final Ruby runtime, boolean wrap) {
@@ -53,8 +57,8 @@ public class PsychLibrary implements Library {
 
         // load version from properties packed with the jar
         Properties props = new Properties();
-        try( InputStream is = runtime.getJRubyClassLoader().getResourceAsStream("META-INF/maven/org.snakeyaml/snakeyaml-engine/pom.properties") ) {
-            props.load(is);
+        try( InputStream is = SpecVersion.class.getResourceAsStream(POM_PROPERTIES) ) {
+            if (is != null) props.load(is);
         }
         catch( IOException e ) {
             // ignored
