@@ -65,15 +65,15 @@ public class PsychLibrary implements Library {
         }
         String snakeyamlVersion = props.getProperty("version", DUMMY_VERSION);
 
+        RubyString version = runtime.newString(snakeyamlVersion);
+        version.setFrozen(true);
+        psych.setConstant("SNAKEYAML_VERSION", version); // e.g. 2.10-SNAPSHOT
+
         if (snakeyamlVersion.endsWith("-SNAPSHOT")) {
             snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
         }
 
-        RubyString version = runtime.newString(snakeyamlVersion + ".0");
-        version.setFrozen(true);
-        psych.setConstant("SNAKEYAML_VERSION", version);
-
-        String[] versionParts = version.toString().split("\\.");
+        String[] versionParts = (snakeyamlVersion + ".0").split("\\."); // 2.10-SNAPSHOT -> 2.10.0
         final RubyArray versionElements = runtime.newArray(runtime.newFixnum(Integer.parseInt(versionParts[0])), runtime.newFixnum(Integer.parseInt(versionParts[1])), runtime.newFixnum(Integer.parseInt(versionParts[2])));
         versionElements.setFrozen(true);
 
