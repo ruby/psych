@@ -41,11 +41,15 @@ import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
 
+import org.snakeyaml.engine.v2.common.SpecVersion;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 public class PsychLibrary implements Library {
+
+    private static final String POM_PROPERTIES = "META-INF/maven/org.snakeyaml/snakeyaml-engine/pom.properties";
     private static final String DUMMY_VERSION = "0.0";
 
     public void load(final Ruby runtime, boolean wrap) {
@@ -53,23 +57,23 @@ public class PsychLibrary implements Library {
 
         // load version from properties packed with the jar
         Properties props = new Properties();
-        try( InputStream is = runtime.getJRubyClassLoader().getResourceAsStream("META-INF/maven/org.snakeyaml/snakeyaml-engine/pom.properties") ) {
-            props.load(is);
+        try( InputStream is = SpecVersion.class.getResourceAsStream(POM_PROPERTIES) ) {
+            if (is != null) props.load(is);
         }
         catch( IOException e ) {
             // ignored
         }
         String snakeyamlVersion = props.getProperty("version", DUMMY_VERSION);
 
+        RubyString version = runtime.newString(snakeyamlVersion);
+        version.setFrozen(true);
+        psych.setConstant("SNAKEYAML_VERSION", version); // e.g. 2.10-SNAPSHOT
+
         if (snakeyamlVersion.endsWith("-SNAPSHOT")) {
             snakeyamlVersion = snakeyamlVersion.substring(0, snakeyamlVersion.length() - "-SNAPSHOT".length());
         }
 
-        RubyString version = runtime.newString(snakeyamlVersion + ".0");
-        version.setFrozen(true);
-        psych.setConstant("SNAKEYAML_VERSION", version);
-
-        String[] versionParts = version.toString().split("\\.");
+        String[] versionParts = (snakeyamlVersion + ".0").split("\\."); // 2.10-SNAPSHOT -> 2.10.0
         final RubyArray versionElements = runtime.newArray(runtime.newFixnum(Integer.parseInt(versionParts[0])), runtime.newFixnum(Integer.parseInt(versionParts[1])), runtime.newFixnum(Integer.parseInt(versionParts[2])));
         versionElements.setFrozen(true);
 
