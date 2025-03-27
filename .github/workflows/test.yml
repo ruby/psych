@@ -49,6 +49,9 @@ jobs:
       - name: Install dependencies
         run: bundle install --jobs 1
       - name: Run test
+        id: test
         run: rake
+        continue-on-error: ${{ matrix.ruby == 'jruby-head' }}
       - name: Install gem
         run: rake install
+        if: ${{ steps.test.outcome == 'success' }}
