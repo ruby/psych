@@ -23,7 +23,7 @@ jobs:
 
     strategy:
       matrix:
-        ruby: ["3.3", "jruby"]
+        ruby: ["ruby", "jruby"]
 
     steps:
       - name: Harden Runner
