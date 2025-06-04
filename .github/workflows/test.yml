@@ -14,7 +14,7 @@ jobs:
   ruby-versions:
     uses: ruby/actions/.github/workflows/ruby_versions.yml@master
     with:
-      engine: cruby-jruby
+      engine: cruby
       min_version: 2.5
 
   test:
@@ -26,6 +26,11 @@ jobs:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
+          # jruby is broken with "undefined method 'init_struct'"
+          # https://github.com/ruby/psych/actions/runs/15434465445/job/43438083198?pr=734
+          - { os: windows-latest, ruby: jruby-head }
+          - { os: macos-latest, ruby: jruby-head }
+          - { os: ubuntu-latest, ruby: jruby-head }
           - { os: windows-latest, ruby: ucrt }
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
