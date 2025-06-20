@@ -58,5 +58,5 @@ jobs:
           tag_name="$(git describe --tags --abbrev=0)"
           gh release create "${tag_name}" --verify-tag --generate-notes
         env:
-          GITHUB_TOKEN: ${{ secrets.MATZBOT_GITHUB_WORKFLOW_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: matrix.ruby != 'jruby'
