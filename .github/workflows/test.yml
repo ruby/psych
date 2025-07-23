@@ -35,6 +35,8 @@ jobs:
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
           - { os: macos-13, ruby: 2.5 }
+          - { os: ubuntu-24.04-ppc64le, ruby: 3.4 }
+          - { os: ubuntu-24.04-s390x, ruby: 3.4 }
         exclude:
           # CRuby < 2.6 does not support macos-arm64
           - { os: macos-latest, ruby: 2.5 }
