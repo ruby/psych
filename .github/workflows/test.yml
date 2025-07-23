@@ -61,7 +61,8 @@ jobs:
         run: rake install
         if: ${{ steps.test.outcome == 'success' }}
 
-  test2:
+  test-ibm:
+    if: github.repository == 'ruby/psych'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
