@@ -35,13 +35,18 @@ jobs:
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
           - { os: macos-13, ruby: 2.5 }
-          - { os: ubuntu-24.04-ppc64le, ruby: 3.4 }
-          - { os: ubuntu-24.04-s390x, ruby: 3.4 }
+          - { os: ubuntu-24.04-ppc64le }
+          - { os: ubuntu-24.04-s390x }
         exclude:
           # CRuby < 2.6 does not support macos-arm64
           - { os: macos-latest, ruby: 2.5 }
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Ruby (ppc64le/s390x)
+        run: |
+          sudo apt-get update
+          sudo apt-get install ruby-full bundler libyaml-dev
+        if: contains(matrix.os, 'ppc64le') || contains(matrix.os, 's390x')
       - name: Set up Ruby
         uses: ruby/setup-ruby-pkgs@v1
         with:
@@ -49,12 +54,17 @@ jobs:
           apt-get: "haveged libyaml-dev"
           brew: libyaml
           vcpkg: libyaml
+        if: ${{ !(contains(matrix.os, 'ppc64le') || contains(matrix.os, 's390x')) }}
       - name: Set JRuby ENV vars
         run: |
           echo 'JAVA_OPTS=-Xmx1g' >> $GITHUB_ENV
         if: ${{ ! startsWith(matrix.ruby, 'jruby') }}
+      - name: Install dependencies (ppc64le/s390x)
+        run: sudo bundle install --jobs 1
+        if: contains(matrix.os, 'ppc64le') || contains(matrix.os, 's390x')
       - name: Install dependencies
         run: bundle install --jobs 1
+        if: ${{ !(contains(matrix.os, 'ppc64le') || contains(matrix.os, 's390x')) }}
       - name: Run test
         id: test
         run: rake
