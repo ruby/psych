@@ -60,3 +60,26 @@ jobs:
       - name: Install gem
         run: rake install
         if: ${{ steps.test.outcome == 'success' }}
+
+  test2:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04-ppc64le
+          - os: ubuntu-24.04-s390x
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        run: |
+          sudo apt-get update
+          sudo apt-get install ruby-full bundler libyaml-dev
+      - name: Install dependencies
+        run: sudo bundle install --jobs 2
+      - name: Run test
+        id: test
+        run: rake
+      - name: Install gem
+        run: sudo rake install
+        if: ${{ steps.test.outcome == 'success' }}
