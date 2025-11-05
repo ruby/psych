@@ -26,7 +26,7 @@ jobs:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
-          # jruby is broken with "undefined method 'init_struct'"
+          # jruby is broken with "undefined method 'init_data'"
           # https://github.com/ruby/psych/actions/runs/15434465445/job/43438083198?pr=734
           - { os: windows-latest, ruby: jruby-head }
           - { os: macos-latest, ruby: jruby-head }
