@@ -31,6 +31,9 @@ jobs:
           - { os: windows-latest, ruby: jruby-head }
           - { os: macos-latest, ruby: jruby-head }
           - { os: ubuntu-latest, ruby: jruby-head }
+          # Needs truffleruby-head for rb_struct_initialize() (which truffleruby 25.0 does not have)
+          - { os: ubuntu-latest, ruby: truffleruby-head }
+          - { os: macos-latest, ruby: truffleruby-head }
           - { os: windows-latest, ruby: ucrt }
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
