@@ -57,6 +57,16 @@ gem 'psych'
 
 JRuby ships with a pure Java implementation of Psych.
 
+## Release
+
+We used the trusted publisher and [rubygems/release-gem](https://github.com/rubygems/release-gem) workflow.
+
+We can release the new version with:
+
+```bash
+git tag vXXX && git push origin vXXX
+```
+
 ## License
 
 Copyright 2009 Aaron Patterson, et al.
