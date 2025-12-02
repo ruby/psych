@@ -51,6 +51,23 @@ module Psych
       alias :transform :to_ruby
 
       ###
+      # Safely convert this node to Ruby.
+      #
+      # See also Psych.safe_load
+      #
+      def to_safe_ruby(permitted_classes: [], permitted_symbols: [], aliases: false, symbolize_names: false, freeze: false, strict_integer: false)
+        class_loader = ClassLoader::Restricted.new(
+          permitted_classes.map(&:to_s),
+          permitted_symbols.map(&:to_s)
+        )
+        scanner = ScalarScanner.new(class_loader, strict_integer: strict_integer)
+        visitor_class = aliases ? Visitors::ToRuby : Visitors::NoAliasRuby
+
+        visitor_class.new(scanner, class_loader, symbolize_names: symbolize_names, freeze: freeze).accept(self)
+      end
+      alias :safe_transform :to_safe_ruby
+
+      ###
       # Convert this node to YAML.
       #
       # See also Psych::Visitors::Emitter
