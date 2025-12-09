@@ -42,7 +42,7 @@ jobs:
           # CRuby < 2.6 does not support macos-arm64
           - { os: macos-latest, ruby: 2.5 }
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - name: Set up Ruby
         uses: ruby/setup-ruby-pkgs@v1
         with:
@@ -74,7 +74,7 @@ jobs:
           - os: ubuntu-24.04-ppc64le
           - os: ubuntu-24.04-s390x
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - name: Set up Ruby
         run: |
           sudo apt-get update
