@@ -199,14 +199,15 @@ module Psych
 
         when /^!ruby\/data(-with-ivars)?(?::(.*))?$/
           data = register(o, resolve_class($2).allocate) if $2
-          members = {}
+          members = nil
+          values = nil
 
           if $1 # data-with-ivars
             ivars   = {}
             o.children.each_slice(2) do |type, vars|
               case accept(type)
               when 'members'
-                revive_data_members(members, vars)
+                members, values = revive_data_members(vars)
                 data ||= allocate_anon_data(o, members)
               when 'ivars'
                 revive_hash(ivars, vars)
@@ -216,13 +217,13 @@ module Psych
               data.instance_variable_set ivar, v
             end
           else
-            revive_data_members(members, o)
+            members, values = revive_data_members(o)
           end
           data ||= allocate_anon_data(o, members)
-          unless members.keys == data.class.members
-            raise ArgumentError, "Data members in YAML (#{members.keys}) do not match the members of #{data.class} (#{data.class.members})"
+          unless members == data.class.members
+            raise ArgumentError, "Data members in YAML (#{members}) do not match the members of #{data.class} (#{data.class.members})"
           end
-          init_data(data, members.values)
+          init_data(data, values)
           data.freeze
           data
 
@@ -370,17 +371,18 @@ module Psych
       end
 
       def allocate_anon_data node, members
-        klass = class_loader.data.define(*members.keys)
+        klass = class_loader.data.define(*members)
         register(node, klass.allocate)
       end
 
-      def revive_data_members hash, o
+      def revive_data_members o
+        keys = []
+        values = []
         o.children.each_slice(2) do |k,v|
-          name  = accept(k)
-          value = accept(v)
-          hash[class_loader.symbolize(name)] = value
+          keys << class_loader.symbolize(accept(k))
+          values << accept(v)
         end
-        hash
+        [keys, values]
       end
 
       def revive_hash hash, o, tagged= false
