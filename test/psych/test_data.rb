@@ -64,6 +64,37 @@ module Psych
       assert_equal "hello", obj.bar
       assert_equal "bar",   obj.foo
     end
+
+    def test_members_must_be_identical
+      TestData.const_set :D, Data.define(:a, :b)
+      d = Psych.dump(TestData::D.new(1, 2))
+
+      # more members
+      TestData.send :remove_const, :D
+      TestData.const_set :D, Data.define(:a, :b, :c)
+      e = assert_raise(ArgumentError) { Psych.unsafe_load d }
+      assert_equal 'Data members in YAML ([:a, :b]) do not match the members of Psych::TestData::D ([:a, :b, :c])', e.message
+
+      # less members
+      TestData.send :remove_const, :D
+      TestData.const_set :D, Data.define(:a)
+      e = assert_raise(ArgumentError) { Psych.unsafe_load d }
+      assert_equal 'Data members in YAML ([:a, :b]) do not match the members of Psych::TestData::D ([:a])', e.message
+
+      # completely different members
+      TestData.send :remove_const, :D
+      TestData.const_set :D, Data.define(:foo, :bar)
+      e = assert_raise(ArgumentError) { Psych.unsafe_load d }
+      assert_equal 'Data members in YAML ([:a, :b]) do not match the members of Psych::TestData::D ([:foo, :bar])', e.message
+
+      # different order
+      TestData.send :remove_const, :D
+      TestData.const_set :D, Data.define(:b, :a)
+      e = assert_raise(ArgumentError) { Psych.unsafe_load d }
+      assert_equal 'Data members in YAML ([:a, :b]) do not match the members of Psych::TestData::D ([:b, :a])', e.message
+    ensure
+      TestData.send :remove_const, :D
+    end
   end
 end
 

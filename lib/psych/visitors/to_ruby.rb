@@ -219,8 +219,10 @@ module Psych
             revive_data_members(members, o)
           end
           data ||= allocate_anon_data(o, members)
-          values = data.members.map { |m| members[m] }
-          init_data(data, values)
+          unless members.keys == data.class.members
+            raise ArgumentError, "Data members in YAML (#{members.keys}) do not match the members of #{data.class} (#{data.class.members})"
+          end
+          init_data(data, members.values)
           data.freeze
           data
 
