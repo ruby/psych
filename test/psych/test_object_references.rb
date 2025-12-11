@@ -31,9 +31,11 @@ module Psych
       assert_reference_trip Struct.new(:foo).new(1)
     end
 
+    D = Data.define(:foo) unless RUBY_VERSION < "3.2"
+
     def test_data_has_references
       omit "Data requires ruby >= 3.2" if RUBY_VERSION < "3.2"
-      assert_reference_trip Data.define(:foo).new(1)
+      assert_reference_trip D.new(1)
     end
 
     def assert_reference_trip obj
