@@ -163,41 +163,16 @@ module Psych
       alias :visit_Delegator :visit_Object
 
       def visit_Data o
-        ivars = o.instance_variables
-        if ivars.empty?
-          tag = ['!ruby/data', o.class.name].compact.join(':')
-          register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
-          o.members.each do |member|
-            @emitter.scalar member.to_s, nil, nil, true, false, Nodes::Scalar::ANY
-            accept o.send member
-          end
-          @emitter.end_mapping
+        raise TypeError, "can't dump Data with ivars: #{o}" unless o.instance_variables.empty?
+        raise TypeError, "can't dump anonymous Data: #{o}" unless o.class.name
 
-        else
-          tag = ['!ruby/data-with-ivars', o.class.name].compact.join(':')
-          node = @emitter.start_mapping(nil, tag, false, Psych::Nodes::Mapping::BLOCK)
-          register(o, node)
-
-          # Dump the members
-          accept 'members'
-          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
-          o.members.each do |member|
-            @emitter.scalar member.to_s, nil, nil, true, false, Nodes::Scalar::ANY
-            accept o.send member
-          end
-          @emitter.end_mapping
-
-          # Dump the ivars
-          accept 'ivars'
-          @emitter.start_mapping nil, nil, true, Nodes::Mapping::BLOCK
-          ivars.each do |ivar|
-            accept ivar.to_s
-            accept o.instance_variable_get ivar
-          end
-          @emitter.end_mapping
-
-          @emitter.end_mapping
+        tag = ['!ruby/data', o.class.name].compact.join(':')
+        register o, @emitter.start_mapping(nil, tag, false, Nodes::Mapping::BLOCK)
+        o.members.each do |member|
+          @emitter.scalar member.to_s, nil, nil, true, false, Nodes::Scalar::ANY
+          accept o.send member
         end
+        @emitter.end_mapping
       end unless RUBY_VERSION < "3.2"
 
       def visit_Struct o

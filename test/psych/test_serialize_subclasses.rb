@@ -38,12 +38,11 @@ module Psych
 
     class DataSubclass < Data.define(:foo)
       def initialize(foo:)
-        @bar = "hello #{foo}"
         super(foo: foo)
       end
 
       def == other
-        super(other) && @bar == other.instance_eval{ @bar }
+        super(other)
       end
     end unless RUBY_VERSION < "3.2"
 

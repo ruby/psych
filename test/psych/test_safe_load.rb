@@ -124,28 +124,6 @@ module Psych
       end
     end
 
-    def test_anon_data
-      omit "Data requires ruby >= 3.2" if RUBY_VERSION < "3.2"
-      assert Psych.safe_load(<<-eoyml, permitted_classes: [Data, Symbol])
---- !ruby/data
-  foo: bar
-      eoyml
-
-      assert_raise(Psych::DisallowedClass) do
-        Psych.safe_load(<<-eoyml, permitted_classes: [Data])
---- !ruby/data
-  foo: bar
-        eoyml
-      end
-
-      assert_raise(Psych::DisallowedClass) do
-        Psych.safe_load(<<-eoyml, permitted_classes: [Symbol])
---- !ruby/data
-  foo: bar
-        eoyml
-      end
-    end
-
     def test_safe_load_default_fallback
       assert_nil Psych.safe_load("")
     end

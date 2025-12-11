@@ -87,7 +87,7 @@ module Psych
     end
 
     def test_overwritten_to_s
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
       s = Psych.dump(Date.new(2023, 9, 2), permitted_classes: [Date])
       assert_separately(%W[-rpsych -rdate - #{s}], "#{<<~"begin;"}\n#{<<~'end;'}")
       class Date

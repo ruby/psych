@@ -197,30 +197,11 @@ module Psych
             s
           end
 
-        when /^!ruby\/data(-with-ivars)?(?::(.*))?$/
-          data = register(o, resolve_class($2).allocate) if $2
-          members = {}
-
-          if $1 # data-with-ivars
-            ivars   = {}
-            o.children.each_slice(2) do |type, vars|
-              case accept(type)
-              when 'members'
-                revive_data_members(members, vars)
-                data ||= allocate_anon_data(o, members)
-              when 'ivars'
-                revive_hash(ivars, vars)
-              end
-            end
-            ivars.each do |ivar, v|
-              data.instance_variable_set ivar, v
-            end
-          else
-            revive_data_members(members, o)
-          end
-          data ||= allocate_anon_data(o, members)
-          data.__send__ :initialize, **members
-          data
+        when /^!ruby\/data?(?::(.*))?$/
+          data_class = resolve_class($1) if $1
+          members = revive_data_members(o)
+          data = (data_class || Data.define(*members.keys)).new(**members)
+          register(o, data) # replace temp with actual
 
         when /^!ruby\/object:?(.*)?$/
           name = $1 || 'Object'
@@ -370,7 +351,8 @@ module Psych
         register(node, klass.allocate)
       end
 
-      def revive_data_members hash, o
+      def revive_data_members o
+        hash = {}
         o.children.each_slice(2) do |k,v|
           name  = accept(k)
           value = accept(v)

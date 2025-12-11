@@ -119,7 +119,7 @@ module Psych
     end
 
     def test_emit_alias
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       @emitter.start_stream Psych::Parser::UTF8
       @emitter.start_document [], [], true
@@ -153,7 +153,7 @@ module Psych
       @emitter.end_mapping
       @emitter.end_document false
       @emitter.end_stream
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       @parser.parse @buffer.string
       assert_encodings @utf8, @handler.strings
@@ -173,7 +173,7 @@ module Psych
       @emitter.end_sequence
       @emitter.end_document false
       @emitter.end_stream
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       @parser.parse @buffer.string
       assert_encodings @utf8, @handler.strings
@@ -191,7 +191,7 @@ module Psych
       @emitter.scalar 'foo', nil, nil, true, false, Nodes::Scalar::ANY
       @emitter.end_document false
       @emitter.end_stream
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       @parser.parse @buffer.string
       assert_encodings @utf8, @handler.strings
@@ -268,7 +268,7 @@ module Psych
     end
 
     def test_dump_non_ascii_string_to_file
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       Tempfile.create(['utf8', 'yml'], :encoding => 'UTF-8') do |t|
         h = {'one' => 'いち'}

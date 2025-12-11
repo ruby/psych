@@ -51,7 +51,7 @@ module Psych
     end
 
     def test_single_quote_when_matching_date
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
+      # pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
 
       lib = File.expand_path("../../../lib", __FILE__)
       assert_separately(["-I", lib, "-r", "psych"], __FILE__, __LINE__ + 1, <<~'RUBY')
