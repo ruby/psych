@@ -26,12 +26,11 @@ jobs:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
-          # jruby is broken with "undefined method 'init_data'"
-          # https://github.com/ruby/psych/actions/runs/15434465445/job/43438083198?pr=734
+          # jruby-10.0.2.0 does not support Data instances with ivars
           - { os: windows-latest, ruby: jruby-head }
           - { os: macos-latest, ruby: jruby-head }
           - { os: ubuntu-latest, ruby: jruby-head }
-          # Needs truffleruby-head for rb_struct_initialize() (which truffleruby 25.0 does not have)
+          # Needs truffleruby-head for (base) Data#initialize (which truffleruby 25.0 does not have)
           - { os: ubuntu-latest, ruby: truffleruby-head }
           - { os: macos-latest, ruby: truffleruby-head }
           - { os: windows-latest, ruby: ucrt }
@@ -59,7 +58,6 @@ jobs:
       - name: Run test
         id: test
         run: rake
-        continue-on-error: ${{ matrix.ruby == 'jruby-head' }}
       - name: Install gem
         run: rake install
         if: ${{ steps.test.outcome == 'success' }}
