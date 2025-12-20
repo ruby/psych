@@ -26,8 +26,8 @@ Psych.dump("foo")     # => "--- foo\n...\n"
 
 ## Installation
 
-Psych has been included with MRI since 1.9.2, and is the default YAML parser
-in 1.9.3.
+Psych has been included with MRI since 1.9.2, and has been the default YAML parser
+since 1.9.3.
 
 If you want a newer gem release of Psych, you can use RubyGems:
 
