@@ -14,7 +14,7 @@ jobs:
   ruby-versions:
     uses: ruby/actions/.github/workflows/ruby_versions.yml@master
     with:
-      engine: cruby
+      engine: cruby-truffleruby
       min_version: 2.5
 
   test:
@@ -30,9 +30,6 @@ jobs:
           - { os: windows-latest, ruby: jruby-head }
           - { os: macos-latest, ruby: jruby-head }
           - { os: ubuntu-latest, ruby: jruby-head }
-          # Needs truffleruby-head for (base) Data#initialize (which truffleruby 25.0 does not have)
-          - { os: ubuntu-latest, ruby: truffleruby-head }
-          - { os: macos-latest, ruby: truffleruby-head }
           - { os: windows-latest, ruby: ucrt }
           - { os: windows-latest, ruby: mingw }
           - { os: windows-latest, ruby: mswin }
@@ -40,6 +37,8 @@ jobs:
         exclude:
           # CRuby < 2.6 does not support macos-arm64
           - { os: macos-latest, ruby: 2.5 }
+          - { os: windows-latest, ruby: truffleruby }
+          - { os: windows-latest, ruby: truffleruby-head }
     steps:
       - uses: actions/checkout@v6.0.1
       - name: Set up Ruby
