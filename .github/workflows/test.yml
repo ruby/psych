@@ -40,7 +40,7 @@ jobs:
           - { os: windows-latest, ruby: truffleruby }
           - { os: windows-latest, ruby: truffleruby-head }
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Set up Ruby
         uses: ruby/setup-ruby-pkgs@v1
         with:
@@ -71,7 +71,7 @@ jobs:
           - os: ubuntu-24.04-ppc64le
           - os: ubuntu-24.04-s390x
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Set up Ruby
         run: |
           sudo apt-get update
