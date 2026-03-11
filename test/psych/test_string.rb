@@ -210,6 +210,29 @@ string: &70121654388580 !ruby/string
       assert_equal string, Psych.load(yml)
     end
 
+    def test_non_primitive_binary_string_with_ivars_dudek
+      string = X.new("hello \x80 world!".b)
+      string.instance_variable_set(:@foo, "bar")
+
+      dumped = Psych.dump(string)
+      assert_equal("--- !ruby/string\nstr: !binary |-\n  aGVsbG8ggCB3b3JsZCE=\nfoo: bar\n", dumped)
+
+      loaded = Psych.load(dumped)
+      assert_equal("bar", loaded.instance_variable_get(:@foo))
+      assert_equal("hello \x80 world!".b, loaded)
+    end
+
+    def test_primitive_binary_string_with_ivars
+      string = "hello \x80 world!".b
+      string.instance_variable_set(:@foo, "bar")
+
+      dumped = Psych.dump(string)
+      assert_equal("--- !binary |-\n  aGVsbG8ggCB3b3JsZCE=\n", dumped)
+
+      loaded = Psych.load(dumped)
+      assert_nil(loaded.instance_variable_get(:@foo))
+    end
+
     def test_ascii_only_binary_string
       string = "non bnry string".b
       yml = Psych.dump string
