@@ -152,6 +152,7 @@ module Psych
         when '!omap', 'tag:yaml.org,2002:omap'
           map = register(o, Psych::Omap.new)
           o.children.each { |a|
+            next unless a.children && a.children.size >= 2
             map[accept(a.children.first)] = accept a.children.last
           }
           map
