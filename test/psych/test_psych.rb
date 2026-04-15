@@ -212,6 +212,28 @@ class TestPsych < Psych::TestCase
     assert_equal({ 'hello' => 'world' }, got)
   end
 
+  def test_domain_types_with_aliases
+    my_test_class = Struct.new(:prop1, :prop2)
+
+    Psych.add_domain_type('test/custom_yaml', 'my_test_object') do |type, value|
+      my_test_class.new(prop1: value['prop1'], prop2: value['prop2'])
+    end
+
+    yaml = <<-eoyml
+---
+object1: &1 !test/custom_yaml:my_test_object
+  prop1: 13
+  prop2: 1989
+object2: *1
+object3: *1
+eoyml
+
+    data = Psych.load(yaml, aliases: true)
+    assert_equal(my_test_class.new(prop1: 13, prop2: 1989), data['object1'])
+    assert_equal(my_test_class.new(prop1: 13, prop2: 1989), data['object2'])
+    assert_equal(my_test_class.new(prop1: 13, prop2: 1989), data['object3'])
+  end
+
   def test_load_freeze
     data = Psych.load("--- {foo: ['a']}", freeze: true)
     assert_predicate data, :frozen?
