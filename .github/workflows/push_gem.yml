@@ -41,7 +41,8 @@ jobs:
         # https://github.com/rubygems/rubygems/issues/5882
       - name: Install dependencies and build for JRuby
         run: |
-          sudo apt install default-jdk maven
+          sudo apt-get update
+          sudo apt-get install -y default-jdk maven
           gem update --system
           gem install ruby-maven rake-compiler --no-document
           rake compile
