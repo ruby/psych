@@ -72,5 +72,29 @@ module Psych
       eoyml
       assert_equal list, map.to_a
     end
+
+    # Regression test for OSS-Fuzz crash: malformed omap with scalar children
+    # Bug: NoMethodError: undefined method `first' for nil when omap has scalar child
+    # The omap processing code assumed all children would be sequences with .children
+    # returning an array, but scalar nodes have .children == nil
+    def test_oss_fuzz_crash_omap_scalar_child
+      # This YAML reproduces the OSS-Fuzz crash found by fuzz_load fuzzer
+      # An !omap tag with a bare "-" creates a scalar child instead of sequence
+      # When the code tries to access scalar.children.first, it calls nil.first
+      yaml = <<~YAML
+        ---
+        !omap
+        -
+      YAML
+      
+      # Use the exact same method as the fuzzer: Psych.safe_load_stream
+      # This processes the omap tag and triggers the crash without the fix
+      result = Psych.safe_load_stream(yaml)
+      assert_kind_of Array, result
+      # The omap should be created but empty (malformed entry skipped)
+      omap = result.first
+      assert_kind_of Hash, omap  # safe_load_stream returns plain Hash, not Omap
+      assert_equal 0, omap.size
+    end
   end
 end
