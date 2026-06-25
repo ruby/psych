@@ -45,6 +45,7 @@ module Psych
           if @domain_types.key? key
             value, block = @domain_types[key]
             result = block.call value, result
+            register(target, result)
           end
         end
 
