@@ -26,14 +26,28 @@ jobs:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
         os: [ ubuntu-latest, macos-latest ]
 
+    env:
+      LIBFYAML_VERSION: "0.9.6"
+
     steps:
       - uses: actions/checkout@v7.0.0
       - name: Set up Ruby and libfyaml
         uses: ruby/setup-ruby-pkgs@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          apt-get: "libfyaml-dev pkg-config"
+          apt-get: "pkg-config"
           brew: "libfyaml pkg-config"
+      - name: Build libfyaml from source
+        # The libfyaml-dev package on Ubuntu is 0.8, which crashes the emitter,
+        # so build a known-good release. macOS uses the Homebrew build above.
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL "https://github.com/pantoniou/libfyaml/releases/download/v${LIBFYAML_VERSION}/libfyaml-${LIBFYAML_VERSION}.tar.gz" | tar xz
+          cd "libfyaml-${LIBFYAML_VERSION}"
+          ./configure --prefix=/usr/local
+          make -j"$(nproc)"
+          sudo make install
+          sudo ldconfig
       - name: Install dependencies
         run: bundle install --jobs 3
       - name: Compile with the libfyaml backend
