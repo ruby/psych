@@ -95,6 +95,13 @@ The backend is experimental. Its output is valid YAML but is formatted
 differently from libyaml in places, and a few emitter edge cases are not yet
 matched. The default libyaml backend remains the supported choice.
 
+Two more differences are worth knowing. Scalars emitted with the default
+(`ANY`) style may be quoted or laid out differently from libyaml, so
+byte-for-byte output is not guaranteed to match. On a parse error,
+`Psych::SyntaxError#problem` carries libfyaml's full diagnostic message and
+`Psych::SyntaxError#context` is always `nil`, whereas libyaml splits the
+description across `#problem` and `#context`.
+
 ## Release
 
 We used the trusted publisher and [rubygems/release-gem](https://github.com/rubygems/release-gem) workflow.
