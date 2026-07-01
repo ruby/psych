@@ -1,0 +1,44 @@
+name: libfyaml
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '33 11 * * 0'
+  workflow_dispatch:
+
+# Exercises the experimental, opt-in libfyaml backend (--enable-libfyaml).
+# libfyaml is not supported on Windows, so this workflow runs on Linux and
+# macOS only. The default libyaml backend is covered by test.yml/libyaml.yml.
+jobs:
+  ruby-versions:
+    uses: ruby/actions/.github/workflows/ruby_versions.yml@master
+    with:
+      engine: cruby
+      min_version: 3.0
+
+  build:
+    needs: ruby-versions
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+        os: [ ubuntu-latest, macos-latest ]
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - name: Set up Ruby and libfyaml
+        uses: ruby/setup-ruby-pkgs@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          apt-get: "libfyaml-dev pkg-config"
+          brew: "libfyaml pkg-config"
+      - name: Install dependencies
+        run: bundle install --jobs 3
+      - name: Compile with the libfyaml backend
+        run: rake compile -- --enable-libfyaml
+      - name: Verify the libfyaml backend is active
+        run: ruby -Ilib -rpsych -e 'abort "expected the libfyaml backend, got #{Psych::BACKEND}" unless Psych::BACKEND == "libfyaml"; puts "libfyaml #{Psych.libfyaml_version}"'
+      - name: Run test
+        run: rake test
