@@ -102,6 +102,14 @@ byte-for-byte output is not guaranteed to match. On a parse error,
 `Psych::SyntaxError#context` is always `nil`, whereas libyaml splits the
 description across `#problem` and `#context`.
 
+This backend targets YAML 1.2 compliance, not speed. In a rough
+single-machine benchmark that loads and dumps in-memory documents, parsing
+was roughly on par with libyaml (sometimes faster on string-heavy input),
+while emitting was about 1.7x to 1.9x slower. Your numbers will vary, but the
+shape holds: libfyaml is competitive at parsing and slower at emitting. Use
+this backend when you need YAML 1.2 semantics. If throughput is your priority,
+keep using the default libyaml backend.
+
 ## Release
 
 We used the trusted publisher and [rubygems/release-gem](https://github.com/rubygems/release-gem) workflow.
