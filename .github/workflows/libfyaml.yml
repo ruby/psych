@@ -39,6 +39,8 @@ jobs:
       - name: Compile with the libfyaml backend
         run: rake compile -- --enable-libfyaml
       - name: Verify the libfyaml backend is active
-        run: ruby -Ilib -rpsych -e 'abort "expected the libfyaml backend, got #{Psych::BACKEND}" unless Psych::BACKEND == "libfyaml"; puts "libfyaml #{Psych.libfyaml_version}"'
+        run: |
+          ruby -Ilib -rpsych -e 'abort "expected the libfyaml backend, got #{Psych::BACKEND}" unless Psych::BACKEND == "libfyaml"'
+          ruby -Ilib -rpsych -e 'puts "libfyaml #{Psych.libfyaml_version}"'
       - name: Run test
         run: rake test
