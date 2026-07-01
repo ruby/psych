@@ -23,6 +23,7 @@ Psych.dump("foo")     # => "--- foo\n...\n"
 ## Dependencies
 
 * libyaml
+* libfyaml (optional, only for the experimental `--enable-libfyaml` backend)
 
 ## Installation
 
@@ -56,6 +57,43 @@ gem 'psych'
 ```
 
 JRuby ships with a pure Java implementation of Psych.
+
+## Experimental libfyaml backend
+
+Psych ships an experimental, opt-in backend built on
+[libfyaml](https://github.com/pantoniou/libfyaml), a fully YAML 1.2 compliant
+parser and emitter. It is compiled only when you explicitly pass
+`--enable-libfyaml` at build time. Without the flag the default libyaml
+backend is used and nothing changes.
+
+```bash
+# libfyaml and pkg-config must be installed first, for example:
+#   apt-get install libfyaml-dev   # Debian/Ubuntu
+#   brew install libfyaml          # macOS
+gem install psych -- --enable-libfyaml
+```
+
+This backend is not supported on Windows.
+
+Because libfyaml follows YAML 1.2, the YAML 1.1 booleans `yes`, `no`, `on`, and
+`off` load as plain strings instead of `true`/`false` (only `true`/`false` are
+booleans). This resolves the so-called "Norway problem", where the country
+code `no` was parsed as `false`:
+
+```ruby
+Psych.load("country: no") # => {"country" => "no"}
+```
+
+You can check which backend is active:
+
+```ruby
+Psych::BACKEND         # => "libfyaml" (or "libyaml")
+Psych.libfyaml_version # => "0.9.6"
+```
+
+The backend is experimental. Its output is valid YAML but is formatted
+differently from libyaml in places, and a few emitter edge cases are not yet
+matched. The default libyaml backend remains the supported choice.
 
 ## Release
 
