@@ -30,7 +30,7 @@ jobs:
       LIBFYAML_VERSION: "0.9.6"
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - name: Set up Ruby and libfyaml
         uses: ruby/setup-ruby-pkgs@v1
         with:
