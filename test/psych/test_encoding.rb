@@ -55,6 +55,15 @@ module Psych
       assert_equal str, loaded
     end
 
+    def test_dump_non_ascii_compatible_encoding
+      ['UTF-16LE', 'UTF-16BE', 'UTF-32LE', 'UTF-32BE'].each do |encoding|
+        ['', 'hello', "multi\nline", 'こんにちは！', 'yes', '<<', '0123'].each do |str|
+          assert_equal Psych.dump(str), Psych.dump(str.encode(encoding)),
+            "#{str.inspect} in #{encoding} should dump as it does in UTF-8"
+        end
+      end
+    end
+
     def test_io_shiftjis
       Tempfile.create(['shiftjis', 'yml'], :encoding => 'SHIFT_JIS') {|t|
         t.write '--- こんにちは！'

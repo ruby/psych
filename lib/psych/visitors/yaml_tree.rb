@@ -293,6 +293,9 @@ module Psych
         style = Nodes::Scalar::PLAIN
         tag   = nil
 
+        # the checks below match ASCII regexps, which UTF-16/32 strings cannot match against
+        o = o.encode(Encoding::UTF_8) unless o.encoding.ascii_compatible?
+
         if binary?(o)
           o     = [o].pack('m0')
           tag   = '!binary' # FIXME: change to below when syck is removed
