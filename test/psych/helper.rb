@@ -21,6 +21,13 @@ module Psych
       defined?(Psych::BACKEND) && Psych::BACKEND == 'libfyaml'
     end
 
+    # True when psych uses the default libyaml C backend (not libfyaml and
+    # not the JRuby backend, both of which leave Psych::BACKEND either set to
+    # a different value or undefined).
+    def libyaml?
+      defined?(Psych::BACKEND) && Psych::BACKEND == 'libyaml'
+    end
+
     def with_default_external(enc)
       verbose, $VERBOSE = $VERBOSE, nil
       origenc, Encoding.default_external = Encoding.default_external, enc
