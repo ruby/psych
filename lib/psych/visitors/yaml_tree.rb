@@ -163,6 +163,7 @@ module Psych
       alias :visit_Delegator :visit_Object
 
       def visit_Data o
+        raise TypeError, "can't dump anonymous Data: #{o}" unless o.class.name
         ivars = o.instance_variables
         if ivars.empty?
           tag = ['!ruby/data', o.class.name].compact.join(':')
