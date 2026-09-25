@@ -604,7 +604,8 @@ module Psych
           raise BadAlias, "Tried to dump an aliased object"
         end
 
-        unless Symbol === target || @permitted_classes[target.class]
+        unless Symbol === target || @permitted_classes[target.class] ||
+            @permitted_classes.keys.include?(target.class.name)
           raise DisallowedClass.new('dump', target.class.name || target.class.inspect)
         end
 
