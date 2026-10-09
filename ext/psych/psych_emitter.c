@@ -172,8 +172,8 @@ static VALUE start_document_try(VALUE d)
     }
 
     if(RTEST(tags)) {
-        long i = 0;
-        long len;
+        rb_len_t i = 0;
+        rb_len_t len;
         rb_encoding * encoding = rb_utf8_encoding();
 
         Check_Type(tags, T_ARRAY);
