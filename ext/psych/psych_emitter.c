@@ -25,7 +25,7 @@ static void emit(yaml_emitter_t * emitter, yaml_event_t * event)
 static int writer(void *ctx, unsigned char *buffer, size_t size)
 {
     VALUE self = (VALUE)ctx, io = rb_attr_get(self, id_io);
-    VALUE str = rb_enc_str_new((const char *)buffer, (long)size, rb_utf8_encoding());
+    VALUE str = rb_enc_str_new((const char *)buffer, (rb_len_t)size, rb_utf8_encoding());
     VALUE wrote = rb_funcall(io, id_write, 1, str);
     return (int)NUM2INT(wrote);
 }
