@@ -7,6 +7,16 @@ module Psych
       assert_match(/"foo"/, Psych.to_json("foo"))
     end
 
+    def test_long_string
+      string = 'word ' * 30
+      assert_equal "\"#{string}\"\n", Psych.to_json(string)
+    end
+
+    def test_long_string_in_sequence
+      string = 'word ' * 30
+      assert_include Psych.to_json([[1, string]]), "\"#{string}\""
+    end
+
     def test_symbol
       assert_match(/"foo"/, Psych.to_json(:foo))
     end

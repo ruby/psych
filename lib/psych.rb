@@ -623,7 +623,7 @@ module Psych
   def self.to_json object
     visitor = Psych::Visitors::JSONTree.create
     visitor << object
-    visitor.tree.yaml
+    visitor.tree.yaml(nil, line_width: -1)
   end
 
   ###
