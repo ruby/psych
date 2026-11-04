@@ -100,6 +100,45 @@ module Psych
       end
     end
 
+    def test_invalid_event
+      omit 'libyaml backend only' unless libyaml?
+
+      invalid = "\xFF"
+
+      bad_calls = [
+        ->(e) { e.scalar(invalid, nil, nil, false, true, 1) },
+        ->(e) { e.scalar('x', invalid, nil, false, true, 1) },
+        ->(e) { e.scalar('x', nil, invalid, false, true, 1) },
+        ->(e) { e.start_sequence(invalid, nil, false, 1) },
+        ->(e) { e.start_sequence(nil, invalid, false, 1) },
+        ->(e) { e.start_mapping(invalid, nil, false, 1) },
+        ->(e) { e.start_mapping(nil, invalid, false, 1) },
+        ->(e) { e.alias(invalid) },
+      ]
+
+      bad_calls.each do |bad_call|
+        out = StringIO.new(''.dup)
+        emitter = Psych::Emitter.new out
+        emitter.start_stream Psych::Nodes::Stream::UTF8
+        emitter.start_document [], [], true
+        # Emit a valid event that allocates memory (its anchor and tag).
+        emitter.start_sequence 'anchor', 'tag:example.com,2000:seq', false, 1
+
+        assert_raise(RuntimeError) { bad_call.call(emitter) }
+      end
+    end
+
+    def test_invalid_tag_directive
+      omit 'libyaml backend only' unless libyaml?
+
+      invalid = "\xFF"
+
+      @emitter.start_stream Psych::Nodes::Stream::UTF8
+      assert_raise(RuntimeError) do
+        @emitter.start_document [1, 1], [[invalid, 'tag:x']], false
+      end
+    end
+
     def test_resizing_tags
       @emitter.start_stream Psych::Nodes::Stream::UTF8
 
