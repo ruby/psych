@@ -312,7 +312,7 @@ static VALUE scalar(
             (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValueCStr(anchor)),
             (yaml_char_t *)(NIL_P(tag) ? NULL : StringValueCStr(tag)),
             (yaml_char_t*)value_ptr,
-            (int)RSTRING_LEN(value),
+            RSTRING_LENINT(value),
             plain ? 1 : 0,
             quoted ? 1 : 0,
             (yaml_scalar_style_t)NUM2INT(style)
