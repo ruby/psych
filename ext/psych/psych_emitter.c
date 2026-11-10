@@ -112,7 +112,8 @@ static VALUE start_stream(VALUE self, VALUE encoding)
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
     Check_Type(encoding, T_FIXNUM);
 
-    yaml_stream_start_event_initialize(&event, (yaml_encoding_t)NUM2INT(encoding));
+    if(!yaml_stream_start_event_initialize(&event, (yaml_encoding_t)NUM2INT(encoding)))
+        rb_raise(rb_eRuntimeError, "failed to initialize stream start event");
 
     emit(emitter, &event);
 
@@ -131,7 +132,8 @@ static VALUE end_stream(VALUE self)
     yaml_event_t event;
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
 
-    yaml_stream_end_event_initialize(&event);
+    if(!yaml_stream_end_event_initialize(&event))
+        rb_raise(rb_eRuntimeError, "failed to initialize stream end event");
 
     emit(emitter, &event);
 
@@ -207,13 +209,15 @@ static VALUE start_document_try(VALUE d)
         }
     }
 
-    yaml_document_start_event_initialize(
+    if(!yaml_document_start_event_initialize(
             &event,
             (RARRAY_LEN(version) > 0) ? &version_directive : NULL,
             data->head,
             tail,
             imp ? 1 : 0
-            );
+            )) {
+        rb_raise(rb_eRuntimeError, "failed to initialize document start event");
+    }
 
     emit(emitter, &event);
 
@@ -262,7 +266,8 @@ static VALUE end_document(VALUE self, VALUE imp)
     yaml_event_t event;
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
 
-    yaml_document_end_event_initialize(&event, imp ? 1 : 0);
+    if(!yaml_document_end_event_initialize(&event, imp ? 1 : 0))
+        rb_raise(rb_eRuntimeError, "failed to initialize document end event");
 
     emit(emitter, &event);
 
@@ -307,7 +312,7 @@ static VALUE scalar(
     }
 
     const char *value_ptr = StringValuePtr(value);
-    yaml_scalar_event_initialize(
+    if(!yaml_scalar_event_initialize(
             &event,
             (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValueCStr(anchor)),
             (yaml_char_t *)(NIL_P(tag) ? NULL : StringValueCStr(tag)),
@@ -316,7 +321,9 @@ static VALUE scalar(
             plain ? 1 : 0,
             quoted ? 1 : 0,
             (yaml_scalar_style_t)NUM2INT(style)
-            );
+            )) {
+        rb_raise(rb_eRuntimeError, "failed to initialize scalar event");
+    }
 
     emit(emitter, &event);
 
@@ -354,13 +361,15 @@ static VALUE start_sequence(
 
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
 
-    yaml_sequence_start_event_initialize(
+    if(!yaml_sequence_start_event_initialize(
             &event,
             (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValueCStr(anchor)),
             (yaml_char_t *)(NIL_P(tag) ? NULL : StringValueCStr(tag)),
             implicit ? 1 : 0,
             (yaml_sequence_style_t)NUM2INT(style)
-            );
+            )) {
+        rb_raise(rb_eRuntimeError, "failed to initialize sequence start event");
+    }
 
     emit(emitter, &event);
 
@@ -379,7 +388,8 @@ static VALUE end_sequence(VALUE self)
     yaml_event_t event;
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
 
-    yaml_sequence_end_event_initialize(&event);
+    if(!yaml_sequence_end_event_initialize(&event))
+        rb_raise(rb_eRuntimeError, "failed to initialize sequence end event");
 
     emit(emitter, &event);
 
@@ -418,13 +428,15 @@ static VALUE start_mapping(
         tag = rb_str_export_to_enc(tag, encoding);
     }
 
-    yaml_mapping_start_event_initialize(
+    if(!yaml_mapping_start_event_initialize(
             &event,
             (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValueCStr(anchor)),
             (yaml_char_t *)(NIL_P(tag) ? NULL : StringValueCStr(tag)),
             implicit ? 1 : 0,
             (yaml_mapping_style_t)NUM2INT(style)
-            );
+            )) {
+        rb_raise(rb_eRuntimeError, "failed to initialize mapping start event");
+    }
 
     emit(emitter, &event);
 
@@ -443,7 +455,8 @@ static VALUE end_mapping(VALUE self)
     yaml_event_t event;
     TypedData_Get_Struct(self, yaml_emitter_t, &psych_emitter_type, emitter);
 
-    yaml_mapping_end_event_initialize(&event);
+    if(!yaml_mapping_end_event_initialize(&event))
+        rb_raise(rb_eRuntimeError, "failed to initialize mapping end event");
 
     emit(emitter, &event);
 
@@ -467,10 +480,12 @@ static VALUE alias(VALUE self, VALUE anchor)
         anchor = rb_str_export_to_enc(anchor, rb_utf8_encoding());
     }
 
-    yaml_alias_event_initialize(
+    if(!yaml_alias_event_initialize(
             &event,
             (yaml_char_t *)(NIL_P(anchor) ? NULL : StringValueCStr(anchor))
-            );
+            )) {
+        rb_raise(rb_eRuntimeError, "failed to initialize alias event");
+    }
 
     emit(emitter, &event);
 
