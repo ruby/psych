@@ -118,8 +118,6 @@ module Psych
     end
 
     def test_parse_is_not_reentrant
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
-
       handler = ReentrantHandler.new
       handler.inner_yaml = "--- inner\n"
       parser = Psych::Parser.new handler
@@ -139,8 +137,6 @@ module Psych
     end
 
     def test_parse_is_not_reentrant_with_invalid_inner_document
-      pend "Failing on JRuby" if RUBY_PLATFORM =~ /java/
-
       handler = ReentrantHandler.new
       handler.inner_yaml = "--- \x00bad\n"
       parser = Psych::Parser.new handler
