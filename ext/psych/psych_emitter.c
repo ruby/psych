@@ -1,4 +1,5 @@
 #include <psych.h>
+#include <ruby/util.h>
 
 #ifndef PSYCH_USE_LIBFYAML
 
@@ -145,6 +146,7 @@ struct start_document_data {
     VALUE imp;
 
     yaml_tag_directive_t * head;
+    rb_len_t n_tags;
 };
 
 static VALUE start_document_try(VALUE d)
@@ -180,6 +182,7 @@ static VALUE start_document_try(VALUE d)
 
         len = RARRAY_LEN(tags);
         data->head = xcalloc((size_t)len, sizeof(yaml_tag_directive_t));
+        data->n_tags = len;
         tail = data->head;
 
         for(i = 0; i < len && i < RARRAY_LEN(tags); i++) {
@@ -200,8 +203,12 @@ static VALUE start_document_try(VALUE d)
             name = rb_str_export_to_enc(name, encoding);
             value = rb_str_export_to_enc(value, encoding);
 
-            tail->handle = (yaml_char_t *)StringValueCStr(name);
-            tail->prefix = (yaml_char_t *)StringValueCStr(value);
+            /* Copy the bytes: libyaml reads them only after the loop, and by
+             * then the Strings may have been collected or moved by the GC.
+             * The copies are freed in start_document_ensure.
+             */
+            tail->handle = (yaml_char_t *)ruby_strdup(StringValueCStr(name));
+            tail->prefix = (yaml_char_t *)ruby_strdup(StringValueCStr(value));
 
             tail++;
         }
@@ -223,7 +230,15 @@ static VALUE start_document_try(VALUE d)
 static VALUE start_document_ensure(VALUE d)
 {
     struct start_document_data * data = (struct start_document_data *)d;
+    rb_len_t i;
 
+    /* Entries the loop did not reach are still zeroed by xcalloc, and
+     * xfree(NULL) is a no-op.
+     */
+    for(i = 0; i < data->n_tags; i++) {
+        xfree(data->head[i].handle);
+        xfree(data->head[i].prefix);
+    }
     xfree(data->head);
 
     return Qnil;
@@ -245,6 +260,7 @@ static VALUE start_document(VALUE self, VALUE version, VALUE tags, VALUE imp)
         .imp = imp,
 
         .head = NULL,
+        .n_tags = 0,
     };
 
     return rb_ensure(start_document_try, (VALUE)&data, start_document_ensure, (VALUE)&data);
