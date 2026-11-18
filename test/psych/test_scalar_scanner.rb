@@ -105,6 +105,24 @@ module Psych
       assert_equal 685230, ss.tokenize('190:20:30')
     end
 
+    def test_scan_sexagesimal_two_components
+      assert_equal 750, ss.tokenize('12:30')
+      assert_equal 750.5, ss.tokenize('12:30.5')
+      assert_equal 6000, ss.tokenize('100:00')
+    end
+
+    def test_scan_sexagesimal_negative
+      assert_equal(-750, ss.tokenize('-12:30'))
+      assert_equal(-45000, ss.tokenize('-12:30:00'))
+      assert_equal(-750.5, ss.tokenize('-12:30.5'))
+    end
+
+    def test_scan_sexagesimal_distinguishes_component_counts
+      # Different documents, so they must not resolve to the same value.
+      assert_equal 750, ss.tokenize('12:30')
+      assert_equal 45000, ss.tokenize('12:30:00')
+    end
+
     def test_scan_float
       assert_equal 1.2, ss.tokenize('1.2')
     end
