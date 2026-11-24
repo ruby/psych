@@ -35,14 +35,15 @@ module Psych
       sym.to_sym
     end
 
-    constants.each do |const|
-      konst = const_get const
-      class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{const.to_s.downcase}
-          load #{konst.inspect}
-        end
-      RUBY
-    end
+    class_eval(
+      constants.reduce(+"# frozen_string_literal: true\n") { |code, const|
+        konst = const_get const
+
+        code << "def #{const.to_s.downcase};find #{konst.inspect};end;"
+      },
+      __FILE__,
+      __LINE__ - 4
+    )
 
     private
 
