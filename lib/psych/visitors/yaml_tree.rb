@@ -292,6 +292,7 @@ module Psych
         quote = true
         style = Nodes::Scalar::PLAIN
         tag   = nil
+        str = o
 
         if binary?(o)
           o     = [o].pack('m0')
@@ -317,8 +318,8 @@ module Psych
           style = Nodes::Scalar::SINGLE_QUOTED
         end
 
-        is_primitive = o.class == ::String
-        ivars = is_primitive ? [] : o.instance_variables
+        is_primitive = str.class == ::String
+        ivars = is_primitive ? [] : str.instance_variables
 
         if ivars.empty?
           unless is_primitive
@@ -335,7 +336,7 @@ module Psych
           @emitter.scalar 'str', nil, nil, true, false, Nodes::Scalar::ANY
           @emitter.scalar o, nil, tag, plain, quote, style
 
-          dump_ivars o
+          dump_ivars str
 
           @emitter.end_mapping
         end
