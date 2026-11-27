@@ -105,6 +105,14 @@ module Psych
       assert_equal 685230, ss.tokenize('190:20:30')
     end
 
+    def test_scan_negative_sexagesimal_int
+      assert_equal(-685230, ss.tokenize('-190:20:30'))
+    end
+
+    def test_scan_negative_sexagesimal_float
+      assert_equal(-685230.15, ss.tokenize('-190:20:30.15'))
+    end
+
     def test_scan_float
       assert_equal 1.2, ss.tokenize('1.2')
     end

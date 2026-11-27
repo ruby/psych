@@ -92,17 +92,19 @@ module Psych
           @symbol_cache[string] = class_loader.symbolize(string.sub(/^:/, ''))
         end
       elsif string.match?(/^[-+]?[0-9][0-9_]*(:[0-5]?[0-9]){1,2}$/)
+        sign = string.start_with?('-') ? -1 : 1
         i = 0
-        string.split(':').each_with_index do |n,e|
+        string.delete_prefix('-').delete_prefix('+').split(':').each_with_index do |n,e|
           i += (n.to_i * 60 ** (e - 2).abs)
         end
-        i
+        i * sign
       elsif string.match?(/^[-+]?[0-9][0-9_]*(:[0-5]?[0-9]){1,2}\.[0-9_]*$/)
+        sign = string.start_with?('-') ? -1 : 1
         i = 0
-        string.split(':').each_with_index do |n,e|
+        string.delete_prefix('-').delete_prefix('+').split(':').each_with_index do |n,e|
           i += (n.to_f * 60 ** (e - 2).abs)
         end
-        i
+        i * sign
       elsif string.match?(FLOAT)
         if string.match?(/\A[-+]?\.\Z/)
           string
