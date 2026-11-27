@@ -92,17 +92,9 @@ module Psych
           @symbol_cache[string] = class_loader.symbolize(string.sub(/^:/, ''))
         end
       elsif string.match?(/^[-+]?[0-9][0-9_]*(:[0-5]?[0-9]){1,2}$/)
-        i = 0
-        string.split(':').each_with_index do |n,e|
-          i += (n.to_i * 60 ** (e - 2).abs)
-        end
-        i
+        parse_sexagesimal(string, &:to_i)
       elsif string.match?(/^[-+]?[0-9][0-9_]*(:[0-5]?[0-9]){1,2}\.[0-9_]*$/)
-        i = 0
-        string.split(':').each_with_index do |n,e|
-          i += (n.to_f * 60 ** (e - 2).abs)
-        end
-        i
+        parse_sexagesimal(string, &:to_f)
       elsif string.match?(FLOAT)
         if string.match?(/\A[-+]?\.\Z/)
           string
@@ -114,6 +106,23 @@ module Psych
       else
         string
       end
+    end
+
+    ###
+    # Parse and return a base 60 number from +string+, converting each
+    # component with the given block.
+    #
+    # The components are written most significant first, so a component's
+    # weight depends on how many follow it rather than on a fixed width, and
+    # the sign belongs to the value as a whole rather than to the first
+    # component alone.
+    def parse_sexagesimal string
+      components = string.split(':')
+      total = 0
+      components.each_with_index do |component, index|
+        total += yield(component).abs * 60 ** (components.length - 1 - index)
+      end
+      components.first.start_with?('-') ? -total : total
     end
 
     ###
