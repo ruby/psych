@@ -236,6 +236,16 @@ public class PsychParser extends RubyObject {
     public IRubyObject parse(ThreadContext context, IRubyObject handler, IRubyObject yaml, IRubyObject path) {
         Ruby runtime = context.runtime;
 
+        // The parser calls back into Ruby for every event, so a handler can call
+        // Psych::Parser#parse again on the same object, which would replace the
+        // parser the loop below is still driving.
+        if (parsing) {
+            throw runtime.newRaiseException(
+                    (RubyClass) runtime.getModule("Psych").getConstant("Exception"),
+                    "parser is already parsing, it cannot be reused from a handler callback");
+        }
+        parsing = true;
+
         try {
             LoadSettings loadSettings = loadSettingsBuilder.build();
             parser = new ParserImpl(loadSettings, new ScannerImpl(loadSettings, readerFor(context, yaml, loadSettings)));
@@ -324,6 +334,8 @@ public class PsychParser extends RubyObject {
         } catch (Throwable t) {
             Helpers.throwException(t);
             return this;
+        } finally {
+            parsing = false;
         }
 
         return this;
@@ -567,6 +579,7 @@ public class PsychParser extends RubyObject {
 
     private Parser parser;
     private Event event;
+    private boolean parsing;
     private final LoadSettingsBuilder loadSettingsBuilder;
     private final CallSites sites;
 
