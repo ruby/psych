@@ -116,5 +116,58 @@ module Psych
       @emitter.start_document(version, tags, 0)
       assert(true)
     end
+
+    def test_tag_directives_survive_gc
+      # Non UTF-8 handles and prefixes are exported to new Strings that
+      # nothing else references.
+      tags = (0...8).map { |i|
+        c = ("a".ord + i).chr
+        ["!#{c * 98}!".encode(Encoding::ISO_8859_1),
+         "tag:example.com,2026:#{c * 79}".encode(Encoding::ISO_8859_1)]
+      }
+      expected = tags.map { |handle, prefix| "%TAG #{handle} #{prefix}\n" }.join
+
+      @emitter.start_stream Psych::Nodes::Stream::UTF8
+      stress = GC.stress
+      begin
+        GC.stress = true
+        @emitter.start_document [], tags, false
+      ensure
+        GC.stress = stress
+      end
+      @emitter.scalar "v", nil, nil, true, false, Nodes::Scalar::ANY
+      @emitter.end_document false
+      @emitter.end_stream
+
+      assert_equal expected, @out.string.lines.grep(/\A%TAG/).join
+    end
+
+    def test_tag_directives_survive_compaction
+      omit "compaction is not supported" unless GC.respond_to?(:verify_compaction_references)
+      omit "the libfyaml emitter does not copy tag directives" if libfyaml?
+
+      # The second handle compacts the heap while it is converted, after the
+      # first directive has been recorded.
+      window = Object.new
+      def window.to_str
+        GC.verify_compaction_references(expand_heap: true, toward: :empty)
+        "!w!"
+      end
+      # Built in a block so that no local variable pins the Strings.
+      tags = 1.times.map {
+        ["!" + "a" * 98 + "!", "tag:example.com,2026:" + "p" * 79]
+      }
+      tags << [window, "tag:example.com,2026:w"]
+      expected = "%TAG !#{"a" * 98}! tag:example.com,2026:#{"p" * 79}\n" \
+                 "%TAG !w! tag:example.com,2026:w\n"
+
+      @emitter.start_stream Psych::Nodes::Stream::UTF8
+      @emitter.start_document [], tags, false
+      @emitter.scalar "v", nil, nil, true, false, Nodes::Scalar::ANY
+      @emitter.end_document false
+      @emitter.end_stream
+
+      assert_equal expected, @out.string.lines.grep(/\A%TAG/).join
+    end
   end
 end
